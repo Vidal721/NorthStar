@@ -97,12 +97,12 @@ body{font-family:'Inter',-apple-system,sans-serif;color:rgba(255,255,255,0.95);b
 }
 .nav-link:hover{
   color:var(--t1);
-  background:rgba(255,255,255,0.07)
+  background:rgba(20, 20, 20, 0.07)
 }
 
 .nav-link.active{
   color:var(--t1);
-  background:rgba(255,255,255,0.10)
+  background:var(--blue);
 }
 
 /* ── HERO ── */
