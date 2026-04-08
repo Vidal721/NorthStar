@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="js/qrcode.min.js"></script>
+    <link rel="stylesheet" href="css/all.min.css">
+    <style>
+        :root { 
+            --gold: #FFD700; 
+            --gold-dark: #FFC107;
+            --black: #353535; 
+            --dark: #1a1a1a; 
+            --darker: #121212;
+            --card-bg: #1e1e1e;
+            --border: #2d2d2d;
+            --text-secondary: #b0b0b0;
+            --success: #4CAF50;
+            --danger: #f44336;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0; 
+            background: radial-gradient(circle at top, #111827 0%, #020617 45%, #000000 100%);
+            color: white; 
+            touch-action: manipulation;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        #app-header {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            backdrop-filter: blur(16px);
+            background: linear-gradient(to right, rgba(15,15,15,0.95), rgba(15,15,15,0.85));
+            border-bottom: 1px solid var(--border);
+        }
+
+        .top-bar {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-title { display: flex; flex-direction: column; }
+        .top-title-main { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+        .top-title-sub { font-size: 0.75rem; color: var(--text-secondary); }
+
+        .menu-btn {
+            border: 1px solid var(--border);
+            background: rgba(15,15,15,0.9);
+            color: var(--gold);
+            width: 34px; height: 34px;
+            border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background 0.18s ease, transform 0.1s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .menu-btn:hover { background: rgba(24,24,27,0.95); border-color: rgba(250,204,21,0.5); box-shadow: 0 0 0 1px rgba(250,204,21,0.15); }
+        .menu-btn:active { transform: scale(0.94); }
+        
+        .page { 
+            display: none; 
+            padding: 20px;
+            max-width: 600px;
+            margin: 8px auto 24px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page.active { display: block; }
+        
+        .card { 
+            background: var(--card-bg);
+            padding: 20px; 
+            border-radius: 16px; 
+            margin-bottom: 16px; 
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:active { transform: scale(0.98); }
+        
+        .btn-main { 
+            background: linear-gradient(135deg, rgba(255,215,0,0.14) 0%, rgba(255,215,0,0.04) 100%);
+            color: #fefce8; 
+            border: 1px solid rgba(255,215,0,0.5); 
+            padding: 16px 24px; 
+            width: 100%; 
+            border-radius: 999px; 
+            font-weight: 600; 
+            font-size: 1rem; 
+            cursor: pointer;
+            box-shadow: 0 0 0 1px rgba(15,23,42,0.6), 0 18px 45px rgba(0,0,0,0.65);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .btn-main.primary {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #020617;
+            border-color: transparent;
+            box-shadow: 0 16px 35px rgba(250,204,21,0.35);
+        }
+        .btn-main:active { transform: scale(0.97); box-shadow: 0 8px 20px rgba(0,0,0,0.7); }
+        .btn-secondary { background: rgba(15,15,15,0.9); color: var(--text-secondary); border-color: rgba(55,65,81,0.9); box-shadow: 0 8px 24px rgba(0,0,0,0.65); }
+        .btn-secondary:active { background: #111827; }
+        
+        label { 
+            color: var(--gold); font-size: 0.85rem; font-weight: 600; 
+            display: block; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        
+        input, textarea, select { 
+            width: 100%; padding: 14px; background: var(--darker); 
+            border: 1px solid var(--border); color: white; border-radius: 10px; 
+            box-sizing: border-box; font-size: 1rem; font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFD700' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 40px;
+        }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
+        
+        .counter-box { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; background: var(--darker); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
+        .btn-qty { width: 50px; height: 50px; border-radius: 12px; border: none; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+        .btn-qty:active { transform: scale(0.9); }
+        .btn-qty.minus { background: #2d2d2d; color: white; }
+        .btn-qty.plus { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #000; }
+        .count-display { font-size: 2rem; font-weight: 700; color: var(--gold); min-width: 60px; text-align: center; }
+        
+        .check-container { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--darker); border-radius: 12px; cursor: pointer; border: 2px solid var(--border); transition: all 0.2s; }
+        .check-container:active { transform: scale(0.98); }
+        .check-container.checked { border-color: var(--gold); background: rgba(255, 215, 0, 0.1); box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
+        .custom-check { width: 28px; height: 28px; border: 2px solid var(--gold); border-radius: 8px; position: relative; transition: all 0.2s; }
+        .check-container.checked .custom-check { background: var(--gold); box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3); }
+        .check-container.checked .custom-check::after { content: "✓"; position: absolute; left: 6px; top: -2px; color: #000; font-size: 1.3rem; font-weight: bold; }
+        
+        h1 { font-size: 2.3rem; font-weight: 800; text-align: center; margin: 28px 0 12px; letter-spacing: 0.16em; text-transform: uppercase; background: linear-gradient(135deg, #facc15 0%, #fbbf24 40%, #e5e7eb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        h2 { font-size: 1.5rem; font-weight: 600; margin: 0 0 24px; }
+        
+        #match-status { text-align: center; margin-bottom: 32px; color: var(--text-secondary); font-weight: 500; font-size: 1rem; padding: 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); }
+        
+        #qr-overlay { 
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%); 
+           
+        }
+        #qr-overlay h2 { color: #ffffff; font-size: 1.8rem; margin-bottom: 20px; }
+        #qr-overlay p { color: #666; font-size: 1rem; margin: 20px 0; }
+        
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .back-btn { background: transparent; border: none; color: var(--gold); font-size: 2rem; cursor: pointer; padding: 8px; }
+
+        #sidebar {
+            position: fixed; top: 0; left: 0; width: 280px; height: 100%;
+            background: radial-gradient(circle at top left, #111827 0%, #020617 55%, #000000 100%);
+            padding: 20px 18px 20px; border-right: 1px solid var(--border);
+            box-shadow: 12px 0 40px rgba(0, 0, 0, 0.75); z-index: 1000;
+            display: none; transform: translateX(-100%); transition: transform 0.26s ease;
+        }
+        #sidebar.open { display: block; transform: translateX(0); }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .sidebar-title { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+        .sidebar-close { border: none; background: transparent; color: var(--text-secondary); width: 30px; height: 30px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease; }
+        .sidebar-close:hover { background: rgba(31,41,55,0.9); color: #e5e7eb; }
+        .sidebar-close:active { transform: scale(0.92); }
+        .sidebar-links { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+
+        /* ─── PIT FORM EDITOR STYLES ─── */
+        .pfe-field-card {
+            background: var(--darker);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            position: relative;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .pfe-field-card:hover {
+            border-color: rgba(255,215,0,0.3);
+        }
+        .pfe-field-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .pfe-field-number {
+            background: rgba(255,215,0,0.15);
+            color: var(--gold);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            min-width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .pfe-field-label-preview {
+            font-size: 0.85rem;
+            color: #e5e7eb;
+            font-weight: 500;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pfe-field-type-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+        }
+        .pfe-badge-text     { background: rgba(33,150,243,0.2); color: #64b5f6; border: 1px solid rgba(33,150,243,0.3); }
+        .pfe-badge-number   { background: rgba(156,39,176,0.2); color: #ce93d8; border: 1px solid rgba(156,39,176,0.3); }
+        .pfe-badge-counter  { background: rgba(255,152,0,0.2);  color: #ffb74d; border: 1px solid rgba(255,152,0,0.3); }
+        .pfe-badge-checkbox { background: rgba(76,175,80,0.2);  color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+        .pfe-badge-select   { background: rgba(255,215,0,0.15); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+
+        .pfe-field-body { display: none; }
+        .pfe-field-body.expanded { display: block; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 10px; }
+
+        .pfe-field-row { display: flex; gap: 8px; align-items: flex-end; }
+        .pfe-field-row > * { flex: 1; }
+
+        .pfe-input {
+            width: 100%; padding: 10px 12px;
+            background: #0d0d0d; border: 1px solid var(--border);
+            color: white; border-radius: 8px; font-size: 0.9rem; font-family: inherit;
+            box-sizing: border-box; transition: border-color 0.2s;
+        }
+        .pfe-input:focus { outline: none; border-color: var(--gold); }
+        .pfe-select {
+            width: 100%; padding: 10px 12px; padding-right: 36px;
+            background: #0d0d0d; border: 1px solid var(--border);
+            color: white; border-radius: 8px; font-size: 0.9rem; font-family: inherit;
+            box-sizing: border-box; appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFD700' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 10px center; background-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .pfe-select:focus { outline: none; border-color: var(--gold); }
+
+        .pfe-label-sm { font-size: 0.75rem; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+
+        .pfe-action-row {
+            display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
+        }
+        .pfe-btn {
+            padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .pfe-btn-danger  { background: rgba(244,67,54,0.15);  color: #ef9a9a; border: 1px solid rgba(244,67,54,0.3); }
+        .pfe-btn-danger:hover  { background: rgba(244,67,54,0.28); }
+        .pfe-btn-up      { background: rgba(255,215,0,0.1);   color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+        .pfe-btn-up:hover      { background: rgba(255,215,0,0.2); }
+        .pfe-btn-down    { background: rgba(255,215,0,0.1);   color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+        .pfe-btn-down:hover    { background: rgba(255,215,0,0.2); }
+        .pfe-btn-expand  { background: rgba(255,255,255,0.05); color: #aaa; border: 1px solid var(--border); }
+        .pfe-btn-expand:hover  { background: rgba(255,255,255,0.1); color: #fff; }
+        .pfe-btn:active  { transform: scale(0.95); }
+
+        .pfe-options-hint {
+            font-size: 0.75rem; color: var(--text-secondary);
+            margin-top: 4px; line-height: 1.4;
+        }
+
+        .pfe-add-btn {
+            width: 100%; padding: 14px;
+            background: rgba(255,215,0,0.06);
+            border: 2px dashed rgba(255,215,0,0.3);
+            color: var(--gold); border-radius: 12px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 0.06em; text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .pfe-add-btn:hover { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.6); }
+        .pfe-add-btn:active { transform: scale(0.98); }
+
+        .pfe-copy-btn {
+            width: 100%; padding: 16px 24px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #020617; border: none; border-radius: 999px;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+            box-shadow: 0 16px 35px rgba(250,204,21,0.35);
+            transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.06em;
+            margin-bottom: 12px;
+        }
+        .pfe-copy-btn:active { transform: scale(0.97); }
+        .pfe-copy-btn.copied {
+            background: linear-gradient(135deg, var(--success) 0%, #388e3c 100%);
+            box-shadow: 0 16px 35px rgba(76,175,80,0.3);
+        }
+
+        .pfe-preview-box {
+            background: #0a0a0a; border: 1px solid var(--border);
+            border-radius: 10px; padding: 14px;
+            font-family: 'Courier New', monospace; font-size: 0.75rem;
+            color: #6ee7b7; overflow-x: auto; white-space: pre-wrap;
+            word-break: break-all; max-height: 220px; overflow-y: auto;
+            display: none;
+        }
+        .pfe-preview-box.visible { display: block; }
+
+        .pfe-toggle-preview {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-secondary); padding: 10px 16px;
+            border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+            transition: all 0.2s; width: 100%; margin-bottom: 12px;
+        }
+        .pfe-toggle-preview:hover { border-color: var(--gold); color: var(--gold); }
+
+        .pfe-empty-state {
+            text-align: center; padding: 40px 20px;
+            color: var(--text-secondary); font-size: 0.95rem;
+        }
+        .pfe-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+        .pfe-required-row {
+            display: flex; align-items: center; gap: 10px; margin-top: 8px;
+        }
+        .pfe-required-toggle {
+            width: 40px; height: 22px; background: var(--border);
+            border-radius: 11px; position: relative; cursor: pointer;
+            transition: background 0.2s; flex-shrink: 0;
+        }
+        .pfe-required-toggle.on { background: var(--gold); }
+        .pfe-required-toggle::after {
+            content: ''; position: absolute;
+            width: 16px; height: 16px; background: white;
+            border-radius: 50%; top: 3px; left: 3px;
+            transition: transform 0.2s;
+        }
+        .pfe-required-toggle.on::after { transform: translateX(18px); }
+        .pfe-required-label { font-size: 0.8rem; color: var(--text-secondary); }
+
+        .pfe-section-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 8px 0 14px; color: var(--text-secondary); font-size: 0.8rem;
+        }
+        .pfe-section-divider::before, .pfe-section-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        .pfe-form-name-row { margin-bottom: 20px; }
+        .pfe-badge-robot_image { background: rgba(255,87,34,0.2); color: #ff8a65; border: 1px solid rgba(255,87,34,0.3); }
+
+        /* ─── ROBOT IMAGE FIELD (in scouting form) ─── */
+        .robot-img-field {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .robot-img-capture-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 20px;
+            background: rgba(255,215,0,0.06);
+            border: 2px dashed rgba(255,215,0,0.4);
+            border-radius: 14px;
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .robot-img-capture-btn:hover { background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.7); }
+        .robot-img-capture-btn:active { transform: scale(0.97); }
+        .robot-img-capture-btn .cam-icon { font-size: 1.6rem; }
+
+        .robot-img-preview-wrap {
+            position: relative;
+            display: none;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(255,215,0,0.4);
+            background: #000;
+        }
+        .robot-img-preview-wrap.has-image { display: block; }
+        .robot-img-preview {
+            width: 100%;
+            max-height: 280px;
+            object-fit: contain;
+            display: block;
+            background: #0a0a0a;
+        }
+        .robot-img-retake-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.75);
+            color: var(--gold);
+            border: 1px solid rgba(255,215,0,0.5);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+        .robot-img-retake-btn:active { transform: scale(0.95); }
+
+        .robot-img-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .robot-img-status.captured { color: var(--success); }
+        .camera-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            z-index: 10002;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .camera-modal.on { display: flex; }
+        .camera-panel {
+            width: 100%;
+            max-width: 640px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+        }
+        .camera-video-wrap {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,215,0,0.25);
+        }
+        #robot-camera-video {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }
+        .camera-actions { display: flex; gap: 10px; margin-top: 12px; }
+        .camera-actions .btn-main { margin: 0; }
+
+        /* ─── THUMBNAIL in saved data list ─── */
+        .saved-entry-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255,215,0,0.3);
+            flex-shrink: 0;
+        }
+        .saved-entry-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .saved-entry-info { flex: 1; min-width: 0; }
+
+        @media (min-width: 768px) { #sidebar { width: 320px; } }
+
+        @media (min-width: 600px) and (max-width: 1024px) {
+            .page { max-width: 700px; padding: 24px; }
+            .card { padding: 24px; }
+            .btn-main { padding: 18px 24px; font-size: 1.1rem; }
+            #saved-data-list { max-height: 400px; }
+        }
+
+        button, .check-container, .btn-qty { -webkit-tap-highlight-color: rgba(255, 215, 0, 0.3); touch-action: manipulation; }
+
+        #saved-data-list::-webkit-scrollbar { width: 8px; }
+        #saved-data-list::-webkit-scrollbar-track { background: var(--darker); border-radius: 4px; }
+        #saved-data-list::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+        #saved-data-list::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
+
+        /* Notification System */
+        #notification-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .notification { background: var(--card-bg); color: white; padding: 16px 20px; border-radius: 12px; border-left: 4px solid var(--gold); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); min-width: 300px; max-width: 400px; pointer-events: auto; animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s forwards; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .notification.success { border-left-color: var(--success); }
+        .notification.error { border-left-color: var(--danger); }
+        .notification.warning { border-left-color: #ff9800; }
+        .notification-info { border-left-color: #2196F3; }
+        @keyframes slideInRight { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(400px); } }
+        .notification-message { flex: 1; font-size: 0.95rem; line-height: 1.4; }
+        .notification-close { background: transparent; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+        .notification-close:hover { color: white; }
+
+        /* Modal Dialog */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 10001; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+        .modal-overlay.show { display: flex; }
+        .modal-dialog { background: var(--card-bg); border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 16px; color: var(--gold); }
+        .modal-input { width: 100%; padding: 14px; background: var(--darker); border: 1px solid var(--border); color: white; border-radius: 10px; font-size: 1rem; margin-bottom: 16px; font-family: inherit; }
+        .modal-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
+        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
+        .modal-btn { padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; }
+        .modal-btn-primary { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #000; }
+        .modal-btn-secondary { background: var(--darker); color: white; border: 1px solid var(--border); }
+        .modal-btn:active { transform: scale(0.97); }
+
+        @media (min-width: 600px) and (max-width: 1024px) {
+            .modal-dialog { padding: 28px; max-width: 600px; }
+            .notification { min-width: 350px; max-width: 450px; }
+        }
+    </style>
+</head>
+<body>
+    <script src="js/confetti.browser.min.js"></script>
+    <div id="notification-container"></div>
+    
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-title" id="modal-title">Title</div>
+            <input type="text" class="modal-input" id="modal-input" placeholder="Enter value...">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="modal-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="sidebar-overlay" onclick="toggleSidebar()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999;"></div>
+    
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">TEAM 935 // SCOUTING</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="sidebar-links">
+            <button class="btn-main btn-secondary" onclick="showPage('home')"><i class="fa-solid fa-house"></i>&nbsp;&nbsp;HOME</button>
+            <button class="btn-main btn-secondary" onclick="window.location.href='scanner.html'"><i class="fa-solid fa-qrcode"></i>&nbsp;&nbsp;SCANNER</button>
+            <button class="btn-main btn-secondary" onclick="showPage('config')"><i class="fa-solid fa-gear"></i>&nbsp;&nbsp;CONFIG / IMPORT</button>
+            <button class="btn-main btn-secondary" onclick="showPage('saved-data')"><i class="fa-solid fa-floppy-disk"></i>&nbsp;&nbsp;SAVED DATA</button>
+            <button class="btn-main btn-secondary" onclick="showPage('pit-editor')"><i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;PIT FORM EDITOR</button>
+            <button class="btn-main btn-secondary" onclick="window.location.href='FetchAPIData.html'">FETCH API</button>
+        </div>
+    </div>
+
+    <header id="app-header">
+        <div class="top-bar">
+            <button class="menu-btn" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="top-title">
+                <span class="top-title-main">TEAM 935 SCOUTING HUB</span>
+                <span class="top-title-sub">Black &amp; Gold // 2026</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- HOME -->
+    <div id="home" class="page active">
+        <h1>SCOUTING HUB</h1>
+        <div id="match-status">Ready to Scout?</div>
+        <button class="btn-main primary" onclick="window.location.href='form.html'">START MATCH SCOUTING</button>
+        <button class="btn-main btn-secondary" style="margin-top:12px;" onclick="startPitScouting()">PIT SCOUTING</button>
+    </div>
+
+    <!-- CONFIG / IMPORT -->
+    <div id="config" class="page">
+        <div class="page-header">
+            <h2>Import Form</h2>
+            <button class="back-btn" onclick="showPage('home')"><i class="fa-solid fa-house"></i></button>
+        </div>
+        <div class="card">
+            <label>Upload JSON File</label>
+            <input type="file" id="json-file-input" accept=".json,application/json" style="display:none;" onchange="importFile(this)">
+            <button class="btn-main btn-secondary" onclick="document.getElementById('json-file-input').click()">CHOOSE FILE</button>
+            <p style="text-align:center; color:var(--text-secondary); font-size:0.9rem; margin:20px 0;">-- OR PASTE JSON BELOW --</p>
+            <textarea id="json-input" rows="6" placeholder="Paste JSON here..."></textarea>
+            <button class="btn-main primary" style="margin-top:16px" onclick="importForm()">APPLY JSON</button>
+        </div>
+    </div>
+
+    <!-- SAVED DATA -->
+    <div id="saved-data" class="page">
+        <div class="page-header">
+            <h2>Saved Data</h2>
+            <button class="back-btn" onclick="showPage('home')"><i class="fa-solid fa-house"></i></button>
+        </div>
+        <div class="card">
+            <div id="saved-data-list" style="margin-bottom:16px; max-height:400px; overflow-y:auto;">
+                <p style="color:var(--text-secondary); text-align:center; padding:20px;">No saved data yet</p>
+            </div>
+            <button class="btn-main btn-secondary" onclick="refreshSavedData()" style="margin-bottom:8px;">REFRESH</button>
+            <button class="btn-main btn-secondary" onclick="downloadAllData()"><i class="fa-solid fa-download"></i> DOWNLOAD ALL DATA</button>
+            <button class="btn-main btn-secondary" onclick="clearAllData()" style="background:var(--danger); margin-top:8px;">CLEAR ALL DATA</button>
+        </div>
+    </div>
+
+    <!-- SCOUT PAGE (match & pit) -->
+    <div id="scout-page" class="page">
+        <div class="page-header">
+            <h2 id="form-title">Scouting</h2>
+            <button class="back-btn" onclick="showPage('home')"><i class="fa-solid fa-house"></i></button>
+        </div>
+        <div id="form-container"></div>
+        <button id="submit-btn" class="btn-main primary" style="margin-top:24px; display:none;" onclick="generateQR(); triggerSideConfetti()">Submit</button>
+        <button class="btn-main btn-secondary" style="margin-top:16px;" onclick="saveData()">Save Data</button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         PIT FORM EDITOR PAGE
+    ════════════════════════════════════════════════════ -->
+    <div id="pit-editor" class="page">
+        <div class="page-header">
+            <h2>Pit Form Editor</h2>
+            <button class="back-btn" onclick="showPage('home')"><i class="fa-solid fa-house"></i></button>
+        </div>
+
+        <!-- Form name -->
+        <div class="card pfe-form-name-row">
+            <label>Form Name</label>
+            <input type="text" class="pfe-input" id="pfe-form-name" value="Pit Scouting Form" placeholder="Form name...">
+        </div>
+
+        <!-- Field list -->
+        <div id="pfe-fields-list"></div>
+
+        <!-- Add field button -->
+        <button class="pfe-add-btn" onclick="pfeAddField()">+ ADD FIELD</button>
+
+        <!-- Export section -->
+        <div class="card">
+            <div class="pfe-section-divider">EXPORT</div>
+
+            <button class="pfe-copy-btn" id="pfe-copy-btn" onclick="pfeCopyJSON()">
+                <i class="fa-solid fa-copy"></i>&nbsp; COPY JSON TO CLIPBOARD
+            </button>
+
+            <button class="pfe-toggle-preview" onclick="pfeTogglePreview()">
+                <i class="fa-solid fa-code"></i>&nbsp; TOGGLE JSON PREVIEW
+            </button>
+
+            <pre class="pfe-preview-box" id="pfe-preview-box"></pre>
+
+            <p style="color:var(--text-secondary); font-size:0.82rem; line-height:1.6; margin:12px 0 0; text-align:center;">
+                Copy the JSON above, then paste it into <code style="color:var(--gold); background:rgba(255,215,0,0.1); padding:1px 6px; border-radius:4px;">pitscoutingform.json</code> to save your changes.
+            </p>
+        </div>
+
+        <!-- Load current / reset -->
+        <div style="display:flex; gap:10px; margin-bottom:24px;">
+            <button class="btn-main btn-secondary" style="font-size:0.85rem; padding:12px;" onclick="pfeLoadEmbedded()">RESET TO DEFAULT</button>
+            <button class="btn-main btn-secondary" style="font-size:0.85rem; padding:12px;" onclick="pfeLoadFromStorage()">LOAD SAVED</button>
+        </div>
+    </div>
+
+    <!-- QR OVERLAY -->
+    <div id="qr-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; text-align:center; padding:40px 20px; z-index:100; overflow-y: auto;">
+        <h2 id="qr-part-label">PART 1</h2>
+        <div id="qrcode" style="display:flex; justify-content:center; margin: 30px 0;"></div>
+        <p style="font-weight:600; color: #666; font-size: 1rem;">Keep steady for Lead Scout</p>
+        <button class="btn-main primary" style="width:85%; max-width:400px; margin:30px auto 0; display:block; background:linear-gradient(135deg, #000 0%, #1a1a1a 100%); color:var(--gold); border:2px solid var(--gold);" onclick="finishAndReset()">DONE - NEW MATCH</button>
+    </div>
+
+    <!-- ROBOT CAMERA MODAL -->
+    <div id="robot-camera-modal" class="camera-modal" onclick="if(event.target===this)closeRobotCamera()">
+        <div class="camera-panel">
+            <div class="camera-video-wrap">
+                <video id="robot-camera-video" autoplay playsinline muted></video>
+            </div>
+            <canvas id="robot-camera-canvas" style="display:none;"></canvas>
+            <div class="camera-actions">
+                <button type="button" class="btn-main primary" onclick="captureRobotCameraPhoto()">CAPTURE</button>
+                <button type="button" class="btn-main btn-secondary" onclick="closeRobotCamera()">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // CONFETTI
+    // ─────────────────────────────────────────────────────────────────────────
+    function triggerSideConfetti() {
+        const end = Date.now() + (3 * 1000);
+        (function frame() {
+            confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0, y: 0.6 } });
+            confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1, y: 0.6 } });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+    document.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'a') triggerSideConfetti(); });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // NOTIFICATIONS
+    // ─────────────────────────────────────────────────────────────────────────
+    function showNotification(message, type) {
+        type = type || 'info';
+        var container = document.getElementById('notification-container');
+        var notification = document.createElement('div');
+        notification.className = 'notification ' + type;
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'notification-message';
+        messageDiv.textContent = message;
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'notification-close';
+        closeBtn.innerHTML = '×';
+        closeBtn.onclick = function() {
+            notification.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(function() { if (notification.parentNode) notification.parentNode.removeChild(notification); }, 300);
+        };
+        notification.appendChild(messageDiv);
+        notification.appendChild(closeBtn);
+        container.appendChild(notification);
+        setTimeout(function() {
+            if (notification.parentNode) {
+                notification.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(function() { if (notification.parentNode) notification.parentNode.removeChild(notification); }, 300);
+            }
+        }, 3000);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MODAL
+    // ─────────────────────────────────────────────────────────────────────────
+    var modalCallback = null;
+    function showModal(title, placeholder, defaultValue, callback) {
+        document.getElementById('modal-title').textContent = title;
+        var input = document.getElementById('modal-input');
+        input.placeholder = placeholder || '';
+        input.value = defaultValue || '';
+        modalCallback = callback;
+        document.getElementById('modal-overlay').classList.add('show');
+        input.focus(); input.select();
+    }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); modalCallback = null; }
+    function confirmModal() {
+        var value = document.getElementById('modal-input').value.trim();
+        if (modalCallback) modalCallback(value);
+        closeModal();
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        var mi = document.getElementById('modal-input');
+        var mc = document.getElementById('modal-confirm');
+        if (mi) mi.addEventListener('keypress', function(e) { if (e.key === 'Enter') confirmModal(); });
+        if (mc) mc.onclick = confirmModal;
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SIDEBAR
+    // ─────────────────────────────────────────────────────────────────────────
+    function toggleSidebar() {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.toggle('open');
+        if (sidebar.classList.contains('open')) {
+            overlay.style.display = 'block'; sidebar.style.zIndex = 2000;
+        } else {
+            overlay.style.display = 'none'; sidebar.style.zIndex = 1000;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DEFAULT FORM JSONS (embedded)
+    // ─────────────────────────────────────────────────────────────────────────
+    var DEFAULT_FORM_JSON = {
+      "name": "Match Scouting Form", "version": "1.0",
+      "fields": [
+        {"label":"Team Number","type":"number","required":true},
+        {"label":"Match Number","type":"number","required":true},
+        {"label":"Scouter Name","type":"text","required":true},
+        {"label":"Auto Action","type":"select","required":false,"options":"None, Scoring Attempt, Successfully scored, Filled Hopper, Climbed, Filled and scored"},
+        {"label":"Primary Path","type":"select","required":false,"options":"Trench, Bump, Both"},
+        {"label":"Climb Level","type":"select","required":false,"options":"None, Park, Level 1, Level 2, Level 3"},
+        {"label":"Climb Result","type":"select","required":false,"options":"Succesful, Attempted, Failed"},
+        {"label":"If failed or attempted explain what happened","type":"text","required":false},
+        {"label":"Did they only score from one location?","type":"checkbox","required":false},
+        {"label":"Notes (Add anything like robot broke this match or if they can score or not be descriptive)","type":"text","required":false}
+      ]
+    };
+
+    var EMBEDDED_DEFAULT_FORM = {
+      "name": "Match Scouting Form", "version": "1.0",
+      "fields": [
+        {"label":"Scouter Name","type":"text","required":true},
+        {"label":"Team Number","type":"number","required":true},
+        {"label":"Match Number","type":"number","required":true},
+        {"label":"L1 - Scored","type":"counter","required":false},
+        {"label":"L1 - Missed","type":"counter","required":false},
+        {"label":"L2 - Scored","type":"counter","required":false},
+        {"label":"L2 - Missed","type":"counter","required":false},
+        {"label":"L3 - Scored","type":"counter","required":false},
+        {"label":"L3 - Missed","type":"counter","required":false},
+        {"label":"L4 - Scored","type":"counter","required":false},
+        {"label":"L4 - Missed","type":"counter","required":false},
+        {"label":"Climb","type":"select","required":false,"options":"Park, Shalow, Deep, None"}
+      ]
+    };
+
+    var EMBEDDED_PIT_FORM = {
+  "name": "2026 City of Fountains",
+  "version": "1.0",
+  "fields": [
+    {
+      "label": "Team Number",
+      "type": "number",
+      "required": true
+    },
+    {
+      "label": "Scouter Name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Robot Photo",
+      "type": "robot_image",
+      "required": false
+    },
+    {
+      "label": "Robot Weight",
+      "type": "number",
+      "required": false
+    },
+    {
+      "label": "Drive Train Type",
+      "type": "select",
+      "required": false,
+      "options": "Swerve, Mecanum, Tank, Other"
+    },
+    {
+      "label": "Shooter Type",
+      "type": "select",
+      "required": false,
+      "options": "Fixed Shooter, Turret"
+    },
+    {
+      "label": "Scoring Locations",
+      "type": "select",
+      "required": false,
+      "options": "Fixed Locations, Anywhere, Anywhere while scoring, other"
+    },
+    {
+      "label": "Can Climb",
+      "type": "checkbox",
+      "required": false
+    },
+    {
+      "label": "Climb Type",
+      "type": "select",
+      "required": false,
+      "options": "L1, L2, L3"
+    },
+    {
+      "label": "Programming Langauge",
+      "type": "select",
+      "required": true,
+      "options": "C++, Java, Python, Other"
+    },
+    {
+      "label": "Notes",
+      "type": "text",
+      "required": false
+    }
+  ]
+};
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SCOUTING CORE
+    // ─────────────────────────────────────────────────────────────────────────
+    var scoutingData = {};
+    var currentTemplate = null;
+    var lastMatchNumber = 0;
+    var formLoaded = false;
+    var isPitScouting = false;
+
+    function validateForm(form) {
+        if (!form || typeof form !== 'object') return false;
+        if (!form.name || typeof form.name !== 'string') return false;
+        if (!form.fields || !Array.isArray(form.fields)) return false;
+        for (var i = 0; i < form.fields.length; i++) {
+            var field = form.fields[i];
+            if (!field.label || typeof field.label !== 'string') return false;
+            var validTypes = ['number', 'text', 'checkbox', 'counter', 'select', 'robot_image'];
+            if (validTypes.indexOf(field.type) === -1) return false;
+            if (field.type === 'select' && !field.options) return false;
+        }
+        return true;
+    }
+
+    function loadFormFromFile(filename, storageKey, callback) {
+        if (filename === 'default-form.json' && EMBEDDED_DEFAULT_FORM) {
+            if (validateForm(EMBEDDED_DEFAULT_FORM)) {
+                localStorage.setItem(storageKey, JSON.stringify(EMBEDDED_DEFAULT_FORM));
+                if (callback) callback(EMBEDDED_DEFAULT_FORM); return;
+            }
+        }
+        if (filename === 'pitscoutingform.json') {
+            // First check localStorage for a custom editor-saved version
+            var stored = localStorage.getItem('pit_scout_template');
+            if (stored) {
+                try {
+                    var parsed = JSON.parse(stored);
+                    if (validateForm(parsed)) { if (callback) callback(parsed); return; }
+                } catch(e) {}
+            }
+            // Fall back to embedded
+            if (EMBEDDED_PIT_FORM && validateForm(EMBEDDED_PIT_FORM)) {
+                localStorage.setItem(storageKey, JSON.stringify(EMBEDDED_PIT_FORM));
+                if (callback) callback(EMBEDDED_PIT_FORM); return;
+            }
+        }
+
+        function loadWithXHR(filePath, onSuccess, onError) {
+            var xhr = new XMLHttpRequest();
+            var timeout = setTimeout(function() { xhr.abort(); onError('Timeout'); }, 5000);
+            xhr.open('GET', filePath, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    clearTimeout(timeout);
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        try {
+                            if (!xhr.responseText || xhr.responseText.trim() === '') { onError('Empty response'); return; }
+                            onSuccess(JSON.parse(xhr.responseText));
+                        } catch (e) { onError('Parse error: ' + e.message); }
+                    } else { onError('HTTP ' + xhr.status); }
+                }
+            };
+            xhr.onerror = function() { clearTimeout(timeout); onError('Network error'); };
+            xhr.timeout = 5000;
+            xhr.send();
+        }
+
+        var isAndroid = window.location.protocol === 'file:' || window.location.href.indexOf('android_asset') !== -1;
+        var currentPath = window.location.pathname;
+        var basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        var pathsToTry = [filename, './' + filename];
+        if (isAndroid || window.location.href.indexOf('file://') === 0) {
+            pathsToTry.push('file:///android_asset/public/' + filename, '/android_asset/public/' + filename, basePath + filename, window.location.origin + basePath + filename);
+        } else {
+            pathsToTry.push(basePath + filename, window.location.origin + basePath + filename);
+        }
+        var idx = 0;
+        function tryNextPath() {
+            if (idx >= pathsToTry.length) {
+                var ts = localStorage.getItem(storageKey);
+                if (ts) { try { var p = JSON.parse(ts); if (validateForm(p)) { if (callback) callback(p); return; } } catch(e) {} }
+                if (callback) callback(null); return;
+            }
+            var cp = pathsToTry[idx];
+            loadWithXHR(cp, function(parsed) {
+                if (validateForm(parsed)) { localStorage.setItem(storageKey, JSON.stringify(parsed)); if (callback) callback(parsed); }
+                else { idx++; tryNextPath(); }
+            }, function() { idx++; tryNextPath(); });
+        }
+        if (isAndroid || window.location.protocol === 'file:') { tryNextPath(); }
+        else {
+            fetch(filename).then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+                .then(function(p) { if (validateForm(p)) { localStorage.setItem(storageKey, JSON.stringify(p)); if (callback) callback(p); } else throw new Error(); })
+                .catch(function() { tryNextPath(); });
+        }
+    }
+
+    function loadDefaultForm(callback) {
+        if (EMBEDDED_DEFAULT_FORM && validateForm(EMBEDDED_DEFAULT_FORM)) {
+            localStorage.setItem('scout_template', JSON.stringify(EMBEDDED_DEFAULT_FORM));
+            formLoaded = true;
+            var s = document.getElementById('match-status');
+            if (s) s.innerText = 'Form Ready - Embedded Template';
+            if (callback) callback();
+        } else {
+            loadFormFromFile('default-form.json', 'scout_template', function(parsed) {
+                if (parsed) { formLoaded = true; var s = document.getElementById('match-status'); if (s) s.innerText = 'Form Ready - Loaded from file'; }
+                else { var s = document.getElementById('match-status'); if (s) s.innerText = 'Form Error - Check console'; showNotification('Could not load default-form.json. Please import form manually.', 'error'); }
+                if (callback) callback();
+            });
+        }
+    }
+    loadDefaultForm();
+
+    function showPage(id) {
+        var sidebar = document.getElementById('sidebar');
+        var sidebarOverlay = document.getElementById('sidebar-overlay');
+        if (sidebar) { sidebar.classList.remove('open'); sidebar.style.zIndex = 1000; }
+        if (sidebarOverlay) sidebarOverlay.style.display = 'none';
+        var pages = document.querySelectorAll('.page');
+        for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
+        if (id === 'saved-data') refreshSavedData();
+        if (id === 'pit-editor') pfeInit();
+    }
+
+    function importFile(input) {
+        var file = input.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) { document.getElementById('json-input').value = e.target.result; importForm(); };
+        reader.readAsText(file);
+    }
+
+    function importForm() {
+        try {
+            var raw = document.getElementById('json-input').value;
+            if (!raw.trim()) { showNotification("No data to apply.", "error"); return; }
+            var parsed = JSON.parse(raw);
+            if (!validateForm(parsed)) { showNotification("Invalid form structure. 'select' type requires an 'options' field.", "error"); return; }
+            localStorage.setItem('scout_template', JSON.stringify(parsed));
+            formLoaded = true;
+            showNotification("Form loaded successfully!", "success");
+            showPage('home');
+        } catch(e) { showNotification("JSON Error: " + e.message, "error"); }
+    }
+
+    function renderField(field, index) {
+        var key = 'field_' + index;
+        var html = '<div class="card"><label>' + field.label + '</label>';
+        if (field.type === 'number') {
+            html += '<input type="number" value="' + (scoutingData[key] || "") + '" oninput="scoutingData[\'' + key + '\']=this.value">';
+        } else if (field.type === 'text') {
+            html += '<textarea oninput="scoutingData[\'' + key + '\']=this.value" placeholder="Enter details...">' + (scoutingData[key] || "") + '</textarea>';
+        } else if (field.type === 'checkbox') {
+            var activeClass = scoutingData[key] ? 'checked' : '';
+            html += '<div class="check-container ' + activeClass + '" id="cont_' + key + '" onclick="toggleCheck(\'' + key + '\')"><span></span><div class="custom-check"></div></div>';
+        } else if (field.type === 'counter') {
+            html += '<div class="counter-box"><button class="btn-qty minus" onclick="updateVal(\'' + key + '\', -1)">-</button><span class="count-display" id="v_' + key + '">' + (scoutingData[key] || 0) + '</span><button class="btn-qty plus" onclick="updateVal(\'' + key + '\', 1)">+</button></div>';
+        } else if (field.type === 'select') {
+            var options = [];
+            if (typeof field.options === 'string') options = field.options.split(',').map(function(o) { return o.trim(); });
+            else if (Array.isArray(field.options)) options = field.options;
+            html += '<select onchange="scoutingData[\'' + key + '\']=this.value">';
+            html += '<option value="" disabled ' + (!scoutingData[key] ? 'selected' : '') + '>Choose</option>';
+            for (var o = 0; o < options.length; o++) {
+                var selected = scoutingData[key] === options[o] ? 'selected' : '';
+                html += '<option value="' + options[o] + '" ' + selected + '>' + options[o] + '</option>';
+            }
+            html += '</select>';
+        } else if (field.type === 'robot_image') {
+            var hasImage = !!(scoutingData[key] && scoutingData[key].startsWith('data:image'));
+            html += '<div class="robot-img-field">';
+            // Hidden input fallback if direct camera stream is unavailable
+            html += '<input type="file" accept="image/*" capture="environment" style="display:none;" id="img-input-' + key + '" onchange="handleRobotImageCapture(\'' + key + '\', this)">';
+            // Capture button (hidden if image already captured)
+            html += '<button type="button" class="robot-img-capture-btn" id="img-btn-' + key + '" style="' + (hasImage ? 'display:none;' : '') + '" onclick="openRobotCamera(\'' + key + '\')">';
+            html += '<span class="cam-icon">📷</span> TAKE ROBOT PHOTO';
+            html += '</button>';
+            // Preview area
+            html += '<div class="robot-img-preview-wrap' + (hasImage ? ' has-image' : '') + '" id="img-wrap-' + key + '">';
+            if (hasImage) {
+                html += '<img class="robot-img-preview" src="' + scoutingData[key] + '" alt="Robot photo" id="img-preview-' + key + '">';
+            } else {
+                html += '<img class="robot-img-preview" src="" alt="Robot photo" id="img-preview-' + key + '" style="display:none;">';
+            }
+            html += '<button type="button" class="robot-img-retake-btn" onclick="retakeRobotImage(\'' + key + '\')">↺ Retake</button>';
+            html += '</div>';
+            // Status text
+            html += '<div class="robot-img-status' + (hasImage ? ' captured' : '') + '" id="img-status-' + key + '">';
+            html += hasImage ? '✓ Photo captured' : 'No photo yet';
+            html += '</div>';
+            html += '</div>';
+        }
+        return html + '</div>';
+    }
+
+    function startScouting() {
+        isPitScouting = false;
+        loadFormFromFile('default-form.json', 'scout_template', function(template) {
+            if (!template) {
+                var ts = localStorage.getItem('scout_template');
+                if (ts) { try { template = JSON.parse(ts); } catch(e) { showNotification("Error loading form.", "error"); return; } }
+                else { showNotification("Form not found. Please import form from Config menu.", "error"); return; }
+            }
+            currentTemplate = template; scoutingData = {};
+            document.getElementById('form-title').innerText = currentTemplate.name;
+            var container = document.getElementById('form-container');
+            container.innerHTML = "";
+            for (var i = 0; i < currentTemplate.fields.length; i++) {
+                var field = currentTemplate.fields[i]; var key = 'field_' + i;
+                if (field.label === "Match Number" && lastMatchNumber > 0) scoutingData[key] = lastMatchNumber;
+                else if (scoutingData[key] === undefined) scoutingData[key] = field.type === 'counter' ? 0 : (field.type === 'checkbox' ? false : "");
+                container.innerHTML += renderField(field, i);
+            }
+            document.getElementById('submit-btn').style.display = 'block';
+            showPage('scout-page');
+        });
+    }
+
+    function startPitScouting() {
+        isPitScouting = true;
+        // Always check localStorage first (may have been customised via editor)
+        var stored = localStorage.getItem('pit_scout_template');
+        var template = null;
+        if (stored) {
+            try { var p = JSON.parse(stored); if (validateForm(p)) template = p; } catch(e) {}
+        }
+        if (!template && EMBEDDED_PIT_FORM && validateForm(EMBEDDED_PIT_FORM)) template = EMBEDDED_PIT_FORM;
+        if (template) { renderPitScoutingForm(template); return; }
+        loadFormFromFile('pitscoutingform.json', 'pit_scout_template', function(t) {
+            renderPitScoutingForm(t || EMBEDDED_PIT_FORM);
+        });
+    }
+
+    function renderPitScoutingForm(template) {
+        if (!template) { showNotification("Could not load pit scouting form.", "error"); return; }
+        currentTemplate = template; scoutingData = {};
+        document.getElementById('form-title').innerText = currentTemplate.name;
+        var container = document.getElementById('form-container');
+        container.innerHTML = "";
+        for (var i = 0; i < currentTemplate.fields.length; i++) {
+            var field = currentTemplate.fields[i]; var key = 'field_' + i;
+            if (scoutingData[key] === undefined) scoutingData[key] = field.type === 'counter' ? 0 : (field.type === 'checkbox' ? false : "");
+            container.innerHTML += renderField(field, i);
+        }
+        document.getElementById('submit-btn').style.display = 'none';
+        showPage('scout-page');
+    }
+
+    function updateVal(key, delta) {
+        scoutingData[key] = Math.max(0, (parseInt(scoutingData[key]) || 0) + delta);
+        document.getElementById('v_' + key).innerText = scoutingData[key];
+    }
+
+    function toggleCheck(key) {
+        scoutingData[key] = !scoutingData[key];
+        document.getElementById('cont_' + key).classList.toggle('checked', scoutingData[key]);
+    }
+
+    var robotCameraStream = null;
+    var robotCameraKey = null;
+
+    // ─── ROBOT IMAGE CAPTURE ───
+    function openRobotCamera(key) {
+        robotCameraKey = key;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            var fallbackInput = document.getElementById('img-input-' + key);
+            if (fallbackInput) fallbackInput.click();
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+        }).then(function(stream) {
+            robotCameraStream = stream;
+            var video = document.getElementById('robot-camera-video');
+            if (!video) return;
+            video.srcObject = stream;
+            document.getElementById('robot-camera-modal').classList.add('on');
+        }).catch(function() {
+            var fallbackInput = document.getElementById('img-input-' + key);
+            if (fallbackInput) fallbackInput.click();
+            showNotification('Could not open camera directly, using file picker.', 'warning');
+        });
+    }
+
+    function closeRobotCamera() {
+        var modal = document.getElementById('robot-camera-modal');
+        var video = document.getElementById('robot-camera-video');
+        if (modal) modal.classList.remove('on');
+        if (video) video.srcObject = null;
+        if (robotCameraStream) {
+            robotCameraStream.getTracks().forEach(function(track) { track.stop(); });
+            robotCameraStream = null;
+        }
+    }
+
+    function captureRobotCameraPhoto() {
+        if (!robotCameraKey) return;
+        var video = document.getElementById('robot-camera-video');
+        var canvas = document.getElementById('robot-camera-canvas');
+        if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
+            showNotification('Camera not ready yet.', 'warning');
+            return;
+        }
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        applyRobotImageData(robotCameraKey, dataUrl);
+        closeRobotCamera();
+    }
+
+    function applyRobotImageData(key, dataUrl) {
+        scoutingData[key] = dataUrl;
+        var btn   = document.getElementById('img-btn-' + key);
+        var wrap  = document.getElementById('img-wrap-' + key);
+        var img   = document.getElementById('img-preview-' + key);
+        var status = document.getElementById('img-status-' + key);
+
+        if (btn) btn.style.display = 'none';
+        if (img) { img.src = dataUrl; img.style.display = 'block'; }
+        if (wrap) wrap.classList.add('has-image');
+        if (status) { status.textContent = '✓ Photo captured'; status.classList.add('captured'); }
+        showNotification('Robot photo captured!', 'success');
+    }
+
+    function handleRobotImageCapture(key, input) {
+        var file = input.files && input.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            applyRobotImageData(key, e.target.result);
+        };
+        reader.onerror = function() { showNotification('Failed to read image file.', 'error'); };
+        reader.readAsDataURL(file);
+    }
+
+    function retakeRobotImage(key) {
+        scoutingData[key] = '';
+        var btn   = document.getElementById('img-btn-' + key);
+        var wrap  = document.getElementById('img-wrap-' + key);
+        var img   = document.getElementById('img-preview-' + key);
+        var status = document.getElementById('img-status-' + key);
+        var input  = document.getElementById('img-input-' + key);
+
+        if (btn)   btn.style.display = '';
+        if (img)   { img.src = ''; img.style.display = 'none'; }
+        if (wrap)  wrap.classList.remove('has-image');
+        if (status) { status.textContent = 'No photo yet'; status.classList.remove('captured'); }
+        if (input) input.value = ''; // reset so same file can be re-selected
+
+        // Immediately re-open camera
+        openRobotCamera(key);
+    }
+
+    function generateQR() {
+        var dataParts = [];
+        for (var i = 0; i < currentTemplate.fields.length; i++) dataParts.push(currentTemplate.fields[i].label + ':' + scoutingData['field_' + i]);
+        var output = dataParts.join('|');
+        var chunks = []; var threshold = 120;
+        for (var i = 0; i < output.length; i += threshold) chunks.push(output.substring(i, i + threshold));
+        document.getElementById('qr-overlay').style.display = 'block';
+        var qrDiv = document.getElementById('qrcode');
+        var partIndex = 0;
+        if (window.qrInterval) clearInterval(window.qrInterval);
+        var displayNextChunk = function() {
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, { 
+                text: (partIndex + 1) + '/' + chunks.length + '|' + chunks[partIndex], 
+                width: 350, 
+                height: 350, 
+                useSVG: false,
+                render: "table" 
+            });
+            document.getElementById('qr-part-label').innerText = 'PART ' + (partIndex + 1) + ' OF ' + chunks.length;
+            partIndex = (partIndex + 1) % chunks.length;
+        };
+        displayNextChunk();
+        if (chunks.length > 1) window.qrInterval = setInterval(displayNextChunk, 1300);
+    }
+
+    function saveData() {
+        var teamNumber = null, robotWeight = null, robotDrivetrain = null, shooter = null, scoringLocations = null, canClimb = null, climbType = null;
+        for (var i = 0; i < currentTemplate.fields.length; i++) {
+            var field = currentTemplate.fields[i]; var key = 'field_' + i;
+            if (field.label === "Team Number" || field.label.toLowerCase() === "team number") teamNumber = scoutingData[key];
+            else if (field.label === "Robot Weight" || field.label.toLowerCase() === "robot weight") robotWeight = scoutingData[key];
+            else if (field.label === "Shooter Type" || field.label.toLowerCase() === "shooter type") shooter = scoutingData[key];
+            else if (field.label === "Scoring Locations" || field.label.toLowerCase() === "scoring locations") scoringLocations = scoutingData[key];
+            else if (field.label === "Can Climb" || field.label.toLowerCase() === "can climb") canClimb = scoutingData[key];
+            else if (field.label === "Climb Type" || field.label.toLowerCase() === "climb type") climbType = scoutingData[key];
+            else if (field.label === "Drive Train Type") robotDrivetrain = scoutingData[key];
+        }
+        if (!teamNumber) {
+            for (var i = 0; i < currentTemplate.fields.length; i++) {
+                var field = currentTemplate.fields[i]; var key = 'field_' + i; var value = scoutingData[key];
+                if (value && (field.label.toLowerCase().includes('team') || field.label.toLowerCase().includes('number'))) { teamNumber = value; break; }
+            }
+        }
+        if (!teamNumber || String(teamNumber).trim() === "") { showNotification("Please fill in the Team Number field before saving.", "error"); return; }
+        teamNumber = String(teamNumber).trim();
+        var dataEntry = { id: Date.now() + Math.random(), teamNumber: teamNumber, weight: robotWeight, drive_train: robotDrivetrain, shooter: shooter, scoring_locations: scoringLocations, can_climb: canClimb, climb_type: climbType, timestamp: new Date().toISOString(), date: new Date().toLocaleString(), data: scoutingData };
+        var savedData = [];
+        var existing = localStorage.getItem("savedScoutingData");
+        if (existing) { try { savedData = JSON.parse(existing); } catch(e) { savedData = []; } }
+        savedData.push(dataEntry);
+        localStorage.setItem("savedScoutingData", JSON.stringify(savedData));
+        showNotification("Data saved successfully!", "success");
+
+        // Clear form and scroll to top after saving
+        if (isPitScouting) {
+            startPitScouting();
+        } else {
+            startScouting();
+        }
+        window.scrollTo(0, 0);
+    }
+
+    function refreshSavedData() {
+        var savedDataList = document.getElementById('saved-data-list');
+        var existingData = localStorage.getItem("savedScoutingData");
+        if (!existingData) { savedDataList.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:20px;">No saved data yet</p>'; return; }
+        try {
+            var savedData = JSON.parse(existingData);
+            if (savedData.length === 0) { savedDataList.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:20px;">No saved data yet</p>'; return; }
+            savedData.sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+            var html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+            for (var i = 0; i < savedData.length; i++) {
+                var entry = savedData[i];
+
+                // Find robot image in data fields if present
+                var robotImgSrc = null;
+                if (entry.data) {
+                    var keys = Object.keys(entry.data);
+                    for (var k = 0; k < keys.length; k++) {
+                        var val = entry.data[keys[k]];
+                        if (val && typeof val === 'string' && val.startsWith('data:image')) {
+                            robotImgSrc = val; break;
+                        }
+                    }
+                }
+
+                html += '<div style="background:var(--darker); padding:12px; border-radius:8px; border:1px solid var(--border);">';
+                html += '<div class="saved-entry-row">';
+
+                // Thumbnail column
+                if (robotImgSrc) {
+                    html += '<img class="saved-entry-thumb" src="' + robotImgSrc + '" alt="Robot">';
+                } else {
+                    html += '<div style="width:60px;height:60px;border-radius:8px;background:var(--card-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🤖</div>';
+                }
+
+                // Info column
+                html += '<div class="saved-entry-info">';
+                html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">';
+                html += '<strong style="color:var(--gold); font-size:1rem;">Team ' + escapeHtml(String(entry.teamNumber || '?')) + '</strong>';
+                html += '<span style="color:var(--text-secondary); font-size:0.78rem; white-space:nowrap;">' + escapeHtml(entry.date || '') + '</span>';
+                html += '</div>';
+                if (entry.drive_train) html += '<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:6px;">' + escapeHtml(entry.drive_train) + '</div>';
+                html += '<button class="btn-main btn-secondary" style="padding:8px 12px; font-size:0.85rem;" onclick="downloadSingleEntry(' + entry.id + ')"><i class="fa-solid fa-download"></i> Download</button>';
+                html += '</div>'; // end info
+
+                html += '</div>'; // end row
+                html += '</div>'; // end entry card
+            }
+            html += '</div>';
+            savedDataList.innerHTML = html;
+        } catch(e) { savedDataList.innerHTML = '<p style="color:var(--danger); text-align:center; padding:20px;">Error loading saved data</p>'; }
+    }
+
+    function escapeHtml(text) { var div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+    function downloadSingleEntry(entryId) {
+        var existingData = localStorage.getItem("savedScoutingData");
+        if (!existingData) { showNotification("No saved data found.", "error"); return; }
+        try {
+            var savedData = JSON.parse(existingData);
+            var entry = savedData.find(function(e) { return e.id === entryId; });
+            if (!entry) { showNotification("Entry not found.", "error"); return; }
+            var defaultFilename = 'scouting_' + (entry.name || entry.teamNumber) + '_' + entry.id;
+            showModal("Enter Filename", "Filename (without extension)", defaultFilename, function(filename) {
+                if (filename === null || filename === undefined) return;
+                if (!filename || filename.trim() === "") filename = defaultFilename;
+                if (!filename.toLowerCase().endsWith('.json')) filename = filename.trim() + '.json';
+                downloadEntryFile(entry, filename);
+            });
+        } catch(e) { showNotification("Error downloading data.", "error"); }
+    }
+
+    function downloadEntryFile(entry, filename) {
+        try {
+            var jsonStr = JSON.stringify(entry, null, 2);
+            if (window.Android) {
+                window.Android.saveFile(filename, jsonStr);
+                showNotification("Saved to Downloads folder!", "success");
+            } else {
+                // Browser fallback for testing on PC
+                var blob = new Blob([jsonStr], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url; a.download = filename;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification("File downloaded successfully!", "success");
+            }
+        } catch(e) { showNotification("Error downloading data.", "error"); }
+    }
+
+    function downloadAllData() {
+        var existingData = localStorage.getItem("savedScoutingData");
+        if (!existingData) { showNotification("No saved data to download.", "error"); return; }
+        try {
+            var savedData = JSON.parse(existingData);
+            var defaultFilename = 'all_scouting_data_' + new Date().toISOString().split('T')[0];
+            showModal("Enter Filename", "Filename (without extension)", defaultFilename, function(filename) {
+                if (filename === null || filename === undefined) return;
+                if (!filename || filename.trim() === "") filename = defaultFilename;
+                if (!filename.toLowerCase().endsWith('.json')) filename = filename.trim() + '.json';
+                downloadAllDataFile(savedData, filename);
+            });
+        } catch(e) { showNotification("Error downloading data.", "error"); }
+    }
+
+    async function downloadAllDataFile(savedData, filename) {
+        try {
+            var jsonStr = JSON.stringify(savedData, null, 2);
+            if (window.Android) { window.Android.saveFile(filename, jsonStr); showNotification("All data saved successfully!", "success"); }
+            else {
+                var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonStr);
+                var a = document.createElement('a'); a.href = dataUri; a.download = filename;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                showNotification("All data saved successfully!", "success");
+            }
+        } catch(e) { showNotification("Error saving data.", "error"); }
+    }
+
+    function clearAllData() {
+        if (confirm("Are you sure you want to clear ALL saved scouting data? This cannot be undone.")) {
+            localStorage.removeItem("savedScoutingData");
+            refreshSavedData();
+            showNotification("All data cleared.", "warning");
+        }
+    }
+
+    function finishAndReset() {
+        if (window.qrInterval) clearInterval(window.qrInterval);
+        for (var i = 0; i < currentTemplate.fields.length; i++) {
+            if (currentTemplate.fields[i].label === "Match Number") lastMatchNumber = parseInt(scoutingData['field_' + i] || 0) + 1;
+        }
+        document.getElementById('match-status').innerText = 'Last Saved. Next Match: ' + lastMatchNumber;
+        document.getElementById('qr-overlay').style.display = 'none';
+        scoutingData = {};
+        startScouting();
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // PIT FORM EDITOR (PFE)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    // The working list of field objects being edited
+    var pfeFields = [];
+
+    // Track which cards are expanded
+    var pfeExpanded = {};
+
+    // Called whenever the pit-editor page is shown
+    function pfeInit() {
+        // Load from localStorage first; fall back to embedded
+        var stored = localStorage.getItem('pit_scout_template');
+        var form = null;
+        if (stored) { try { form = JSON.parse(stored); } catch(e) {} }
+        if (!form || !validateForm(form)) form = EMBEDDED_PIT_FORM;
+
+        document.getElementById('pfe-form-name').value = form.name || 'Pit Scouting Form';
+        // Deep copy fields
+        pfeFields = JSON.parse(JSON.stringify(form.fields || []));
+        pfeExpanded = {};
+        pfeRender();
+    }
+
+    function pfeRender() {
+        var list = document.getElementById('pfe-fields-list');
+        if (pfeFields.length === 0) {
+            list.innerHTML = '<div class="pfe-empty-state"><div class="pfe-empty-icon">📋</div><p>No fields yet. Add your first field below.</p></div>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < pfeFields.length; i++) {
+            var f = pfeFields[i];
+            var isExpanded = !!pfeExpanded[i];
+            var badgeClass = 'pfe-badge-' + (f.type === 'robot_image' ? 'robot_image' : f.type);
+            var labelPreview = f.label || '(untitled)';
+
+            html += '<div class="pfe-field-card" id="pfe-card-' + i + '">';
+
+            // Header row (always visible — tap to expand/collapse)
+            html += '<div class="pfe-field-header" onclick="pfeToggleExpand(' + i + ')" style="cursor:pointer;">';
+            html += '<span class="pfe-field-number">' + (i + 1) + '</span>';
+            html += '<span class="pfe-field-label-preview">' + escapeHtml(labelPreview) + '</span>';
+            html += '<span class="pfe-field-type-badge ' + badgeClass + '">' + f.type + '</span>';
+            html += '<span style="color:var(--gold); font-size:0.85rem; margin-left:4px;">' + (isExpanded ? '▲' : '▼') + '</span>';
+            html += '</div>'; // end header
+
+            // Body (collapsible)
+            html += '<div class="pfe-field-body' + (isExpanded ? ' expanded' : '') + '">';
+
+            // Label input
+            html += '<div style="margin-bottom:10px;">';
+            html += '<span class="pfe-label-sm">Field Label</span>';
+            html += '<input class="pfe-input" type="text" value="' + escapeHtml(f.label || '') + '" placeholder="e.g. Robot Weight" oninput="pfeUpdateLabel(' + i + ', this.value)">';
+            html += '</div>';
+
+            // Type selector
+            html += '<div style="margin-bottom:10px;">';
+            html += '<span class="pfe-label-sm">Field Type</span>';
+            html += '<select class="pfe-select" onchange="pfeUpdateType(' + i + ', this.value)">';
+            var types = ['text', 'number', 'counter', 'checkbox', 'select', 'robot_image'];
+            var typeLabels = { text:'Text (free entry)', number:'Number', counter:'Counter (+/−)', checkbox:'Checkbox (yes/no)', select:'Dropdown (select)', robot_image:'📷 Robot Photo (camera)' };
+            for (var t = 0; t < types.length; t++) {
+                var sel = f.type === types[t] ? ' selected' : '';
+                html += '<option value="' + types[t] + '"' + sel + '>' + typeLabels[types[t]] + '</option>';
+            }
+            html += '</select>';
+            html += '</div>';
+
+            // Options field (only for select type)
+            if (f.type === 'select') {
+                var optsVal = '';
+                if (typeof f.options === 'string') optsVal = f.options;
+                else if (Array.isArray(f.options)) optsVal = f.options.join(', ');
+
+                html += '<div style="margin-bottom:10px;">';
+                html += '<span class="pfe-label-sm">Dropdown Options</span>';
+                html += '<input class="pfe-input" type="text" value="' + escapeHtml(optsVal) + '" placeholder="Option 1, Option 2, Option 3" oninput="pfeUpdateOptions(' + i + ', this.value)">';
+                html += '<p class="pfe-options-hint">Separate options with commas. e.g. <em>Swerve, Tank, Mecanum</em></p>';
+                html += '</div>';
+            }
+
+            // Required toggle
+            html += '<div class="pfe-required-row">';
+            html += '<div class="pfe-required-toggle' + (f.required ? ' on' : '') + '" onclick="pfeToggleRequired(' + i + ')" id="pfe-req-' + i + '"></div>';
+            html += '<span class="pfe-required-label">Required field</span>';
+            html += '</div>';
+
+            // Action buttons
+            html += '<div class="pfe-action-row">';
+            if (i > 0) html += '<button class="pfe-btn pfe-btn-up" onclick="pfeMoveUp(' + i + ')">↑ Up</button>';
+            if (i < pfeFields.length - 1) html += '<button class="pfe-btn pfe-btn-down" onclick="pfeMoveDown(' + i + ')">↓ Down</button>';
+            html += '<button class="pfe-btn pfe-btn-danger" onclick="pfeDeleteField(' + i + ')">🗑 Remove</button>';
+            html += '</div>';
+
+            html += '</div>'; // end body
+            html += '</div>'; // end card
+        }
+
+        list.innerHTML = html;
+    }
+
+    function pfeToggleExpand(index) {
+        pfeExpanded[index] = !pfeExpanded[index];
+        pfeRender();
+        // Scroll the card into view smoothly
+        setTimeout(function() {
+            var card = document.getElementById('pfe-card-' + index);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
+    }
+
+    function pfeUpdateLabel(index, value) {
+        pfeFields[index].label = value;
+        // Update preview text without full re-render (avoids losing focus)
+        var card = document.getElementById('pfe-card-' + index);
+        if (card) {
+            var preview = card.querySelector('.pfe-field-label-preview');
+            if (preview) preview.textContent = value || '(untitled)';
+        }
+    }
+
+    function pfeUpdateType(index, value) {
+        pfeFields[index].type = value;
+        if (value === 'select' && !pfeFields[index].options) pfeFields[index].options = 'Option 1, Option 2';
+        if (value !== 'select') delete pfeFields[index].options;
+        pfeRender();
+    }
+
+    function pfeUpdateOptions(index, value) {
+        pfeFields[index].options = value;
+    }
+
+    function pfeToggleRequired(index) {
+        pfeFields[index].required = !pfeFields[index].required;
+        var toggle = document.getElementById('pfe-req-' + index);
+        if (toggle) toggle.classList.toggle('on', pfeFields[index].required);
+    }
+
+    function pfeMoveUp(index) {
+        if (index === 0) return;
+        var tmp = pfeFields[index - 1];
+        pfeFields[index - 1] = pfeFields[index];
+        pfeFields[index] = tmp;
+        // Move expanded state too
+        var expA = !!pfeExpanded[index - 1], expB = !!pfeExpanded[index];
+        pfeExpanded[index - 1] = expB; pfeExpanded[index] = expA;
+        pfeRender();
+    }
+
+    function pfeMoveDown(index) {
+        if (index >= pfeFields.length - 1) return;
+        var tmp = pfeFields[index + 1];
+        pfeFields[index + 1] = pfeFields[index];
+        pfeFields[index] = tmp;
+        var expA = !!pfeExpanded[index], expB = !!pfeExpanded[index + 1];
+        pfeExpanded[index] = expB; pfeExpanded[index + 1] = expA;
+        pfeRender();
+    }
+
+    function pfeDeleteField(index) {
+        pfeFields.splice(index, 1);
+        // Rebuild expanded map
+        var newExp = {};
+        for (var k in pfeExpanded) {
+            var ki = parseInt(k);
+            if (ki < index) newExp[ki] = pfeExpanded[k];
+            else if (ki > index) newExp[ki - 1] = pfeExpanded[k];
+        }
+        pfeExpanded = newExp;
+        pfeRender();
+    }
+
+    function pfeAddField() {
+        var newIndex = pfeFields.length;
+        pfeFields.push({ label: '', type: 'text', required: false });
+        pfeExpanded[newIndex] = true; // auto-expand new field
+        pfeRender();
+        // Scroll to new field
+        setTimeout(function() {
+            var card = document.getElementById('pfe-card-' + newIndex);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+    }
+
+    function pfeBuildJSON() {
+        var formName = document.getElementById('pfe-form-name').value.trim() || 'Pit Scouting Form';
+        var fields = pfeFields.map(function(f) {
+            var field = { label: f.label || '', type: f.type, required: !!f.required };
+            if (f.type === 'select') field.options = (f.options || '').trim();
+            return field;
+        });
+        return { name: formName, version: "1.0", fields: fields };
+    }
+
+    function pfeCopyJSON() {
+        var json = pfeBuildJSON();
+
+        // Validate before copying
+        if (!validateForm(json)) {
+            showNotification("Form has errors — check that all select fields have options.", "error");
+            return;
+        }
+
+        // Also save to localStorage so pit scouting picks it up immediately
+        localStorage.setItem('pit_scout_template', JSON.stringify(json));
+
+        var jsonStr = JSON.stringify(json, null, 2);
+
+        // Update preview box
+        var preview = document.getElementById('pfe-preview-box');
+        preview.textContent = jsonStr;
+        preview.classList.add('visible');
+
+        // Copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(jsonStr).then(function() {
+                pfeCopySuccess();
+            }).catch(function() {
+                pfeFallbackCopy(jsonStr);
+            });
+        } else {
+            pfeFallbackCopy(jsonStr);
+        }
+    }
+
+    function pfeFallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { document.execCommand('copy'); pfeCopySuccess(); }
+        catch(e) { showNotification("Could not copy — use the preview box to copy manually.", "warning"); }
+        document.body.removeChild(ta);
+    }
+
+    function pfeCopySuccess() {
+        var btn = document.getElementById('pfe-copy-btn');
+        btn.classList.add('copied');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>&nbsp; COPIED! PASTE INTO pitscoutingform.json';
+        showNotification("JSON copied! Paste into pitscoutingform.json to save.", "success");
+        setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<i class="fa-solid fa-copy"></i>&nbsp; COPY JSON TO CLIPBOARD';
+        }, 3000);
+    }
+
+    function pfeTogglePreview() {
+        var preview = document.getElementById('pfe-preview-box');
+        if (preview.classList.contains('visible')) {
+            preview.classList.remove('visible');
+        } else {
+            var json = pfeBuildJSON();
+            preview.textContent = JSON.stringify(json, null, 2);
+            preview.classList.add('visible');
+        }
+    }
+
+    function pfeLoadEmbedded() {
+        if (confirm("Reset to the built-in default pit scouting form? Any unsaved changes will be lost.")) {
+            document.getElementById('pfe-form-name').value = EMBEDDED_PIT_FORM.name;
+            pfeFields = JSON.parse(JSON.stringify(EMBEDDED_PIT_FORM.fields));
+            pfeExpanded = {};
+            pfeRender();
+            showNotification("Reset to default pit scouting form.", "info");
+        }
+    }
+
+    function pfeLoadFromStorage() {
+        var stored = localStorage.getItem('pit_scout_template');
+        if (!stored) { showNotification("No saved pit form found in storage.", "warning"); return; }
+        try {
+            var form = JSON.parse(stored);
+            if (!validateForm(form)) { showNotification("Stored form is invalid.", "error"); return; }
+            document.getElementById('pfe-form-name').value = form.name || 'Pit Scouting Form';
+            pfeFields = JSON.parse(JSON.stringify(form.fields));
+            pfeExpanded = {};
+            pfeRender();
+            showNotification("Loaded saved pit form from storage.", "success");
+        } catch(e) { showNotification("Error loading saved form.", "error"); }
+    }
+
+    </script>
+</body>
+</html>

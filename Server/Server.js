@@ -5,6 +5,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../UI')));
 
 const DATA_FILE = path.join(__dirname, 'data/scouting_database.json');
 const SCHEMA_FILE = path.join(__dirname, 'data/schema.json');

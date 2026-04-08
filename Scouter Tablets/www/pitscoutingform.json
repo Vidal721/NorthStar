@@ -1,0 +1,91 @@
+{
+  "name": "2026 City Of Fountains",
+  "version": "1.0",
+  "fields": [
+    {
+      "label": "Team Number",
+      "type": "number",
+      "required": true
+    },
+    {
+      "label": "Scouter Name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Robot Weight",
+      "type": "number",
+      "required": false
+    },
+    {
+      "label": "Drive Train Type",
+      "type": "select",
+      "required": false,
+      "options": "Swerve, Mecanum, Tank, Other"
+    },
+    {
+      "label": "Shooter Type",
+      "type": "select",
+      "required": false,
+      "options": "Fixed Shooter, Turret"
+    },
+    {
+      "label": "Scoring Locations",
+      "type": "select",
+      "required": false,
+      "options": "Fixed Locations, Anywhere, Anywhere while scoring, other"
+    },
+    {
+      "label": "Can Climb",
+      "type": "checkbox",
+      "required": false
+    },
+    {
+      "label": "Climb Type",
+      "type": "select",
+      "required": false,
+      "options": "L1, L2, L3"
+    },
+    {
+      "label": "Can Go Over Bumps",
+      "type": "checkbox",
+      "required": true
+    },
+    {
+      "label": "Can Go Under Trench",
+      "type": "checkbox",
+      "required": true
+    },
+    {
+      "label": "Notes",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "Fuel Capacity (Optional)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "label": "Robot Name (Optional)",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "Auto Path Options",
+      "type": "select",
+      "required": true,
+      "options": "Left, Center, Right, All"
+    },
+    {
+      "label": "Multiple Auto Cycles",
+      "type": "checkbox",
+      "required": false
+    },
+    {
+      "label": "Robot Photo",
+      "type": "robot_image",
+      "required": false
+    }
+  ]
+}

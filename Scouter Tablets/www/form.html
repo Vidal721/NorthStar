@@ -1,0 +1,3843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>935 SCOUT 2026</title>
+<script src="js/qrcode.min.js"></script>
+<style>
+/* ── RESET & BASE ───────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+:root{
+  --bg:#090909;--s1:#111;--s2:#181818;--s3:#202020;
+  --border:#252525;--border2:#333;
+  --text:#f0ede6;--dim:#6a6055;--dim2:#383028;
+  --acc:#e8c000;--acc2:#c9a800;
+  --red:#c0392b;--red2:rgba(192,57,43,.14);
+  --blue:#2563a8;--blue2:rgba(37,99,168,.14);
+  --green:#27864a;--orange:#c87000;--purple:#6d3fa0;
+  --font:'Barlow Condensed',sans-serif;
+  --mono:'Space Mono',monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap');
+html,body{
+  height:100%;width:auto;overflow:hidden;
+  font-family:var(--font);
+  background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── SCREENS ─────────────────────────────────────────── */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);}
+.screen.active{display:flex;}
+
+/* ── NAV BAR ─────────────────────────────────────────── */
+.nav{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 8px;flex-shrink:0;
+  background:var(--s1);border-bottom:1px solid var(--border);
+}
+.nav-arrow{
+  width:44px;height:38px;border-radius:7px;
+  border:1.5px solid var(--border2);background:var(--s2);
+  color:var(--text);font-size:20px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;user-select:none;flex-shrink:0;
+  transition:background .1s;
+}
+.nav-arrow:active{background:var(--s3);}
+.nav-arrow.dim{opacity:.2;pointer-events:none;}
+.nav-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.nav-title{font-size:15px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--acc);}
+.nav-chips{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;}
+.chip{
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:5px;padding:2px 7px;
+}
+.chip-acc{color:var(--acc);border-color:rgba(232,192,0,.3);}
+.chip-red{color:var(--red);}
+.chip-undo{
+  font-size:11px;font-weight:700;color:var(--text);
+  background:var(--s2);border:1.5px solid var(--border2);
+  border-radius:6px;padding:3px 10px;cursor:pointer;
+  text-transform:uppercase;
+}
+.chip-undo:active{background:var(--s3);}
+.chip-flip{
+  font-size:11px;font-weight:800;letter-spacing:.5px;
+  padding:4px 9px;border-radius:6px;cursor:pointer;
+  border:1.5px solid var(--border2);color:var(--dim);
+  background:var(--s2);text-transform:uppercase;
+  display:flex;align-items:center;gap:3px;
+  transition:all .1s;user-select:none;
+}
+.chip-flip:active{background:var(--s3);}
+.chip-flip.on{border-color:var(--acc);color:var(--acc);background:rgba(232,192,0,.07);}
+.chip-timer{
+  font-family:var(--mono);font-size:13px;font-weight:700;
+  background:rgba(192,57,43,.15);border:1.5px solid var(--red);
+  border-radius:6px;padding:3px 10px;color:#e05c4a;
+  letter-spacing:1px;display:none;
+}
+.chip-timer.on{display:inline-block;}
+
+/* ── FORM HELPERS ────────────────────────────────────── */
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);padding-bottom:7px;border-bottom:1px solid var(--border);}
+.grid{display:grid;gap:9px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+.fi{
+  background:var(--s2);border:1.5px solid var(--border2);
+  border-radius:8px;color:var(--text);padding:11px 12px;
+  font-size:16px;font-family:var(--font);font-weight:600;width:100%;
+}
+.fi:focus{outline:none;border-color:var(--acc);}
+.fi option{background:var(--s2);color:var(--text);}
+.ta{
+  background:var(--s2);border:1.5px solid var(--border2);
+  border-radius:8px;color:var(--text);padding:11px 12px;
+  font-family:var(--font);font-size:14px;resize:none;
+  width:100%;line-height:1.5;
+}
+.ta:focus{outline:none;border-color:var(--acc);}
+.footer{
+  padding:12px 16px;border-top:1px solid var(--border);
+  background:var(--s1);flex-shrink:0;
+}
+.big-btn{
+  width:100%;padding:16px;border-radius:10px;border:none;
+  background:var(--acc);color:#0a0a0a;font-size:20px;
+  font-weight:900;letter-spacing:2px;cursor:pointer;
+  text-transform:uppercase;font-family:var(--font);
+  transition:opacity .1s;
+}
+.big-btn:active{opacity:.8;}
+.card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:12px;padding:13px;
+}
+.card-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:11px;}
+
+/* ── ALLIANCE SCREEN ─────────────────────────────────── */
+.aln-sub{font-size:14px;color:var(--dim);letter-spacing:2px;margin-bottom:18px;text-align:center;}
+.aln-grid{display:none;}
+.aln-btn{
+  padding:20px 8px;border-radius:12px;font-size:18px;
+  font-weight:800;letter-spacing:2px;cursor:pointer;
+  border:2px solid;text-align:center;transition:all .1s;
+  text-transform:uppercase;font-family:var(--font);
+}
+.aln-btn:active{transform:scale(.9);}
+.aln-btn.r{background:var(--red2);border-color:var(--red);color:var(--red);}
+.aln-btn.r.sel,.aln-btn.r:active{background:var(--red);color:#fff;}
+.aln-btn.b{background:var(--blue2);border-color:var(--blue);color:var(--blue);}
+.aln-btn.b.sel,.aln-btn.b:active{background:var(--blue);color:#fff;}
+.aln-divider{height:1px;background:var(--border);grid-column:span 3;margin:4px 0;}
+.aln-extras{width:100%;padding:0;margin-top:14px;display:flex;flex-direction:column;gap:9px;}
+.orient-row{display:flex;gap:7px;}
+.orient-btn{
+  flex:1;padding:10px 7px;border-radius:10px;
+  border:1.5px solid var(--border2);background:var(--s2);
+  color:var(--dim);font-size:12px;font-weight:800;
+  letter-spacing:.5px;cursor:pointer;text-transform:uppercase;
+  font-family:var(--font);text-align:center;transition:all .12s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.orient-btn.sel{border-color:var(--acc);color:var(--acc);background:rgba(232,192,0,.07);}
+.orient-btn:active{background:var(--s3);}
+.orient-icon{font-size:14px;line-height:1;}
+.orient-sub{font-size:9px;color:var(--dim);letter-spacing:.5px;}
+.orient-btn.sel .orient-sub{color:rgba(232,192,0,.45);}
+.practice-row{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 13px;border-radius:10px;
+  border:1.5px solid var(--border2);background:var(--s2);
+  cursor:pointer;transition:all .12s;
+}
+.practice-row.on{border-color:var(--acc);background:rgba(232,192,0,.05);}
+.pbox{
+  width:20px;height:20px;border-radius:5px;
+  border:2px solid var(--border2);background:transparent;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.practice-row.on .pbox{background:var(--acc);border-color:var(--acc);}
+.practice-row.on .pbox::after{content:'✓';font-size:13px;font-weight:900;color:#0a0a0a;}
+.plbl{font-size:14px;font-weight:800;letter-spacing:1px;color:var(--dim);text-transform:uppercase;}
+.practice-row.on .plbl{color:var(--acc);}
+.saved-btn{
+  width:100%;padding:12px;border-radius:10px;
+  border:1.5px solid var(--border2);background:var(--s2);
+  color:var(--dim);font-size:14px;font-weight:800;
+  letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;
+  font-family:var(--font);display:flex;align-items:center;
+  justify-content:center;gap:10px;transition:all .12s;
+}
+.saved-btn:active{background:var(--s3);}
+.saved-count-badge{
+  background:var(--acc);color:#0a0a0a;
+  border-radius:12px;font-size:11px;font-weight:900;
+  padding:2px 8px;letter-spacing:.5px;min-width:22px;text-align:center;
+}
+#alliance-badge-main{
+  font-size:14px; padding:4px 12px; border-radius:8px;
+  font-weight:900; letter-spacing:2px; vertical-align: middle;
+}
+
+/* ── SETUP SCREEN ────────────────────────────────────── */
+.badge{font-family:var(--mono);font-size:12px;padding:4px 13px;border-radius:20px;border:1.5px solid;font-weight:700;letter-spacing:1px;}
+.badge.r{border-color:var(--red);color:var(--red);}
+.badge.b{border-color:var(--blue);color:var(--blue);}
+.badge.r.filled{background:var(--red); color:#fff;}
+.badge.b.filled{background:var(--blue); color:#fff;}
+
+/* ── FIELD SCREEN ────────────────────────────────────── */
+.field-wrap{flex:1;position:relative;overflow:hidden;}
+.field-img{display:block;width:100%;height:100%;object-fit:contain;opacity:.38;pointer-events:none;user-select:none;transition:transform .25s;}
+.field-img.flipped{transform:scaleX(-1);}
+.field-ov{position:absolute;inset:0;}
+/* zones */
+.zone{position:absolute;border:1.5px solid;border-radius:6px;cursor:pointer;user-select:none;}
+.zone.active{border-width:2.5px;box-shadow:inset 0 0 28px rgba(255,255,255,.05);}
+.zone-lbl{position:absolute;top:4px;left:6px;background:rgba(0,0,0,.82);padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;pointer-events:none;color:#fff;}
+/* field buttons */
+.fb{
+  position:absolute;border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-weight:900;cursor:pointer;user-select:none;
+  border:2px solid rgba(0,0,0,.2);
+  transform:translate(-50%,-50%);
+  transition:transform .07s;gap:1px;line-height:1;
+}
+.fb:active{transform:translate(-50%,-50%) scale(.83);}
+.fb.off{opacity:.1;pointer-events:none;}
+.fb.mv{background:#1a5c8a;color:#d8eeff;border-color:rgba(255,255,255,.12);}
+.fb.gr{background:#7a4a10;color:#ffd580;border-color:rgba(255,255,255,.1);}
+.fb.cl{background:#3d2060;color:#d4aaff;border-color:rgba(255,255,255,.1);}
+.fb.sc{background:#e8c000;color:#0a0a0a;border-color:rgba(0,0,0,.2);}
+.fb-sub{text-transform:uppercase;opacity:.65;font-weight:700;letter-spacing:.3px;}
+/* defense bar */
+.def-bar{display:none;padding:5px 10px;background:rgba(192,57,43,.06);border-top:1px solid rgba(192,57,43,.2);flex-shrink:0;}
+.def-bar.on{display:block;}
+.def-inner{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.def-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--red);text-transform:uppercase;margin-right:3px;}
+.pen-btn{
+  padding:5px 11px;border-radius:6px;
+  background:rgba(192,57,43,.16);border:1px solid rgba(192,57,43,.42);
+  color:#e08070;font-size:12px;font-weight:700;cursor:pointer;
+  letter-spacing:.5px;text-transform:uppercase;font-family:var(--font);
+}
+.pen-btn:active{background:var(--red);color:#fff;}
+.pen-disp{font-family:var(--mono);font-size:11px;color:var(--red);margin-left:auto;}
+
+/* ── ENDGAME SCREEN ──────────────────────────────────── */
+.climb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.climb-opt{
+  padding:13px 5px;border-radius:8px;
+  border:1.5px solid var(--border2);background:var(--s2);
+  color:var(--dim);font-size:14px;font-weight:800;
+  text-align:center;cursor:pointer;letter-spacing:.5px;
+  text-transform:uppercase;font-family:var(--font);
+  transition:all .1s;
+}
+.climb-opt.sel{background:var(--purple);border-color:var(--purple);color:#fff;}
+.foul-row{display:flex;gap:8px;align-items:center;}
+.foul-adj{
+  padding:8px 16px;border-radius:7px;border:none;
+  font-size:18px;font-weight:700;cursor:pointer;font-family:var(--font);
+}
+.foul-adj.minus{background:rgba(192,57,43,.16);color:#e08070;}
+.foul-adj.minus:active{background:var(--red);color:#fff;}
+.foul-adj.plus{background:rgba(232,192,0,.11);color:var(--acc);}
+.foul-adj.plus:active{background:var(--acc);color:#0a0a0a;}
+.foul-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);min-width:32px;text-align:center;}
+/* stat tiles */
+.stat-tile{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 5px;text-align:center;}
+.stat-val{font-family:var(--mono);font-size:18px;color:var(--acc);}
+.stat-lbl{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-top:3px;}
+
+/* ── SAVED MATCHES ───────────────────────────────────── */
+#sc-saved .body{padding:10px 14px;}
+.saved-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);gap:10px;padding:40px 0;}
+.saved-empty-icon{font-size:44px;opacity:.3;}
+.saved-empty-txt{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+.sc-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:12px;padding:13px 15px;
+  display:flex;align-items:center;gap:11px;
+  cursor:pointer;transition:border-color .12s;margin-bottom:9px;
+}
+.sc-card:active{border-color:var(--acc);}
+.sc-card-info{flex:1;min-width:0;}
+.sc-card-top{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+.sc-match{font-size:18px;font-weight:900;letter-spacing:1px;}
+.sc-team{font-family:var(--mono);font-size:13px;color:var(--acc);}
+.sc-alliance-badge{
+  font-size:10px;font-weight:800;letter-spacing:1px;
+  padding:1px 7px;border-radius:10px;border:1px solid;text-transform:uppercase;
+}
+.sc-alliance-badge.r{border-color:var(--red);color:var(--red);}
+.sc-alliance-badge.b{border-color:var(--blue);color:var(--blue);}
+.sc-sub{font-size:11px;color:var(--dim);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-pts{font-family:var(--mono);font-size:21px;font-weight:700;color:var(--acc);flex-shrink:0;text-align:right;}
+.sc-pts-lbl{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);text-align:right;}
+.sc-arrow{color:var(--dim);font-size:18px;flex-shrink:0;}
+
+/* ── QR OVERLAY ──────────────────────────────────────── */
+#qr-ov{
+  display:none;position:fixed;inset:0;z-index:9900;
+  background:#d5cfc9;overflow-y:auto;
+  flex-direction:column;align-items:center;
+  padding:26px 18px 20px;
+}
+#qr-ov.on{display:flex;}
+.qr-hdr{width:100%;max-width:340px;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.qr-hdr-title{font-size:20px;font-weight:900;letter-spacing:3px;color:var(--acc);text-transform:uppercase;}
+.qr-hdr-meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px;}
+.qr-part-lbl{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:1px;padding-top:2px;}
+#qr-canvas{display:flex;justify-content:center;margin:8px 0;}
+.qr-hint{font-size:12px;color:var(--dim);margin:5px 0 14px;text-align:center;}
+.qr-actions{width:100%;max-width:340px;display:flex;flex-direction:column;gap:9px;margin-top:4px;}
+.qr-save{
+  width:100%;padding:17px;border-radius:10px;border:none;
+  background:var(--green);color:#fff;font-size:17px;font-weight:900;
+  cursor:pointer;text-transform:uppercase;font-family:var(--font);
+  letter-spacing:1.5px;display:flex;align-items:center;justify-content:center;gap:9px;
+}
+.qr-save:active{opacity:.85;}
+.qr-save.saved{background:var(--s2);border:1.5px solid var(--border2);color:var(--dim);}
+.qr-done{
+  width:100%;padding:14px;border-radius:10px;border:none;
+  background:var(--acc);color:#0a0a0a;font-size:16px;
+  font-weight:900;cursor:pointer;text-transform:uppercase;
+  font-family:var(--font);letter-spacing:1.5px;
+}
+.qr-done:active{opacity:.8;}
+
+.qr-json{
+  width:100%;padding:14px;border-radius:10px;
+  background:rgba(232,192,0,.09);color:var(--acc);font-size:15px;
+  font-weight:900;cursor:pointer;text-transform:uppercase;
+  font-family:var(--font);letter-spacing:1.5px;
+  border:1.5px solid rgba(232,192,0,.35);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.qr-json:active{background:var(--acc);color:#0a0a0a;}
+
+/* ── SAVED QR VIEWER ─────────────────────────────────── */
+#sqr-ov{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:#d5cfc9;flex-direction:column;align-items:center;
+  padding:26px 18px 20px;overflow-y:auto;
+}
+#sqr-ov.on{display:flex;}
+.sqr-hdr{width:100%;max-width:340px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sqr-back{
+  padding:7px 14px;border-radius:8px;
+  border:1.5px solid var(--border2);background:var(--s2);
+  color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;
+  letter-spacing:.5px;text-transform:uppercase;font-family:var(--font);
+}
+.sqr-back:active{background:var(--s3);}
+.sqr-title{font-size:19px;font-weight:900;letter-spacing:2px;color:var(--acc);text-transform:uppercase;}
+.sqr-meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:3px;}
+.sqr-info{width:100%;max-width:340px;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:13px;}
+.sqr-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;}
+.sqr-row-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+.sqr-row-val{font-family:var(--mono);font-size:13px;color:var(--text);}
+#sqr-canvas{display:flex;justify-content:center;margin:8px 0;}
+.sqr-part-lbl{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;}
+.sqr-hint{font-size:12px;color:var(--dim);margin:5px 0 14px;text-align:center;}
+.sqr-footer{width:100%;max-width:340px;display:flex;flex-direction:column;gap:9px;margin-top:4px;}
+.sqr-del{
+  width:100%;padding:13px;border-radius:10px;
+  border:2px solid rgba(192,57,43,.45);background:rgba(192,57,43,.07);
+  color:#e08070;font-size:14px;font-weight:800;cursor:pointer;
+  text-transform:uppercase;font-family:var(--font);letter-spacing:1px;
+}
+.sqr-del:active{background:var(--red);color:#fff;}
+
+/* ── TOAST ───────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:22px;left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--acc);color:#0a0a0a;
+  padding:9px 20px;border-radius:24px;
+  font-weight:800;font-size:14px;z-index:99999;
+  pointer-events:none;opacity:0;
+  transition:opacity .2s,transform .2s;letter-spacing:.5px;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── MODAL / PANEL ───────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:5000;display:none;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--s2);border:1.5px solid var(--border2);border-radius:14px;padding:20px;width:88%;max-width:320px;}
+.modal-title{font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin-bottom:14px;text-align:center;}
+.modal-list{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.modal-opt{
+  padding:14px;border-radius:8px;border:1.5px solid var(--border2);
+  background:var(--s3);color:var(--text);font-size:16px;
+  font-weight:700;cursor:pointer;text-align:center;
+  font-family:var(--font);text-transform:uppercase;letter-spacing:1px;
+}
+.modal-opt:active{background:var(--purple);border-color:var(--purple);}
+.modal-cancel{
+  width:100%;padding:11px;border-radius:8px;border:1.5px solid var(--border2);
+  background:var(--s3);color:var(--dim);font-size:13px;font-weight:700;
+  cursor:pointer;letter-spacing:.5px;text-transform:uppercase;font-family:var(--font);
+}
+.modal-cancel:active{background:var(--border2);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN: ALLIANCE SELECTION
+══════════════════════════════════════════════════════ -->
+<div id="sc-alliance" class="screen active">
+  <div class="nav">
+    <div class="nav-arrow dim">←</div>
+    <div class="nav-center">
+      <div class="nav-title">935 SCOUT</div>
+      <div class="nav-chips">
+        <span class="chip">TEAM 935 · FRC 2026</span>
+        <span id="alliance-badge-main" class="badge" style="display:none;"></span>
+      </div>
+    </div>
+    <div class="nav-arrow" onclick="navRight()">→</div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="card-title">MATCH INFO</div>
+      <div class="grid">
+        <div class="fg">
+          <label class="fl">Scout Name</label>
+          <input class="fi" id="scout-name" placeholder="Your name" inputmode="text" autocomplete="off" oninput="saveScoutName(); tryAutoFill()">
+        </div>
+        <div class="grid g2">
+          <div class="fg">
+            <label class="fl">Match #</label>
+            <input class="fi" id="match-num" placeholder="15" type="number" inputmode="numeric" pattern="[0-9]*" oninput="tryAutoFill()">
+          </div>
+          <div class="fg">
+            <label class="fl">Team #</label>
+            <input class="fi" id="team-num" placeholder="1234" type="number" inputmode="numeric" pattern="[0-9]*" oninput="updateSetupTeamDisplay()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="aln-extras" style="max-width:none; padding:0; margin-top:0;">
+      <div>
+        <div class="sec-title">FIELD ORIENTATION</div>
+        <div class="orient-row" style="margin-top:7px;">
+          <div class="orient-btn sel" id="ori-norm" onclick="setOrientation(false)">
+            <div class="orient-icon">🔴⬜🔵</div>
+            <div style="font-size:11px;font-weight:800;margin-top:2px;">NORMAL</div>
+            <div class="orient-sub">Red left · Blue right</div>
+          </div>
+          <div class="orient-btn" id="ori-flip" onclick="setOrientation(true)">
+            <div class="orient-icon">🔵⬜🔴</div>
+            <div style="font-size:11px;font-weight:800;margin-top:2px;">FLIPPED</div>
+            <div class="orient-sub">Blue left · Red right</div>
+          </div>
+        </div>
+      </div>
+      <div class="practice-row" id="practice-toggle" onclick="togglePractice()">
+        <div class="pbox"></div>
+        <span class="plbl">PRACTICE MATCH</span>
+      </div>
+      <div class="saved-btn" onclick="openSaved()">
+        📦 VIEW SAVED MATCHES
+        <span class="saved-count-badge" id="saved-count-badge">0</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="big-btn" onclick="navRight()">NEXT →</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN: SETUP
+══════════════════════════════════════════════════════ -->
+<div id="sc-setup" class="screen">
+  <div class="nav">
+    <div class="nav-arrow" onclick="navLeft()">←</div>
+    <div class="nav-center">
+      <div class="nav-title">SETUP</div>
+      <div class="nav-chips">
+        <span id="setup-badge" class="badge" onclick="goToAlliance()"></span>
+      </div>
+    </div>
+    <div class="nav-arrow" onclick="navRight()">→</div>
+  </div>
+  <div class="body">
+    <div>
+      <div class="sec-title">ROBOT INFO</div>
+      <div class="grid g2" style="margin-top:9px;">
+        <div class="fg">
+          <label class="fl">Starting Position</label>
+          <select class="fi" id="start-pos">
+            <option value="">— Select —</option>
+            <option value="Left">Left</option>
+            <option value="Center">Center</option>
+            <option value="Right">Right</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Robot Status</label>
+          <select class="fi" id="robot-status">
+            <option value="Operational">Operational</option>
+            <option value="Partial">Partial Issues</option>
+            <option value="Brownout">Brownout Risk</option>
+            <option value="Dead">Not Moving</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-title">PRE-MATCH NOTES</div>
+      <textarea class="ta" id="prematch-notes" rows="3" style="margin-top:9px;" placeholder="e.g. Swerve drive, preloaded with coral..."></textarea>
+    </div>
+    <div>
+      <div class="sec-title">TEAM YOU ARE SCOUTING</div>
+      <div class="card" style="margin-top:9px;">
+        <div id="setup-team-display" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--acc);text-align:center;letter-spacing:1px;">#—</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="big-btn" onclick="startMatch()">START SCOUTING →</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN: FIELD (AUTO & TELEOP share this)
+══════════════════════════════════════════════════════ -->
+<div id="sc-field" class="screen">
+  <div class="nav">
+    <div class="nav-arrow" onclick="navLeft()">←</div>
+    <div class="nav-center">
+      <div class="nav-title" id="period-label">AUTO</div>
+      <div class="nav-chips">
+        <span class="chip" id="field-team">---</span>
+        <span class="chip" id="field-match"></span>
+        <span class="chip chip-acc" id="field-status">Ready</span>
+        <span class="chip" id="ev-count">0 ev</span>
+        <span class="chip-timer" id="auto-timer">20s</span>
+        <span class="chip-undo" onclick="undoLast()">↩ UNDO</span>
+        <span class="chip-flip" id="flip-btn" onclick="toggleFlip()">⇄ FLIP</span>
+      </div>
+    </div>
+    <div class="nav-arrow" onclick="navRight()">→</div>
+  </div>
+  <div class="field-wrap" id="field-wrap">
+    <img id="field-img" class="field-img" src="Images/2026_Field.png" alt="FRC 2026 Field">
+    <div class="field-ov" id="field-ov"></div>
+  </div>
+  <div class="def-bar" id="def-bar">
+    <div class="def-inner">
+      <span class="def-lbl">⚠ Defense:</span>
+      <div class="pen-btn" onclick="addPenalty('Foul')">FOUL</div>
+      <div class="pen-btn" onclick="addPenalty('Tech')">TECH</div>
+      <div class="pen-btn" onclick="addPenalty('Yellow')">YELLOW</div>
+      <div class="pen-btn" onclick="addPenalty('Red')">RED CARD</div>
+      <div class="pen-disp" id="pen-disp"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN: ENDGAME
+══════════════════════════════════════════════════════ -->
+<div id="sc-endgame" class="screen">
+  <div class="nav">
+    <div class="nav-arrow" onclick="navLeft()">←</div>
+    <div class="nav-center">
+      <div class="nav-title">ENDGAME</div>
+    </div>
+    <div class="nav-arrow dim">→</div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="card-title">📝 NOTES</div>
+      <textarea class="ta" id="end-notes" rows="4" placeholder="e.g. Attempted L2 with ~12s left, strong auto..."></textarea>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡 DEFENSE OBSERVATIONS</div>
+      <textarea class="ta" id="def-notes" rows="3" placeholder="e.g. Played heavy defense in teleop..."></textarea>
+    </div>
+    <div class="card">
+      <div class="card-title">🧗 CLIMB RESULT</div>
+      <div class="climb-grid">
+        <div class="climb-opt" data-val="None"   onclick="selClimb(this)">NONE</div>
+        <div class="climb-opt" data-val="Parked" onclick="selClimb(this)">PARK</div>
+        <div class="climb-opt" data-val="L1"     onclick="selClimb(this)">L1</div>
+        <div class="climb-opt" data-val="L2"     onclick="selClimb(this)">L2</div>
+        <div class="climb-opt" data-val="L3"     onclick="selClimb(this)">L3</div>
+      </div>
+      <div class="fg" style="margin-top:11px;">
+        <label class="fl">Climb Timing</label>
+        <select class="fi" id="climb-timing">
+          <option value="">— Select —</option>
+          <option value="Early">Early (&gt;20s left)</option>
+          <option value="Normal">Normal (10–20s)</option>
+          <option value="Late">Last second (&lt;10s)</option>
+          <option value="Failed">Attempted &amp; Failed</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠ FOULS CAUSED</div>
+      <div class="foul-row" style="margin-top:4px;">
+        <div class="foul-adj minus" onclick="adjFouls(-1)">−</div>
+        <div class="foul-val" id="fouls-val">0</div>
+        <div class="foul-adj plus"  onclick="adjFouls(1)">+</div>
+      </div>
+    </div>
+    <div class="card" id="stats-card">
+      <div class="card-title">📊 MATCH STATS</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:5px;">ZONE TIME</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:13px;" id="zt-grid"></div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;">CYCLES (TELEOP)</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;" id="cy-grid"></div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="big-btn" onclick="submitMatch()">SUBMIT &amp; GENERATE QR →</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN: SAVED MATCHES
+══════════════════════════════════════════════════════ -->
+<div id="sc-saved" class="screen">
+  <div class="nav">
+    <div class="nav-arrow" onclick="closeSaved()">←</div>
+    <div class="nav-center">
+      <div class="nav-title">SAVED MATCHES</div>
+      <div class="nav-chips"><span class="chip" id="saved-count-lbl">0 PENDING</span></div>
+    </div>
+    <div class="nav-arrow dim">→</div>
+  </div>
+  <div class="body" id="saved-list-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     OVERLAY: QR CODE
+══════════════════════════════════════════════════════ -->
+<div id="qr-ov">
+  <div class="qr-hdr">
+    <div>
+      <div class="qr-hdr-title">QR CODE</div>
+      <div class="qr-hdr-meta" id="qr-meta">—</div>
+    </div>
+    <div class="qr-part-lbl" id="qr-part-lbl">PART 1</div>
+  </div>
+  <div id="qr-canvas"></div>
+  <div class="qr-hint">Hold steady — Lead Scout scans</div>
+  <div class="qr-actions">
+    <div class="qr-done" onclick="resetAndNext()">✓ DONE — NEW MATCH</div>
+    <div class="qr-json" id="qr-json-btn" onclick="saveToLocal()">📄 EXPORT TO JSON</div>
+    <button class="qr-json" onclick="window.location.href='scanner.html'">SCANNER</button>
+    <div class="qr-save" id="qr-save-btn" onclick="saveCurrentMatch()">💾 SAVE FOR LATER</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     OVERLAY: SAVED MATCH QR VIEWER
+══════════════════════════════════════════════════════ -->
+<div id="sqr-ov">
+  <div class="sqr-hdr">
+    <div class="sqr-back" onclick="closeSavedQR()">← BACK</div>
+    <div>
+      <div class="sqr-title" id="sqr-title">MATCH —</div>
+      <div class="sqr-meta" id="sqr-meta">—</div>
+    </div>
+  </div>
+  <div class="sqr-info" id="sqr-info-body"></div>
+  <div class="sqr-part-lbl" id="sqr-part-lbl">PART 1</div>
+  <div id="sqr-canvas"></div>
+  <div class="sqr-hint">Lead Scout scans this QR code</div>
+  <div class="sqr-footer">
+    <div class="sqr-del" onclick="deleteSavedMatch()">🗑 DELETE THIS MATCH</div>
+  </div>
+</div>
+
+<!-- Climb modal -->
+<div class="modal-bg" id="climb-modal" onclick="if(event.target===this)closeClimbModal()">
+  <div class="modal">
+    <div class="modal-title">CLIMB LEVEL</div>
+    <div class="modal-list" id="climb-modal-list"></div>
+    <div class="modal-cancel" onclick="closeClimbModal()">CANCEL</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════
+//  CONSTANTS
+// ════════════════════════════════════════════════════════
+const FW = 1000, FH = 527;
+
+const ZONES = [
+  { id:'zred',  x:0,   y:0, w:293, h:527, name:'Red Zone',  color:'#e63946', opacity:.2 },
+  { id:'zneu',  x:298, y:0, w:408, h:527, name:'Neutral',   color:'#888888', opacity:.15 },
+  { id:'zblu',  x:720, y:0, w:278, h:527, name:'Blue Zone', color:'#3a86ff', opacity:.2  },
+];
+
+const BTNS = [
+  // ── AUTO movements: Red ↔ Neutral ──
+  {id:'a_rt1_rn',x:297,y:55,  sz:54,text:'→',sub:'TRENCH1', cat:'movement',period:'auto',zone:'zred',target:'zneu'},
+  {id:'a_rt1_nr',x:297,y:55,  sz:54,text:'←',sub:'TRENCH1', cat:'movement',period:'auto',zone:'zneu',target:'zred'},
+  {id:'a_rb1_rn',x:297,y:160, sz:54,text:'→',sub:'BUMP1',   cat:'movement',period:'auto',zone:'zred',target:'zneu'},
+  {id:'a_rb1_nr',x:297,y:160, sz:54,text:'←',sub:'BUMP1',   cat:'movement',period:'auto',zone:'zneu',target:'zred'},
+  {id:'a_rb2_rn',x:297,y:358, sz:54,text:'→',sub:'BUMP2',   cat:'movement',period:'auto',zone:'zred',target:'zneu'},
+  {id:'a_rb2_nr',x:297,y:358, sz:54,text:'←',sub:'BUMP2',   cat:'movement',period:'auto',zone:'zneu',target:'zred'},
+  {id:'a_rt2_rn',x:297,y:455, sz:54,text:'→',sub:'TRENCH2', cat:'movement',period:'auto',zone:'zred',target:'zneu'},
+  {id:'a_rt2_nr',x:297,y:455, sz:54,text:'←',sub:'TRENCH2', cat:'movement',period:'auto',zone:'zneu',target:'zred'},
+  // ── AUTO movements: Neutral ↔ Blue ──
+  {id:'a_bt1_nb',x:716,y:55,  sz:54,text:'→',sub:'TRENCH1', cat:'movement',period:'auto',zone:'zneu',target:'zblu'},
+  {id:'a_bt1_bn',x:716,y:55,  sz:54,text:'←',sub:'TRENCH1', cat:'movement',period:'auto',zone:'zblu',target:'zneu'},
+  {id:'a_bb1_nb',x:716,y:160, sz:54,text:'→',sub:'BUMP1',   cat:'movement',period:'auto',zone:'zneu',target:'zblu'},
+  {id:'a_bb1_bn',x:716,y:160, sz:54,text:'←',sub:'BUMP1',   cat:'movement',period:'auto',zone:'zblu',target:'zneu'},
+  {id:'a_bb2_nb',x:716,y:358, sz:54,text:'→',sub:'BUMP2',   cat:'movement',period:'auto',zone:'zneu',target:'zblu'},
+  {id:'a_bb2_bn',x:716,y:358, sz:54,text:'←',sub:'BUMP2',   cat:'movement',period:'auto',zone:'zblu',target:'zneu'},
+  {id:'a_bt2_nb',x:716,y:455, sz:54,text:'→',sub:'TRENCH2', cat:'movement',period:'auto',zone:'zneu',target:'zblu'},
+  {id:'a_bt2_bn',x:716,y:455, sz:54,text:'←',sub:'TRENCH2', cat:'movement',period:'auto',zone:'zblu',target:'zneu'},
+  // ── AUTO actions ──
+  {id:'a_ng', x:500,y:263,sz:68,text:'G',sub:'GRAB',  cat:'grabbing',period:'auto',zone:'zneu',target:''},
+  {id:'a_rg', x:62, y:155,sz:58,text:'G',sub:'GRAB',  cat:'grabbing',period:'auto',zone:'zred',target:''},
+  {id:'a_bg', x:954,y:372,sz:58,text:'G',sub:'GRAB',  cat:'grabbing',period:'auto',zone:'zblu',target:''},
+  {id:'a_rc', x:62, y:278,sz:58,text:'C',sub:'CLIMB', cat:'climb',   period:'auto',zone:'zred',target:'',levels:'L1,L2,L3'},
+  {id:'a_bc', x:950,y:244,sz:58,text:'C',sub:'CLIMB', cat:'climb',   period:'auto',zone:'zblu',target:'',levels:'L1,L2,L3'},
+  {id:'a_rs', x:297,y:263,sz:52,text:'S',sub:'SCORE', cat:'scoring', period:'auto',zone:'zred',target:''},
+  {id:'a_bs', x:716,y:263,sz:52,text:'S',sub:'SCORE', cat:'scoring', period:'auto',zone:'zblu',target:''},
+  // ── TELE movements: Red ↔ Neutral ──
+  {id:'t_rt1_rn',x:297,y:55,  sz:54,text:'→',sub:'TRENCH1', cat:'movement',period:'tele',zone:'zred',target:'zneu'},
+  {id:'t_rt1_nr',x:297,y:55,  sz:54,text:'←',sub:'TRENCH1', cat:'movement',period:'tele',zone:'zneu',target:'zred'},
+  {id:'t_rb1_rn',x:297,y:145, sz:54,text:'→',sub:'BUMP1',   cat:'movement',period:'tele',zone:'zred',target:'zneu'},
+  {id:'t_rb1_nr',x:297,y:145, sz:54,text:'←',sub:'BUMP1',   cat:'movement',period:'tele',zone:'zneu',target:'zred'},
+  {id:'t_rb2_rn',x:297,y:358, sz:54,text:'→',sub:'BUMP2',   cat:'movement',period:'tele',zone:'zred',target:'zneu'},
+  {id:'t_rb2_nr',x:297,y:358, sz:54,text:'←',sub:'BUMP2',   cat:'movement',period:'tele',zone:'zneu',target:'zred'},
+  {id:'t_rt2_rn',x:297,y:455, sz:54,text:'→',sub:'TRENCH2', cat:'movement',period:'tele',zone:'zred',target:'zneu'},
+  {id:'t_rt2_nr',x:297,y:455, sz:54,text:'←',sub:'TRENCH2', cat:'movement',period:'tele',zone:'zneu',target:'zred'},
+  // ── TELE movements: Neutral ↔ Blue ──
+  {id:'t_bt1_nb',x:716,y:55,  sz:54,text:'→',sub:'TRENCH1', cat:'movement',period:'tele',zone:'zneu',target:'zblu'},
+  {id:'t_bt1_bn',x:716,y:55,  sz:54,text:'←',sub:'TRENCH1', cat:'movement',period:'tele',zone:'zblu',target:'zneu'},
+  {id:'t_bb1_nb',x:716,y:145, sz:54,text:'→',sub:'BUMP1',   cat:'movement',period:'tele',zone:'zneu',target:'zblu'},
+  {id:'t_bb1_bn',x:716,y:145, sz:54,text:'←',sub:'BUMP1',   cat:'movement',period:'tele',zone:'zblu',target:'zneu'},
+  {id:'t_bb2_nb',x:716,y:358, sz:54,text:'→',sub:'BUMP2',   cat:'movement',period:'tele',zone:'zneu',target:'zblu'},
+  {id:'t_bb2_bn',x:716,y:358, sz:54,text:'←',sub:'BUMP2',   cat:'movement',period:'tele',zone:'zblu',target:'zneu'},
+  {id:'t_bt2_nb',x:716,y:455, sz:54,text:'→',sub:'TRENCH2', cat:'movement',period:'tele',zone:'zneu',target:'zblu'},
+  {id:'t_bt2_bn',x:716,y:455, sz:54,text:'←',sub:'TRENCH2', cat:'movement',period:'tele',zone:'zblu',target:'zneu'},
+  // ── TELE actions ──
+  {id:'t_ng', x:494,y:253,sz:68,text:'G',sub:'GRAB',  cat:'grabbing',period:'tele',zone:'zneu',target:''},
+  {id:'t_rg', x:62, y:145,sz:42,text:'G',sub:'GRAB',  cat:'grabbing',period:'tele',zone:'zred',target:''},
+  {id:'t_bg', x:940,y:358,sz:42,text:'G',sub:'GRAB',  cat:'grabbing',period:'tele',zone:'zblu',target:''},
+  {id:'t_rc', x:62, y:263,sz:50,text:'C',sub:'CLIMB', cat:'climb',   period:'tele',zone:'zred',target:'',levels:'L1,L2,L3'},
+  {id:'t_bc', x:924,y:234,sz:50,text:'C',sub:'CLIMB', cat:'climb',   period:'tele',zone:'zblu',target:'',levels:'L1,L2,L3'},
+  {id:'t_rs', x:297,y:263,sz:52,text:'S',sub:'SCORE', cat:'scoring', period:'tele',zone:'zred',target:''},
+  {id:'t_bs', x:820,y:263,sz:52,text:'S',sub:'SCORE', cat:'scoring', period:'tele',zone:'zblu',target:''},
+];
+
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+const SCREENS = ['alliance','setup','auto','tele','endgame'];
+let screenIdx = 0;
+let curScreen = 'alliance';
+let curPeriod = 'auto';
+
+let alliance = null;
+let isPractice = false;
+let fieldFlipped = false;
+
+let events = [];
+let penalties = [];
+let foulsCaused = 0;
+let climbResult = 'None';
+
+let activeZone = null; // always stores the LOGICAL zone (alliance color based), never visual
+let zoneEnter = null;
+let zoneTimes = {};
+let zoneTickInterval = null;
+let autoTimerInterval = null;
+
+let currentPayload = null;
+let viewingSavedId = null;
+let savedQrInterval = null;
+
+const SAVE_KEY = 'scouting_saved_matches_v2';
+const LEGACY_SAVE_KEY = 'scouting_results_v2';
+const SCANNER_SAVE_KEY = 'scouting_results_v2';
+
+// ════════════════════════════════════════════════════════
+//  SCHEDULE DATA (Embedded to bypass CORS)
+// ════════════════════════════════════════════════════════
+const schedule = {
+  "1": {
+    "Sam": {
+      "team": "10435",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2457",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7064",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8112",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "2357",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "1810",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "2": {
+    "Isaac": {
+      "team": "6843",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "757",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10453",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "2220",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "9626",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "9410",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "3": {
+    "Izak": {
+      "team": "8825",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1986",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1625",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "10225",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "6017",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1994",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "4": {
+    "James": {
+      "team": "4624",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1827",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "5041",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "9316",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1987",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1769",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "5": {
+    "Carter": {
+      "team": "5126",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8880",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "935",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1847",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "2704",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "11171",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "6": {
+    "David": {
+      "team": "4455",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5013",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1763",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "5098",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4959",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "8740",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "7": {
+    "Sam": {
+      "team": "937",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2457",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7102",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10333",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7483",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "6017",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "8": {
+    "Isaac": {
+      "team": "1769",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8112",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10435",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10453",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "9410",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1994",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "9": {
+    "Izak": {
+      "team": "5126",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2220",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1847",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "1986",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5041",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "9626",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "10": {
+    "James": {
+      "team": "5013",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7064",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "1625",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8740",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "4455",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "9316",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "11": {
+    "Carter": {
+      "team": "2704",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "4959",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8880",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "757",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "2357",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1987",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "12": {
+    "David": {
+      "team": "11171",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8825",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1763",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7102",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1810",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "4624",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "13": {
+    "Sam": {
+      "team": "10225",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "935",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1827",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10333",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "5098",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "937",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "14": {
+    "Isaac": {
+      "team": "1847",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7483",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2457",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "6843",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "8112",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "7064",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "15": {
+    "Izak": {
+      "team": "2704",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "9316",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "2220",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "8880",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "6017",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "10453",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "16": {
+    "James": {
+      "team": "11171",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "5013",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "757",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1986",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "8740",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "10435",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "17": {
+    "Carter": {
+      "team": "1994",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "9626",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "2357",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "937",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "4624",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "5126",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "18": {
+    "David": {
+      "team": "5098",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1827",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "4455",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1810",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10225",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7483",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "19": {
+    "Sam": {
+      "team": "7102",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "10333",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8825",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "9410",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "5041",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "1987",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "20": {
+    "Isaac": {
+      "team": "1625",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "6843",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4959",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1769",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "1763",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "935",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "21": {
+    "Izak": {
+      "team": "2704",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8740",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7064",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "1986",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8112",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2220",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "22": {
+    "James": {
+      "team": "5013",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10225",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "10453",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "11171",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2457",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1994",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "23": {
+    "Carter": {
+      "team": "8825",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "9316",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "937",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "8880",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "10435",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4455",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "24": {
+    "David": {
+      "team": "5041",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1847",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "757",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7102",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1625",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1827",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "25": {
+    "Sam": {
+      "team": "6017",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5126",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "9626",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1810",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "4959",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "1987",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "26": {
+    "Isaac": {
+      "team": "2357",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "5098",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4624",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "935",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "6843",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "10333",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "27": {
+    "Izak": {
+      "team": "9410",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1769",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1986",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "1763",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "7483",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "9316",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "28": {
+    "James": {
+      "team": "8880",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1625",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "2457",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "10453",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2704",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1827",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "29": {
+    "Carter": {
+      "team": "1987",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "10435",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "2220",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "4455",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "5126",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "7064",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "30": {
+    "David": {
+      "team": "5041",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1810",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "6843",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "757",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4624",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10225",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "31": {
+    "Sam": {
+      "team": "1994",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1763",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7102",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "935",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "2357",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "7483",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "32": {
+    "Isaac": {
+      "team": "9410",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "11171",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "5098",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1847",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "937",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "6017",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "33": {
+    "Izak": {
+      "team": "10333",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1769",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "9626",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "8740",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8825",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5013",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "34": {
+    "James": {
+      "team": "8112",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10453",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "4624",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "4959",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5041",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "4455",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "35": {
+    "Carter": {
+      "team": "9316",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "1986",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5126",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "935",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "2220",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2457",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "36": {
+    "David": {
+      "team": "9410",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "937",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2357",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1625",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "11171",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1810",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "37": {
+    "Sam": {
+      "team": "6017",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1987",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "6843",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10435",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1827",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "5013",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "38": {
+    "Isaac": {
+      "team": "7483",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1994",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8740",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "8880",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "10333",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1847",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "39": {
+    "Izak": {
+      "team": "1763",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "5098",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "8112",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "2704",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "757",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "8825",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "40": {
+    "James": {
+      "team": "10225",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7102",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "1769",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "9626",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "7064",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "4959",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "41": {
+    "Carter": {
+      "team": "4624",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "4455",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1625",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2457",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "6843",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1986",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "42": {
+    "David": {
+      "team": "6017",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "935",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "9410",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8740",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8880",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "5041",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "43": {
+    "Sam": {
+      "team": "7483",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "10453",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8825",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2220",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "5013",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "1810",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "44": {
+    "Isaac": {
+      "team": "2357",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1847",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1769",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10435",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "9626",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "10225",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "45": {
+    "Izak": {
+      "team": "7064",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "9316",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10333",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "5098",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1994",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "757",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "46": {
+    "James": {
+      "team": "1763",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1987",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "1827",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "11171",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5126",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8112",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "47": {
+    "Carter": {
+      "team": "937",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "2704",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5041",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5013",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "7102",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4959",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "48": {
+    "David": {
+      "team": "1810",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "8740",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2457",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8825",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8880",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "6843",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "49": {
+    "Sam": {
+      "team": "2220",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2357",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "6017",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4455",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1769",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "1994",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "50": {
+    "Isaac": {
+      "team": "10225",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1987",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "11171",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "757",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "9316",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "9410",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "51": {
+    "Izak": {
+      "team": "7483",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "5098",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7102",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "1625",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "10435",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5126",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "52": {
+    "James": {
+      "team": "9626",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "8112",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "2704",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1827",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "10333",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1986",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "53": {
+    "Carter": {
+      "team": "7064",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "1847",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "935",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "10453",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1763",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "937",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "54": {
+    "David": {
+      "team": "4959",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "6017",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "757",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "2457",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "9410",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "4624",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "55": {
+    "Sam": {
+      "team": "6843",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "4455",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "2220",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "9316",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7102",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "11171",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "56": {
+    "Isaac": {
+      "team": "1769",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1810",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8880",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1987",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "1986",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5098",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "57": {
+    "Izak": {
+      "team": "8740",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "1625",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10453",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "5126",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "10225",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "2357",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "58": {
+    "James": {
+      "team": "9626",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "937",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "5013",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "7064",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "5041",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1763",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "59": {
+    "Carter": {
+      "team": "10435",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "1994",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1847",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "10333",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "4624",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2704",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "60": {
+    "David": {
+      "team": "8825",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "4959",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "935",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "1827",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "7483",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "8112",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "61": {
+    "Sam": {
+      "team": "1987",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "7102",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8740",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2457",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10453",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "5098",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "62": {
+    "Isaac": {
+      "team": "8880",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "2220",
+      "alliance": "R2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "10225",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1625",
+      "alliance": "B1",
+      "sub": null
+    },
+    "David": {
+      "team": "1763",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "6017",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "63": {
+    "Izak": {
+      "team": "5126",
+      "alliance": "R1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "757",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "10333",
+      "alliance": "R3",
+      "sub": null
+    },
+    "David": {
+      "team": "6843",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "1769",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "937",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "64": {
+    "James": {
+      "team": "4959",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1986",
+      "alliance": "R2",
+      "sub": null
+    },
+    "David": {
+      "team": "7483",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5041",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "11171",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "10435",
+      "alliance": "B3",
+      "sub": "Hannah"
+    }
+  },
+  "65": {
+    "Carter": {
+      "team": "9626",
+      "alliance": "R1",
+      "sub": null
+    },
+    "David": {
+      "team": "1810",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Sam": {
+      "team": "4455",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "1994",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Izak": {
+      "team": "935",
+      "alliance": "B2",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "2704",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "66": {
+    "David": {
+      "team": "2357",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Sam": {
+      "team": "5013",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "9316",
+      "alliance": "R3",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8112",
+      "alliance": "B1",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "8825",
+      "alliance": "B2",
+      "sub": null
+    },
+    "Carter": {
+      "team": "1847",
+      "alliance": "B3",
+      "sub": null
+    }
+  },
+  "67": {
+    "Sam": {
+      "team": "1827",
+      "alliance": "R1",
+      "sub": null
+    },
+    "Isaac": {
+      "team": "9410",
+      "alliance": "R2",
+      "sub": null
+    },
+    "Izak": {
+      "team": "8880",
+      "alliance": "R3",
+      "sub": "Hannah"
+    },
+    "James": {
+      "team": "4624",
+      "alliance": "B1",
+      "sub": null
+    },
+    "Carter": {
+      "team": "7064",
+      "alliance": "B2",
+      "sub": null
+    },
+    "David": {
+      "team": "2220",
+      "alliance": "B3",
+      "sub": null
+    }
+  }
+};
+
+function saveScoutName() {
+  localStorage.setItem('scoutName', $('scout-name').value.trim());
+}
+
+function tryAutoFill() {
+  const sn = ($('scout-name').value || '').trim().toLowerCase();
+  const mnRaw = ($('match-num').value || '').trim();
+  if (!sn || !mnRaw) return;
+
+  const mn = mnRaw.replace(/\D/g, '');
+  const matchData = schedule[mn] || schedule[mnRaw] || schedule[String(parseInt(mn))];
+  if (!matchData) return;
+
+  // First try: typed name matches a primary key directly
+  const entries = Object.entries(matchData);
+  const directIdx = entries.findIndex(([name]) => name.trim().toLowerCase() === sn);
+
+  if (directIdx !== -1) {
+    // Primary found — assign as normal
+    const [, slotData] = entries[directIdx];
+    const team = slotData.team ?? slotData; // support old flat format too
+    const aCode = slotData.alliance ?? null;
+    if (team) $('team-num').value = team;
+    updateSetupTeamDisplay();
+    if (aCode) pickAlliance(aCode, false);
+    return;
+  }
+
+  // Second try: typed name matches a sub value in any slot
+  const subIdx = entries.findIndex(([, slotData]) => {
+    const sub = slotData.sub ?? null;
+    return sub && sub.trim().toLowerCase() === sn;
+  });
+
+  if (subIdx !== -1) {
+    // Sub found — use the primary's slot data, but keep the sub's name in the scout field
+    const [, slotData] = entries[subIdx];
+    const team = slotData.team ?? slotData;
+    const aCode = slotData.alliance ?? null;
+    if (team) $('team-num').value = team;
+    updateSetupTeamDisplay();
+    if (aCode) pickAlliance(aCode, false);
+    // Don't overwrite scout name — they typed their own name, keep it
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════════
+function $(id) { return document.getElementById(id); }
+
+function updateSetupTeamDisplay() {
+  const teamInput = $('team-num');
+  const disp = $('setup-team-display');
+  if (!teamInput || !disp) return;
+  const v = (teamInput.value || '').trim();
+  disp.textContent = v ? ('#' + v) : '#—';
+}
+
+function toast(msg, dur) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), dur || 2200);
+}
+
+function getSaved() {
+  try {
+    const cur = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]');
+    if (Array.isArray(cur)) return cur;
+  } catch {}
+  try {
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_SAVE_KEY) || '[]');
+    if (Array.isArray(legacy)) {
+      return legacy.filter(item => item && typeof item === 'object' && typeof item.payload === 'string');
+    }
+  } catch {}
+  return [];
+}
+function setSaved(arr) {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(arr));
+  refreshSavedCount();
+}
+function refreshSavedCount() {
+  const n = getSaved().length;
+  $('saved-count-badge').textContent = n;
+  const lbl = $('saved-count-lbl');
+  if (lbl) lbl.textContent = n + ' PENDING';
+}
+
+// ════════════════════════════════════════════════════════
+//  FLIP HELPERS
+//
+//  The key rule:
+//    activeZone.id  = always the LOGICAL zone id (e.g. 'zred' for Red alliance)
+//    visualZoneId() = what zone id is visually on screen for a given logical id
+//    logicalZoneId()= reverse: what logical id does a visual zone id map to
+//
+//  When NOT flipped: visual == logical (zred is on the left, where Red actually is)
+//  When flipped:     visual != logical (zred appears on the right because image is mirrored)
+// ════════════════════════════════════════════════════════
+function mirrorZone(zid) {
+  if (zid === 'zred') return 'zblu';
+  if (zid === 'zblu') return 'zred';
+  return zid; // zneu stays zneu
+}
+
+// Given a logical zone id, what visual/DOM position does it occupy?
+function visualZoneId(logicalId) {
+  return fieldFlipped ? mirrorZone(logicalId) : logicalId;
+}
+
+// Given a visual/DOM zone id (what was tapped), what is the logical zone?
+function logicalFromVisual(visualId) {
+  return fieldFlipped ? mirrorZone(visualId) : visualId;
+}
+
+function flipX(x) { return FW - x; }
+
+// ════════════════════════════════════════════════════════
+//  ORIENTATION / FLIP
+// ════════════════════════════════════════════════════════
+function setOrientation(flipped) {
+  fieldFlipped = flipped;
+  localStorage.setItem('fieldFlipped', flipped ? '1' : '0');
+  $('ori-norm').classList.toggle('sel', !flipped);
+  $('ori-flip').classList.toggle('sel', flipped);
+  const btn = $('flip-btn');
+  if (btn) {
+    btn.classList.toggle('on', flipped);
+    btn.textContent = flipped ? '⇄ FLIPPED' : '⇄ FLIP';
+  }
+  const img = $('field-img');
+  if (img) img.classList.toggle('flipped', flipped);
+  if (curScreen === 'auto' || curScreen === 'tele') {
+    renderZones();
+    renderButtons();
+    updateDefBar();
+  }
+}
+
+function toggleFlip() {
+  setOrientation(!fieldFlipped);
+  toast(fieldFlipped ? '⇄ Field flipped' : '⇄ Field normal');
+}
+
+// ════════════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════════════
+function goTo(screen) {
+  curScreen = screen;
+  const domId = (screen === 'auto' || screen === 'tele') ? 'field' : screen;
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('sc-' + domId).classList.add('active');
+
+  if (screen === 'auto' || screen === 'tele') {
+    curPeriod = screen;
+    $('period-label').textContent = screen === 'auto' ? 'AUTO' : 'TELEOP';
+
+    // Init active zone to alliance's logical zone if unset
+    if (!activeZone && alliance) {
+      const zid = alliance.startsWith('R') ? 'zred' : 'zblu';
+      activeZone = ZONES.find(z => z.id === zid);
+      zoneEnter = Date.now();
+    }
+
+    setOrientation(fieldFlipped);
+    startZoneTimer();
+    renderZones();
+    renderButtons();
+    updateDefBar();
+    if (screen === 'tele') cancelAutoTimer();
+  } else {
+    cancelAutoTimer();
+    stopZoneTimer();
+    if (screen === 'endgame') {
+      finalizeZoneTime();
+      renderStats();
+    }
+  }
+}
+
+function navLeft() {
+  if (curScreen === 'saved') { closeSaved(); return; }
+  if (screenIdx > 0) { screenIdx--; goTo(SCREENS[screenIdx]); }
+}
+function navRight() {
+  if (curScreen === 'saved') return;
+  if (screenIdx < 4) { screenIdx++; goTo(SCREENS[screenIdx]); }
+}
+function goToAlliance() { screenIdx = 0; goTo('alliance'); }
+
+// ════════════════════════════════════════════════════════
+//  ALLIANCE SCREEN
+// ════════════════════════════════════════════════════════
+function pickAlliance(a, nav = true) {
+  alliance = a;
+  localStorage.setItem('alliance', a);
+  const isRed = a.startsWith('R');
+  const badges = [$('setup-badge'), $('alliance-badge-main')];
+  badges.forEach(b => {
+    if (b) {
+      b.textContent = a;
+      b.className = 'badge ' + (isRed ? 'r' : 'b') + ' filled';
+      b.style.display = 'inline-block';
+    }
+  });
+  if (nav) {
+    screenIdx = 1;
+    goTo('setup');
+    tryAutoFill();
+  }
+}
+
+function togglePractice() {
+  isPractice = !isPractice;
+  $('practice-toggle').classList.toggle('on', isPractice);
+}
+
+// ════════════════════════════════════════════════════════
+//  SETUP SCREEN
+// ════════════════════════════════════════════════════════
+function startMatch() {
+  const sn = $('scout-name').value.trim();
+  const mn = $('match-num').value.trim();
+  const tn = $('team-num').value.trim();
+  if (!sn || !mn || !tn) { toast('⚠ Fill Scout · Match # · Team # first!'); return; }
+  $('field-team').textContent = '#' + tn;
+  $('field-match').textContent = 'M' + mn;
+  curPeriod = 'auto';
+  screenIdx = 2;
+  goTo('auto');
+  startAutoTimer();
+}
+
+// ════════════════════════════════════════════════════════
+//  AUTO TIMER
+// ════════════════════════════════════════════════════════
+function startAutoTimer() {
+  clearInterval(autoTimerInterval);
+  let s = 20;
+  const chip = $('auto-timer');
+  chip.classList.add('on');
+  chip.textContent = s + 's';
+  autoTimerInterval = setInterval(() => {
+    s--;
+    chip.textContent = s + 's';
+    if (s <= 0) {
+      clearInterval(autoTimerInterval);
+      autoTimerInterval = null;
+      chip.classList.remove('on');
+      if (curScreen === 'auto') {
+        screenIdx = 3;
+        goTo('tele');
+        toast('⚡ Auto ended → TELEOP');
+      }
+    }
+  }, 1000);
+}
+function cancelAutoTimer() {
+  clearInterval(autoTimerInterval);
+  autoTimerInterval = null;
+  const chip = $('auto-timer');
+  if (chip) chip.classList.remove('on');
+}
+
+// ════════════════════════════════════════════════════════
+//  ZONE TIMER
+// ════════════════════════════════════════════════════════
+function startZoneTimer() {
+  clearInterval(zoneTickInterval);
+  zoneTickInterval = setInterval(() => {
+    $('ev-count').textContent = events.length + ' ev';
+  }, 1000);
+}
+function stopZoneTimer() { clearInterval(zoneTickInterval); }
+
+function finalizeZoneTime() {
+  if (activeZone && zoneEnter) {
+    const key = activeZone.id; // always logical
+    zoneTimes[key] = (zoneTimes[key] || 0) + (Date.now() - zoneEnter) / 1000;
+    zoneEnter = null;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  FIELD RENDER
+// ════════════════════════════════════════════════════════
+function getFieldRect() {
+  const wrap = $('field-wrap');
+  const cw = wrap.offsetWidth, ch = wrap.offsetHeight;
+  const ratio = Math.min(cw / FW, ch / FH);
+  const nw = FW * ratio, nh = FH * ratio;
+  return { x: (cw - nw) / 2, y: (ch - nh) / 2, w: nw, h: nh, s: ratio };
+}
+
+function renderZones() {
+  const ov = $('field-ov');
+  ov.querySelectorAll('.zone').forEach(e => e.remove());
+  const rect = getFieldRect();
+
+  ZONES.forEach(z => {
+    // Flip the visual position of each zone when flipped, but keep id = logical id
+    const vx = fieldFlipped ? (FW - z.x - z.w) : z.x;
+
+    const el = document.createElement('div');
+    el.className = 'zone';
+    el.id = z.id; // DOM id = logical zone id always
+    el.style.cssText = `
+      left:${rect.x + vx * rect.s}px; top:${rect.y + z.y * rect.s}px;
+      width:${z.w * rect.s}px; height:${z.h * rect.s}px;
+    `;
+    const [r,g,b] = hexToRgb(z.color);
+    el.style.background = `rgba(${r},${g},${b},${z.opacity})`;
+    el.style.borderColor = z.color;
+
+    // Highlight whichever zone is currently active (logical match)
+    if (activeZone && activeZone.id === z.id) el.classList.add('active');
+
+    const lbl = document.createElement('div');
+    lbl.className = 'zone-lbl';
+    lbl.textContent = z.name;
+    el.appendChild(lbl);
+
+    // When tapped, z is the logical zone object — activateZone stores it logically
+    el.addEventListener('click', ev => {
+      if (ev.target === el || ev.target === lbl) activateZone(z);
+    });
+    ov.appendChild(el);
+  });
+}
+
+function renderButtons() {
+  const ov = $('field-ov');
+  ov.querySelectorAll('.fb').forEach(e => e.remove());
+  const rect = getFieldRect();
+
+  BTNS.forEach(b => {
+    if (b.period !== curPeriod) return;
+
+    // Visual x position — flip horizontally when needed
+    const rx = fieldFlipped ? flipX(b.x) : b.x;
+
+    // Arrow direction flips visually when field is flipped
+    const dispText = (fieldFlipped && b.cat === 'movement')
+      ? (b.text === '←' ? '→' : '←')
+      : b.text;
+
+    // b.zone and b.target are always LOGICAL zone ids (defined in BTNS array).
+    // When flipped, a button that was visually in zred is now visually in zblu,
+    // but its logical zone stays the same — we DON'T mirrorZone here.
+    // Instead we compare against activeZone.id directly (also logical).
+    const bZone   = b.zone;   // logical
+    const bTarget = b.target; // logical
+
+    const el = document.createElement('div');
+    const catClass = {movement:'mv',grabbing:'gr',climb:'cl',scoring:'sc'}[b.cat] || 'mv';
+    el.className = 'fb ' + catClass;
+    el.id = b.id;
+
+    const pxSz = b.sz * rect.s;
+    el.style.cssText = `
+      left:${rect.x + rx * rect.s}px; top:${rect.y + b.y * rect.s}px;
+      width:${pxSz}px; height:${pxSz}px;
+      font-size:${pxSz * .38}px;
+    `;
+
+    const glyph = document.createElement('div');
+    glyph.textContent = dispText;
+    el.appendChild(glyph);
+
+    if (b.cat === 'movement') {
+      const sub = document.createElement('div');
+      sub.className = 'fb-sub';
+      sub.style.fontSize = pxSz * .13 + 'px';
+      sub.textContent = b.sub;
+      el.appendChild(sub);
+    }
+
+    // Enable button only if scout is in the correct logical zone
+    const enabled = !bZone || (activeZone && activeZone.id === bZone);
+    if (!enabled) el.classList.add('off');
+
+    el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (!enabled) return;
+      handleBtn(b, bZone, bTarget, dispText);
+    });
+    ov.appendChild(el);
+  });
+}
+
+function hexToRgb(hex) {
+  const h = hex.replace('#','');
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+
+// activateZone receives the logical zone object (z from ZONES array)
+function activateZone(z) {
+  finalizeZoneTime();
+  activeZone = z; // store logical zone
+  zoneEnter = Date.now();
+
+  // Highlight the correct DOM element (DOM ids match logical ids)
+  document.querySelectorAll('.zone').forEach(el => el.classList.remove('active'));
+  $(z.id)?.classList.add('active');
+
+  setStatus(z.name);
+  renderButtons();
+  updateDefBar();
+  logEvent('ZONE:' + z.name);
+}
+
+function updateDefBar() {
+  if (!alliance || !activeZone) {
+    $('def-bar').classList.remove('on');
+    return;
+  }
+  // Defense bar shows when scout's logical active zone is the OPPONENT's zone
+  const isRed = alliance.startsWith('R');
+  const opponentZoneId = isRed ? 'zblu' : 'zred';
+  // activeZone.id is always logical, so this comparison is always correct
+  const inDefense = activeZone.id === opponentZoneId;
+  $('def-bar').classList.toggle('on', inDefense);
+}
+
+function setStatus(txt) {
+  const el = $('field-status');
+  if (el) el.textContent = txt.substring(0, 20);
+}
+
+// ════════════════════════════════════════════════════════
+//  BUTTON ACTIONS
+// ════════════════════════════════════════════════════════
+function handleBtn(b, bZone, bTarget, dispText) {
+  switch(b.cat) {
+    case 'movement':
+      if (bTarget) {
+        // bTarget is logical — find the logical zone object
+        const tz = ZONES.find(z => z.id === bTarget);
+        if (tz) {
+          logEvent('MV:' + (activeZone?.name||'?') + '→[' + b.sub + ']→' + tz.name);
+          activateZone(tz);
+        }
+      }
+      break;
+    case 'grabbing':
+      logEvent('GRAB:' + b.sub);
+      setStatus('Grabbed ' + b.sub);
+      break;
+    case 'scoring':
+      logEvent('SCORE:' + b.sub);
+      setStatus('Scored! ' + b.sub);
+      break;
+    case 'climb':
+      openClimbModal(b);
+      break;
+  }
+}
+
+function logEvent(action) {
+  events.push({ a: action, p: curPeriod, t: Date.now() });
+  $('ev-count').textContent = events.length + ' ev';
+}
+
+function undoLast() {
+  if (!events.length) { toast('Nothing to undo'); return; }
+  const last = events.pop();
+  $('ev-count').textContent = events.length + ' ev';
+  setStatus('Undone');
+  toast('↩ Undone: ' + last.a.split(':')[0]);
+}
+
+function addPenalty(type) {
+  penalties.push(type);
+  logEvent('PEN:' + type);
+  const counts = {};
+  penalties.forEach(p => counts[p] = (counts[p]||0) + 1);
+  $('pen-disp').textContent = Object.entries(counts).map(([k,v]) => k+':'+v).join('  ');
+}
+
+// ════════════════════════════════════════════════════════
+//  CLIMB MODAL
+// ════════════════════════════════════════════════════════
+function openClimbModal(b) {
+  const levels = (b.levels || 'L1,L2,L3').split(',').map(l => l.trim());
+  const list = $('climb-modal-list');
+  list.innerHTML = '';
+  levels.forEach(l => {
+    const d = document.createElement('div');
+    d.className = 'modal-opt';
+    d.textContent = l;
+    d.onclick = () => {
+      logEvent('CLIMB:' + l);
+      setStatus('Climb: ' + l);
+      closeClimbModal();
+    };
+    list.appendChild(d);
+  });
+  $('climb-modal').classList.add('on');
+}
+function closeClimbModal() { $('climb-modal').classList.remove('on'); }
+
+// ════════════════════════════════════════════════════════
+//  ENDGAME
+// ════════════════════════════════════════════════════════
+function selClimb(el) {
+  document.querySelectorAll('.climb-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  climbResult = el.dataset.val;
+}
+function adjFouls(d) {
+  foulsCaused = Math.max(0, foulsCaused + d);
+  $('fouls-val').textContent = foulsCaused;
+}
+
+function calcCycles() {
+  const te = events.filter(e => e.p === 'tele');
+  const scores = te.filter(e => e.a.startsWith('SCORE:')).map(e => e.t);
+  if (scores.length < 2) return { count: scores.length, avg:0, min:0, max:0 };
+  const durs = [];
+  for (let i = 1; i < scores.length; i++) durs.push((scores[i] - scores[i-1]) / 1000);
+  const avg = Math.round(durs.reduce((a,b)=>a+b,0) / durs.length);
+  return { count: scores.length, avg, min: Math.round(Math.min(...durs)), max: Math.round(Math.max(...durs)) };
+}
+
+function renderStats() {
+  const ztg = $('zt-grid');
+  if (ztg) {
+    ztg.innerHTML = '';
+    ZONES.forEach(z => {
+      const t = zoneTimes[z.id] || 0;
+      const m = Math.floor(t/60), s = Math.floor(t%60);
+      ztg.innerHTML += `<div class="stat-tile">
+        <div class="stat-val">${m}:${s<10?'0':''}${s}</div>
+        <div class="stat-lbl">${z.name.split(' ')[0]}</div>
+      </div>`;
+    });
+  }
+  const cyg = $('cy-grid');
+  if (cyg) {
+    const cs = calcCycles();
+    const fmt = s => s >= 60 ? Math.floor(s/60)+'m'+(s%60)+'s' : s ? s+'s' : '—';
+    cyg.innerHTML = `
+      <div class="stat-tile"><div class="stat-val">${cs.count}</div><div class="stat-lbl">Cycles</div></div>
+      <div class="stat-tile"><div class="stat-val">${fmt(cs.avg)}</div><div class="stat-lbl">Avg</div></div>
+      <div class="stat-tile"><div class="stat-val">${fmt(cs.min)}</div><div class="stat-lbl">Best</div></div>
+      <div class="stat-tile"><div class="stat-val">${fmt(cs.max)}</div><div class="stat-lbl">Worst</div></div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  SUBMIT / QR
+// ════════════════════════════════════════════════════════
+function submitMatch() {
+  const sn = $('scout-name').value;
+  const mn = $('match-num').value;
+  const tn = $('team-num').value;
+  if (!sn || !mn || !tn) { toast('⚠ Missing scout/match/team!'); return; }
+  finalizeZoneTime();
+  const payload = buildPayload();
+  currentPayload = payload.replace(/[^\x20-\x7E]/g, '');
+  showQR(currentPayload);
+}
+
+function buildPayload() {
+  const zt = {};
+  ZONES.forEach(z => zt[z.name.replace(/ /g,'').slice(0,3)] = Math.floor(zoneTimes[z.id] || 0));
+  const cs = calcCycles();
+  const climb = climbResult || document.querySelector('.climb-opt.sel')?.dataset.val || 'None';
+  const evStr = events.map(e => e.a + '[' + e.p[0] + ']').join(';');
+  return [
+    'sc:' + $('scout-name').value,
+    'mt:' + (isPractice ? 'P' : '') + $('match-num').value,
+    'tm:' + $('team-num').value,
+    'al:' + (alliance || '?'),
+    'fo:' + (fieldFlipped ? 'F' : 'N'),
+    'sp:' + $('start-pos').value,
+    'rs:' + $('robot-status').value,
+    'ev:' + events.length,
+    'cl:' + climb,
+    'ct:' + $('climb-timing').value,
+    'fc:' + foulsCaused,
+    'cy:' + cs.count,
+    'cavg:' + cs.avg,
+    'cmin:' + cs.min,
+    'cmax:' + cs.max,
+    'zt:' + JSON.stringify(zt),
+    'log:' + evStr,
+    'dn:' + $('def-notes').value.replace(/[|]/g, ' '),
+    'pm:' + $('prematch-notes').value.replace(/[|]/g, ' '),
+    'en:' + $('end-notes').value.replace(/[|]/g, ' '),
+    'pts:' + events.length
+  ].join('|');
+}
+
+function showQR(payload) {
+  clearInterval(window._qrInt);
+  const mn = $('match-num').value, tn = $('team-num').value;
+  $('qr-meta').textContent = 'Match ' + mn + ' · Team #' + tn;
+  $('qr-save-btn').textContent = '💾 SAVE FOR LATER';
+  $('qr-save-btn').classList.remove('saved');
+
+  const CHUNK = 120, chunks = [];
+  for (let i = 0; i < payload.length; i += CHUNK)
+    chunks.push(payload.substring(i, i + CHUNK));
+
+  const div = $('qr-canvas');
+  let idx = 0;
+  const show = () => {
+    div.innerHTML = '';
+    const txt = (idx+1) + '/' + chunks.length + '|' + chunks[idx];
+    $('qr-part-lbl').textContent = 'PART ' + (idx+1) + ' OF ' + chunks.length;
+    try {
+      new QRCode(div, { text:txt, width:290, height:290, correctLevel:QRCode.CorrectLevel.L });
+    } catch(e) {
+      div.innerHTML = '<p style="color:var(--acc);padding:20px;font-weight:800;">QR too dense — shorten notes</p>';
+    }
+    idx = (idx + 1) % chunks.length;
+  };
+  show();
+  if (chunks.length > 1) window._qrInt = setInterval(show, 900);
+  $('qr-ov').classList.add('on');
+}
+
+function saveCurrentMatch() {
+  if (!currentPayload) { toast('No match to save!'); return; }
+  const p = parsePayload(currentPayload);
+  const id = Date.now();
+  const saved = getSaved();
+  saved.push({ id, ts:id, payload:currentPayload, match:p.mt, team:p.tm, alliance:p.al, pts:p.pts || p.ev, scout:p.sc });
+  setSaved(saved);
+  $('qr-save-btn').textContent = '✅ SAVED!';
+  $('qr-save-btn').classList.add('saved');
+  toast('💾 Match saved!');
+}
+
+function parsePayload(raw) {
+  const out = {};
+  raw.split('|').forEach(seg => {
+    const i = seg.indexOf(':');
+    if (i > 0) out[seg.slice(0,i)] = seg.slice(i+1);
+  });
+  return out;
+}
+
+function resetAndNext() {
+  clearInterval(window._qrInt);
+  $('qr-ov').classList.remove('on');
+
+  const prevMatch = $('match-num').value;
+  events = []; penalties = []; foulsCaused = 0;
+  activeZone = null; zoneEnter = null; zoneTimes = {};
+  climbResult = 'None'; isPractice = false;
+  currentPayload = null;
+
+  $('practice-toggle').classList.remove('on');
+  $('ev-count').textContent = '0 ev';
+  $('pen-disp').textContent = '';
+  $('fouls-val').textContent = '0';
+  $('zt-grid').innerHTML = '';
+  $('cy-grid').innerHTML = '';
+  document.querySelectorAll('.climb-opt').forEach(o => o.classList.remove('sel'));
+  $('climb-timing').value = '';
+  $('start-pos').value = '';
+  $('team-num').value = '';
+  updateSetupTeamDisplay();
+  ['def-notes','end-notes','prematch-notes'].forEach(id => { const e = $(id); if(e) e.value=''; });
+  $('robot-status').value = 'Operational';
+
+  $('match-num').value = incMatch(prevMatch);
+  localStorage.setItem('lastMatch', prevMatch);
+  curPeriod = 'auto';
+  screenIdx = 1;
+  goTo('setup');
+  tryAutoFill();
+}
+
+function incMatch(s) {
+  const m = s.match(/^([A-Za-z]*)(\d+)$/);
+  if (m) return m[1] + (parseInt(m[2]) + 1);
+  return /^\d+$/.test(s) ? String(parseInt(s) + 1) : s;
+}
+
+// ════════════════════════════════════════════════════════
+//  SAVED MATCHES
+// ════════════════════════════════════════════════════════
+function openSaved() {
+  renderSavedList();
+  screenIdx = 5;
+  goTo('saved');
+}
+function closeSaved() { screenIdx = 0; goTo('alliance'); }
+
+function renderSavedList() {
+  const arr = getSaved();
+  const body = $('saved-list-body');
+  const lbl = $('saved-count-lbl');
+  if (lbl) lbl.textContent = arr.length + ' PENDING';
+  if (!arr.length) {
+    body.innerHTML = `<div class="saved-empty">
+      <div class="saved-empty-icon">📭</div>
+      <div class="saved-empty-txt">No saved matches</div>
+      <div style="font-size:12px;color:var(--dim);text-align:center;margin-top:8px;line-height:1.7;">After scouting, tap<br>"💾 SAVE FOR LATER" on the QR screen.</div>
+    </div>`;
+    return;
+  }
+  body.innerHTML = arr.map(m => {
+    const isRed = (m.alliance||'').startsWith('R');
+    const d = new Date(m.ts);
+    const t = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    return `<div class="sc-card" onclick="openSavedQR(${m.id})">
+      <div class="sc-card-info">
+        <div class="sc-card-top">
+          <span class="sc-match">Match ${m.match||'?'}</span>
+          <span class="sc-team">#${m.team||'?'}</span>
+          <span class="sc-alliance-badge ${isRed?'r':'b'}">${m.alliance||'?'}</span>
+        </div>
+        <div class="sc-sub">Scout: ${m.scout||'?'} · ${t}</div>
+      </div>
+      <div>
+        <div class="sc-pts">${m.pts||0}</div>
+        <div class="sc-pts-lbl">ev</div>
+      </div>
+      <div class="sc-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+function openSavedQR(id) {
+  const m = getSaved().find(x => x.id === id);
+  if (!m) { toast('Match not found'); return; }
+  viewingSavedId = id;
+
+  $('sqr-title').textContent = 'MATCH ' + (m.match||'?');
+  $('sqr-meta').textContent = 'Team #' + (m.team||'?') + ' · ' + (m.alliance||'?') + ' · Scout: ' + (m.scout||'?');
+
+  const p = parsePayload(m.payload);
+  $('sqr-info-body').innerHTML = `
+    <div class="sqr-row"><span class="sqr-row-lbl">Team</span><span class="sqr-row-val">#${p.tm||'?'}</span></div>
+    <div class="sqr-row"><span class="sqr-row-lbl">Match</span><span class="sqr-row-val">${p.mt||'?'}</span></div>
+    <div class="sqr-row"><span class="sqr-row-lbl">Alliance</span><span class="sqr-row-val">${p.al||'?'}</span></div>
+    <div class="sqr-row"><span class="sqr-row-lbl">Climb</span><span class="sqr-row-val">${p.cl||'?'}</span></div>
+    <div class="sqr-row"><span class="sqr-row-lbl">Events</span><span class="sqr-row-val">${p.ev||'?'}</span></div>`;
+
+  clearInterval(savedQrInterval);
+  const raw = m.payload.replace(/[^\x20-\x7E]/g, '');
+  const CHUNK = 120, chunks = [];
+  for (let i = 0; i < raw.length; i += CHUNK) chunks.push(raw.substring(i, i+CHUNK));
+
+  const div = $('sqr-canvas');
+  let idx = 0;
+  const show = () => {
+    div.innerHTML = '';
+    const txt = (idx+1) + '/' + chunks.length + '|' + chunks[idx];
+    $('sqr-part-lbl').textContent = 'PART ' + (idx+1) + ' OF ' + chunks.length;
+    try {
+      new QRCode(div, { text:txt, width:290, height:290, correctLevel:QRCode.CorrectLevel.L });
+    } catch(e) {
+      div.innerHTML = '<p style="color:var(--acc);padding:20px;">QR error</p>';
+    }
+    idx = (idx+1) % chunks.length;
+  };
+  show();
+  if (chunks.length > 1) savedQrInterval = setInterval(show, 1400);
+  $('sqr-ov').classList.add('on');
+}
+
+function closeSavedQR() {
+  clearInterval(savedQrInterval);
+  savedQrInterval = null;
+  $('sqr-ov').classList.remove('on');
+  viewingSavedId = null;
+}
+
+function deleteSavedMatch() {
+  if (viewingSavedId === null) return;
+  setSaved(getSaved().filter(m => m.id !== viewingSavedId));
+  closeSavedQR();
+  renderSavedList();
+  toast('🗑 Match deleted');
+}
+
+// ════════════════════════════════════════════════════════
+//  RESIZE
+// ════════════════════════════════════════════════════════
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (curScreen === 'auto' || curScreen === 'tele') {
+      renderZones(); renderButtons();
+    }
+  }, 80);
+});
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  refreshSavedCount();
+
+  const savedScout = localStorage.getItem('scoutName');
+  if (savedScout) $('scout-name').value = savedScout;
+
+  const savedFlip = localStorage.getItem('fieldFlipped');
+  setOrientation(savedFlip === '1');
+
+  const savedAlliance = localStorage.getItem('alliance');
+  if (savedAlliance) {
+    alliance = savedAlliance;
+    $('aln-' + savedAlliance)?.classList.add('sel');
+    const isRed = savedAlliance.startsWith('R');
+    const badge = $('setup-badge');
+    if (badge) {
+      badge.textContent = savedAlliance;
+      badge.className = 'badge ' + (isRed ? 'r' : 'b') + ' filled';
+    }
+    const mainBadge = $('alliance-badge-main');
+    if (mainBadge) {
+      mainBadge.textContent = savedAlliance;
+      mainBadge.className = 'badge ' + (isRed ? 'r' : 'b') + ' filled';
+      mainBadge.style.display = 'inline-block';
+    }
+  }
+
+  const lastMatch = localStorage.getItem('lastMatch');
+  if (lastMatch) $('match-num').value = incMatch(lastMatch);
+
+  goTo('alliance');
+  updateSetupTeamDisplay();
+});
+
+function downloadMatchJSON() {
+  if (!currentPayload) { toast('No match to export!'); return; }
+  const entry = payloadToEntry(currentPayload, 'direct_export');
+  const p = parsePayload(currentPayload);
+  const mn = p.mt || 'unknown';
+  const tn = p.tm || 'unknown';
+  const blob = new Blob([JSON.stringify([entry], null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'match_' + mn + '_team' + tn + '_' + Date.now() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('📄 JSON exported!');
+
+}
+
+function saveToLocal() {
+  if (!currentPayload) { toast('No match to save locally!'); return; }
+  const scannerResults = getScannerResults();
+  scannerResults.push(payloadToEntry(currentPayload, 'json'));
+  localStorage.setItem(SCANNER_SAVE_KEY, JSON.stringify(scannerResults));
+  toast('💾 Saved to scanner records!');
+}
+
+function getEventListFromPayload(payload) {
+  const p = parsePayload(payload);
+  const evStr = p.log || '';
+  return evStr ? evStr.split(';').filter(Boolean) : [];
+}
+
+function payloadToEntry(payload, source) {
+  const p = parsePayload(payload);
+  const evArr = getEventListFromPayload(payload);
+  return {
+    id: Date.now() + Math.random(),
+    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+    source: source || 'json',
+    scouter: p.sc || '',
+    matchNumber: p.mt || '',
+    teamNumber: parseInt(p.tm, 10) || p.tm || '',
+    alliance: p.al || '',
+    startPos: p.sp || '',
+    robotStatus: p.rs || '',
+    fieldOrientation: p.fo === 'F' ? 'flipped' : 'normal',
+    climbResult: p.cl || 'None',
+    climbTiming: p.ct || '',
+    foulsCaused: parseInt(p.fc, 10) || 0,
+    teleop_cycles: parseInt(p.cy, 10) || 0,
+    cycle_avg_sec: parseInt(p.cavg, 10) || 0,
+    cycle_best_sec: parseInt(p.cmin, 10) || 0,
+    cycle_worst_sec: parseInt(p.cmax, 10) || 0,
+    zoneTimes: (() => { try { return JSON.parse(p.zt || '{}'); } catch { return {}; } })(),
+    eventCount: parseInt(p.ev, 10) || evArr.length,
+    events: evArr,
+    log: evArr.join(';'),
+    prematchNotes: p.pm || '',
+    defenseNotes: p.dn || '',
+    endNotes: p.en || '',
+    raw: payload
+  };
+}
+
+function getScannerResults() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(SCANNER_SAVE_KEY) || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+</script>
+</body>
+</html>

@@ -1,544 +1,196 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NorthStar — Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../UI/all.css">
 
-:root {
-  --glass-bg: rgba(255,255,255,0.12);
-  --glass-bg-hover: rgba(255,255,255,0.20);
-  --glass-bg-strong: rgba(255,255,255,0.22);
-  --glass-bg-subtle: rgba(255,255,255,0.06);
-  --glass-border: rgba(255,255,255,0.28);
-  --glass-border-strong: rgba(255,255,255,0.50);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.14),0 0 0 0.5px rgba(255,255,255,0.20) inset,0 1px 0 rgba(255,255,255,0.35) inset;
-  --shadow: 0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.10),0 0 0 0.5px rgba(255,255,255,0.22) inset,0 1px 0 rgba(255,255,255,0.40) inset;
-  --shadow-lg: 0 20px 60px rgba(0,0,0,0.30),0 0 0 0.5px rgba(255,255,255,0.24) inset,0 1.5px 0 rgba(255,255,255,0.45) inset;
-  --blur: blur(20px);
-  --blur-sm: blur(10px);
-  --blur-xl: blur(60px);
-  --r-pill: 9999px;
-  --r-md: 14px;
-  --r-lg: 20px;
-  --r-xl: 28px;
-  --r-2xl: 40px;
-  --text: rgba(255,255,255,0.95);
-  --text-2: rgba(255,255,255,0.60);
-  --text-3: rgba(255,255,255,0.35);
-  --blue: #0A84FF;
-  --green: #30D158;
-  --purple: #BF5AF2;
-  --pink: #FF375F;
-  --orange: #FF9F0A;
-  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-  --ease-out: cubic-bezier(0.16,1,0.3,1);
-}
+  <style>
+    /* UI Guide styles */
+    .copy-target {
+      cursor: copy !important;
+      position: relative;
+      transition: transform 0.1s ease;
+    }
+    .copy-target:active {
+      transform: scale(0.96);
+    }
+    .copy-target::after {
+      content: 'Click to Copy HTML';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      background: #007aff;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      z-index: 100;
+    }
+    .copy-target:hover::after {
+      opacity: 1;
+    }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  color: var(--text);
-  min-height: 100vh;
-  background: #050816;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Animated gradient bg */
-.bg {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background: radial-gradient(ellipse 80% 80% at 20% 20%, #0A84FF22, transparent),
-              radial-gradient(ellipse 60% 60% at 80% 80%, #BF5AF228, transparent),
-              radial-gradient(ellipse 70% 70% at 50% 50%, #30D15815, transparent),
-              linear-gradient(135deg, #050816 0%, #0a0f26 100%);
-}
-.blob { position: absolute; border-radius: 50%; filter: blur(70px); animation: float 10s ease-in-out infinite; }
-.b1 { width:500px;height:500px;top:-150px;left:-150px;background:radial-gradient(#0A84FF33,transparent 70%); }
-.b2 { width:400px;height:400px;bottom:-100px;right:-80px;background:radial-gradient(#BF5AF233,transparent 70%);animation-delay:-4s; }
-.b3 { width:350px;height:350px;top:50%;left:60%;background:radial-gradient(#30D15820,transparent 70%);animation-delay:-7s; }
-@keyframes float { 0%,100%{transform:translate(0,0)}33%{transform:translate(25px,-18px)}66%{transform:translate(-18px,12px)} }
-
-/* Layout */
-.wrap { position: relative; z-index: 1; padding: 24px; max-width: 960px; margin: 0 auto; }
-
-/* Nav bar preview */
-.nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 20px; height: 52px;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: saturate(180%) blur(40px);
-  -webkit-backdrop-filter: saturate(180%) blur(40px);
-  border-bottom: 0.5px solid rgba(255,255,255,0.12);
-  border-radius: var(--r-xl);
-  margin-bottom: 36px;
-  box-shadow: var(--shadow);
-}
-.nav-brand { font-size: 16px; font-weight: 600; letter-spacing: -0.03em; }
-.nav-links { display: flex; gap: 2px; }
-.nav-link {
-  padding: 5px 12px; border-radius: var(--r-pill); font-size: 13px; font-weight: 450;
-  color: var(--text-2); cursor: pointer; transition: all 140ms;
-}
-.nav-link:hover { color: var(--text); background: var(--glass-bg-subtle); }
-.nav-link.active { color: var(--text); background: var(--glass-bg); }
-
-/* Section headings */
-.section-label {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-3); margin-bottom: 12px;
-}
-
-/* Buttons */
-.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; align-items: center; }
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: inherit; font-size: 14px; font-weight: 500; line-height: 1;
-  padding: 9px 18px; border-radius: var(--r-pill); border: none; cursor: pointer;
-  text-decoration: none; white-space: nowrap; letter-spacing: -0.01em;
-  transition: transform 120ms var(--ease-spring), box-shadow 200ms var(--ease-out), background 200ms;
-  position: relative; overflow: hidden;
-}
-.btn:active { transform: scale(0.95) !important; }
-
-.btn-glass {
-  background: var(--glass-bg-strong);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  border: 0.5px solid var(--glass-border);
-  color: var(--text);
-  box-shadow: var(--shadow);
-}
-.btn-glass::before {
-  content: ''; position: absolute; top:0;left:0;right:0;height:50%;
-  background: linear-gradient(180deg,rgba(255,255,255,.28) 0%,transparent 100%);
-  border-radius: var(--r-pill) var(--r-pill) 0 0; pointer-events:none;
-}
-.btn-glass:hover { background: rgba(255,255,255,0.28); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
-
-.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 4px 16px rgba(10,132,255,.40),0 1px 0 rgba(255,255,255,.20) inset; }
-.btn-primary:hover { background: #3a9eff; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(10,132,255,.55),0 1px 0 rgba(255,255,255,.20) inset; }
-
-.btn-ghost { background: transparent; color: var(--text); border: 0.5px solid var(--glass-border); }
-.btn-ghost:hover { background: var(--glass-bg-subtle); transform: translateY(-1px); }
-
-.btn-tinted-blue   { background: rgba(10,132,255,0.20); color: var(--blue);   border: 0.5px solid rgba(10,132,255,0.30); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm); }
-.btn-tinted-green  { background: rgba(48,209,88,0.18);  color: var(--green);  border: 0.5px solid rgba(48,209,88,0.28);  backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm); }
-.btn-tinted-purple { background: rgba(191,90,242,0.18); color: var(--purple); border: 0.5px solid rgba(191,90,242,0.28); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm); }
-.btn-tinted-pink   { background: rgba(255,55,95,0.18);  color: var(--pink);   border: 0.5px solid rgba(255,55,95,0.28);  backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm); }
-.btn-tinted-blue:hover,.btn-tinted-green:hover,.btn-tinted-purple:hover,.btn-tinted-pink:hover { filter: brightness(1.18); transform: translateY(-1px); }
-
-.btn-group-wrap {
-  display: inline-flex; gap: 1px; padding: 3px;
-  background: var(--glass-bg-subtle); border: 0.5px solid var(--glass-border);
-  border-radius: var(--r-pill); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
-}
-.btn-seg {
-  font-family: inherit; font-size: 13px; font-weight: 500; padding: 7px 14px;
-  border-radius: calc(var(--r-pill) - 3px); background: transparent; border: none;
-  color: var(--text-2); cursor: pointer; transition: all 140ms; white-space: nowrap;
-}
-.btn-seg:hover { background: var(--glass-bg); color: var(--text); }
-.btn-seg.active { background: var(--glass-bg-strong); color: var(--text); box-shadow: var(--shadow-sm); }
-
-/* Cards */
-.cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 32px; }
-@media(max-width:640px){.cards{grid-template-columns:1fr}}
-
-.card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  border: 0.5px solid var(--glass-border);
-  border-radius: var(--r-xl);
-  padding: 20px;
-  box-shadow: var(--shadow);
-  transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out);
-  cursor: default;
-}
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-.card-liquid { position: relative; overflow: hidden; }
-.card-liquid::before {
-  content: ''; position: absolute; top:0;left:0;right:0;height:45%;
-  background: linear-gradient(180deg,rgba(255,255,255,.26) 0%,transparent 100%);
-  border-radius: var(--r-xl) var(--r-xl) 0 0; pointer-events:none;
-}
-.card-icon { font-size: 28px; margin-bottom: 12px; }
-.card-title { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
-.card-body { font-size: 13px; color: var(--text-2); line-height: 1.6; }
-.card-blue   { background: rgba(10,132,255,0.14);  border-color: rgba(10,132,255,0.24); }
-.card-purple { background: rgba(191,90,242,0.14); border-color: rgba(191,90,242,0.24); }
-.card-green  { background: rgba(48,209,88,0.12);  border-color: rgba(48,209,88,0.22); }
-
-/* Form */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
-@media(max-width:640px){.form-grid{grid-template-columns:1fr}}
-
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 12px; font-weight: 500; color: var(--text-2); letter-spacing: 0.01em; }
-.input {
-  font-family: inherit; font-size: 14px; color: var(--text);
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
-  border: 0.5px solid var(--glass-border); border-radius: var(--r-md);
-  padding: 10px 13px; width: 100%; outline: none;
-  transition: background 200ms, border-color 200ms, box-shadow 200ms;
-  box-shadow: var(--shadow-sm); -webkit-appearance: none; appearance: none;
-}
-.input::placeholder { color: var(--text-3); }
-.input:hover { background: var(--glass-bg-hover); border-color: var(--glass-border-strong); }
-.input:focus { background: var(--glass-bg-hover); border-color: var(--blue); box-shadow: 0 0 0 3px rgba(10,132,255,0.22),var(--shadow-sm); }
-
-/* Toggle */
-.toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.toggle-track {
-  width: 48px; height: 28px; border-radius: var(--r-pill);
-  background: rgba(255,255,255,0.14); border: 0.5px solid var(--glass-border);
-  position: relative; cursor: pointer; transition: background 220ms var(--ease-out);
-  flex-shrink: 0;
-}
-.toggle-track.on { background: var(--green); border-color: transparent; }
-.toggle-thumb {
-  width: 24px; height: 24px; background: white; border-radius: 50%;
-  position: absolute; top: 2px; left: 2px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.30);
-  transition: transform 220ms var(--ease-spring);
-}
-.toggle-track.on .toggle-thumb { transform: translateX(20px); }
-.toggle-label { font-size: 14px; font-weight: 450; }
-
-/* Badge */
-.badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; align-items: center; }
-.badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-  padding: 3px 9px; border-radius: var(--r-pill);
-  backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
-}
-.bdg-blue   { background: rgba(10,132,255,0.20);  color: #5ac8fa;  border: 0.5px solid rgba(10,132,255,0.30); }
-.bdg-green  { background: rgba(48,209,88,0.18);   color: #30D158;  border: 0.5px solid rgba(48,209,88,0.28); }
-.bdg-orange { background: rgba(255,159,10,0.18);  color: #FF9F0A;  border: 0.5px solid rgba(255,159,10,0.28); }
-.bdg-red    { background: rgba(255,69,58,0.18);   color: #FF453A;  border: 0.5px solid rgba(255,69,58,0.28); }
-.bdg-purple { background: rgba(191,90,242,0.18);  color: #BF5AF2;  border: 0.5px solid rgba(191,90,242,0.28); }
-.bdg-pink   { background: rgba(255,55,95,0.18);   color: #FF375F;  border: 0.5px solid rgba(255,55,95,0.28); }
-
-/* Hero text */
-.hero-text { text-align: center; margin: 12px 0 32px; }
-.display {
-  font-size: clamp(32px,5vw,60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.06;
-  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.subtext { font-size: clamp(15px,2.5vw,18px); color: var(--text-2); line-height: 1.65; max-width: 520px; margin: 14px auto 0; }
-
-/* Menu preview */
-.menu {
-  background: rgba(28,28,32,0.90);
-  backdrop-filter: saturate(180%) var(--blur);
-  -webkit-backdrop-filter: saturate(180%) var(--blur);
-  border: 0.5px solid var(--glass-border);
-  border-radius: var(--r-lg); padding: 6px; box-shadow: var(--shadow-lg);
-  display: inline-flex; flex-direction: column; min-width: 200px;
-}
-.menu-item {
-  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
-  border-radius: 10px; font-size: 13px; font-weight: 450; color: var(--text); cursor: pointer;
-  transition: background 120ms;
-}
-.menu-item:hover { background: var(--glass-bg); }
-.menu-item.active { background: rgba(10,132,255,0.20); color: var(--blue); }
-.menu-item.danger { color: #FF453A; }
-.menu-item.danger:hover { background: rgba(255,69,58,0.14); }
-.menu-divider { height: 0.5px; background: rgba(255,255,255,0.10); margin: 4px 0; }
-
-/* Toast */
-.toast {
-  display: inline-flex; align-items: center; gap: 10px;
-  background: rgba(28,28,32,0.90);
-  backdrop-filter: saturate(180%) blur(40px); -webkit-backdrop-filter: saturate(180%) blur(40px);
-  border: 0.5px solid var(--glass-border); border-radius: var(--r-xl);
-  padding: 12px 18px; box-shadow: var(--shadow-lg);
-  font-size: 13px; font-weight: 450; color: var(--text);
-  animation: slideDown .4s cubic-bezier(0.34,1.56,0.64,1) both;
-}
-.toast.success { border-color: rgba(48,209,88,0.30); }
-.toast.error   { border-color: rgba(255,69,58,0.30); }
-@keyframes slideDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
-
-/* Progress */
-.prog { width:100%;height:4px;background:rgba(255,255,255,0.12);border-radius:var(--r-pill);overflow:hidden;margin-bottom:8px; }
-.prog-fill { height:100%;border-radius:var(--r-pill);transition:width .6s var(--ease-out); }
-.prog-blue   { background: var(--blue);   box-shadow: 0 0 8px rgba(10,132,255,.60); }
-.prog-green  { background: var(--green);  box-shadow: 0 0 8px rgba(48,209,88,.60); }
-.prog-purple { background: var(--purple); box-shadow: 0 0 8px rgba(191,90,242,.60); }
-
-/* Tabs */
-.tabs {
-  display: flex; gap: 2px; padding: 3px;
-  background: var(--glass-bg-subtle); border: 0.5px solid var(--glass-border);
-  border-radius: var(--r-xl); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
-  margin-bottom: 32px;
-}
-.tab {
-  flex: 1; text-align: center; padding: 8px 16px;
-  border-radius: calc(var(--r-xl) - 3px);
-  font-size: 13px; font-weight: 500; color: var(--text-2);
-  cursor: pointer; transition: all 140ms; white-space: nowrap;
-}
-.tab:hover { color: var(--text); background: var(--glass-bg-subtle); }
-.tab.active { color: var(--text); background: var(--glass-bg-strong); box-shadow: var(--shadow-sm); }
-
-/* Divider */
-.divider { height: 0.5px; background: rgba(255,255,255,0.10); margin: 28px 0; }
-
-/* Two col */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; align-items: start; }
-@media(max-width:600px){.two-col{grid-template-columns:1fr}}
-
-/* Skeleton */
-.skel { border-radius: 8px; animation: shim 1.4s ease-in-out infinite; }
-@keyframes shim {
-  0%   { background: rgba(255,255,255,0.06); }
-  50%  { background: rgba(255,255,255,0.14); }
-  100% { background: rgba(255,255,255,0.06); }
-}
-
-/* Typography preview */
-.type-stack > * + * { margin-top: 10px; }
-
-</style>
+    /* Success Toast */
+    #copy-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #30D158;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      transform: translateY(100px);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+    }
+    #copy-toast.show {
+      transform: translateY(0);
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="bg">
-  <div class="blob b1"></div>
-  <div class="blob b2"></div>
-  <div class="blob b3"></div>
-</div>
-
-<div class="wrap">
-
-  <!-- Navbar -->
-  <nav class="nav">
-    <span class="nav-brand">✦ LiquidUI</span>
-    <div class="nav-links">
-      <span class="nav-link active">Home</span>
-      <span class="nav-link">Features</span>
-      <span class="nav-link">Pricing</span>
-      <span class="nav-link">About</span>
-    </div>
-  </nav>
-
-  <!-- Hero -->
-  <div class="hero-text">
-    <div class="display">Liquid Glass<br>Design System</div>
-    <div class="subtext">Every component you'll ever need — buttons, cards, inputs, nav, modals, and more. Apple-quality, CSS-pure.</div>
+  <div class="bg">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab(this,'buttons')">Buttons</div>
-    <div class="tab" onclick="switchTab(this,'cards')">Cards</div>
-    <div class="tab" onclick="switchTab(this,'inputs')">Inputs</div>
-    <div class="tab" onclick="switchTab(this,'misc')">Misc</div>
-  </div>
-
-  <!-- BUTTONS TAB -->
-  <div id="tab-buttons">
-    <div class="section-label">Glass & Filled Buttons</div>
-    <div class="btn-row">
-      <button class="btn btn-glass">Glass Default</button>
-      <button class="btn btn-primary">Primary</button>
-      <button class="btn btn-ghost">Ghost</button>
-    </div>
-
-    <div class="section-label">Tinted Variants</div>
-    <div class="btn-row">
-      <button class="btn btn-tinted-blue">Blue</button>
-      <button class="btn btn-tinted-green">Green</button>
-      <button class="btn btn-tinted-purple">Purple</button>
-      <button class="btn btn-tinted-pink">Pink</button>
-    </div>
-
-    <div class="section-label">Segmented Control</div>
-    <div class="btn-row">
-      <div class="btn-group-wrap">
-        <button class="btn-seg active" onclick="setSeg(this)">Daily</button>
-        <button class="btn-seg" onclick="setSeg(this)">Weekly</button>
-        <button class="btn-seg" onclick="setSeg(this)">Monthly</button>
-        <button class="btn-seg" onclick="setSeg(this)">Yearly</button>
-      </div>
-    </div>
-
-    <div class="section-label">Sizes</div>
-    <div class="btn-row" style="align-items:center">
-      <button class="btn btn-glass" style="font-size:12px;padding:6px 12px">XS</button>
-      <button class="btn btn-glass" style="font-size:13px;padding:8px 16px">Small</button>
-      <button class="btn btn-glass">Default</button>
-      <button class="btn btn-glass" style="font-size:17px;padding:13px 26px">Large</button>
-      <button class="btn btn-primary" style="font-size:19px;padding:16px 34px">XL</button>
-    </div>
-  </div>
-
-  <!-- CARDS TAB -->
-  <div id="tab-cards" style="display:none">
-    <div class="section-label">Glass Cards</div>
-    <div class="cards">
-      <div class="card card-liquid">
-        <div class="card-icon">✦</div>
-        <div class="card-title">Liquid Glass</div>
-        <div class="card-body">Frosted surface with specular highlight and depth blur.</div>
-      </div>
-      <div class="card card-liquid card-blue">
-        <div class="card-icon">⚡</div>
-        <div class="card-title" style="color:#5ac8fa">Performance</div>
-        <div class="card-body">GPU-accelerated blur. Buttery 60fps on all surfaces.</div>
-      </div>
-      <div class="card card-liquid card-purple">
-        <div class="card-icon">◈</div>
-        <div class="card-title" style="color:#BF5AF2">Dynamic</div>
-        <div class="card-body">Responds to background — looks great on any scene.</div>
-      </div>
-    </div>
-
-    <div class="section-label">Feature Card</div>
-    <div class="card card-liquid" style="border-radius:32px;padding:32px;margin-bottom:20px">
-      <div style="font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:8px">Feature</div>
-      <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;margin-bottom:10px;background:linear-gradient(135deg,#fff,rgba(255,255,255,0.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Everything your site needs</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.55);line-height:1.65;max-width:400px">26 component categories, responsive grid system, fluid typography, dark mode, and ambient background helpers — all in one CSS file.</div>
-      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-primary">Get Started</button>
-        <button class="btn btn-glass" style="font-size:14px;padding:9px 18px">Documentation →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- INPUTS TAB -->
-  <div id="tab-inputs" style="display:none">
-    <div class="section-label">Text Inputs</div>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="field">
-        <label>Full Name</label>
-        <input class="input" placeholder="John Appleseed">
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input class="input" placeholder="hello@apple.com" type="email">
-      </div>
-      <div class="field">
-        <label>Search</label>
-        <input class="input" placeholder="Search..." style="padding-left:36px;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='rgba(255,255,255,0.35)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:12px center">
-      </div>
-      <div class="field">
-        <label>Error State</label>
-        <input class="input" value="bad input" style="border-color:#FF453A;box-shadow:0 0 0 3px rgba(255,69,58,0.20)">
-      </div>
-    </div>
-
-    <div class="section-label">Toggles</div>
-    <div style="margin-bottom:24px">
-      <div class="toggle-row">
-        <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label">Wi-Fi</span>
-      </div>
-      <div class="toggle-row">
-        <div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label" style="color:var(--text-2)">Bluetooth</span>
-      </div>
-      <div class="toggle-row">
-        <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label">AirDrop</span>
-      </div>
-    </div>
-
-    <div class="section-label">Progress</div>
-    <div style="margin-bottom:6px">
-      <div class="prog"><div class="prog-fill prog-blue" style="width:72%"></div></div>
-      <div class="prog"><div class="prog-fill prog-green" style="width:45%"></div></div>
-      <div class="prog"><div class="prog-fill prog-purple" style="width:88%"></div></div>
-    </div>
-  </div>
-
-  <!-- MISC TAB -->
-  <div id="tab-misc" style="display:none">
-    <div class="two-col">
-      <div>
-        <div class="section-label">Context Menu</div>
-        <div class="menu">
-          <div class="menu-item active">⊕ New File</div>
-          <div class="menu-item">⊡ Duplicate</div>
-          <div class="menu-item">⌘ Copy Link</div>
-          <div class="menu-divider"></div>
-          <div class="menu-item">✎ Rename</div>
-          <div class="menu-item danger">⊗ Delete</div>
+  <div class="nav-sticky-wrapper copy-target" data-copy-type="nav">
+    <div class="wrap" style="padding-bottom:0">
+      <nav class="nav">
+        <span class="doto">NorthStar</span>
+        <div class="nav-links">
+          <a class="nav-link active">Home</a>
+          <a class="nav-link">Features</a>
+          <a class="nav-link">Pricing</a>
+          <a class="nav-link">About</a>
         </div>
+      </nav>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero-text" id="home">
+      <div class="display">Style Guide</div>
+      <div class="subtext">Click any element to copy its HTML code.</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'buttons')">Buttons</div>
+      <div class="tab" onclick="switchTab(this,'inputs')">Inputs</div>
+      <div class="tab" onclick="switchTab(this,'misc')">Misc</div>
+    </div>
+
+    <div id="tab-buttons" class="tab-panel">
+      <div class="section-label">Basic Buttons</div>
+      <div class="btn-row">
+        <button class="btn btn-glass copy-target">Glass Default</button>
+        <button class="btn btn-primary copy-target">Primary</button>
+        <button class="btn btn-ghost copy-target">Ghost</button>
       </div>
-      <div>
-        <div class="section-label">Toasts</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="toast success">
-            <span style="color:#30D158;font-size:16px">✓</span>
-            Saved successfully
-          </div>
-          <div class="toast error">
-            <span style="color:#FF453A;font-size:16px">⚠</span>
-            Connection failed
-          </div>
-          <div class="toast" style="border-color:rgba(255,159,10,0.28)">
-            <span style="color:#FF9F0A;font-size:16px">⚡</span>
-            Update available
-          </div>
+
+      <div class="section-label">Tinted Variants</div>
+      <div class="btn-row">
+        <button class="btn btn-tinted-blue copy-target">Blue</button>
+        <button class="btn btn-tinted-green copy-target">Green</button>
+        <button class="btn btn-tinted-purple copy-target">Purple</button>
+        <button class="btn btn-tinted-pink copy-target">Pink</button>
+      </div>
+
+      <div class="section-label">Segmented</div>
+      <div class="btn-row">
+        <div class="btn-group-wrap copy-target">
+          <button class="btn-seg active">Daily</button>
+          <button class="btn-seg">Weekly</button>
+          <button class="btn-seg">Monthly</button>
         </div>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div id="tab-inputs" class="tab-panel" style="display:none">
+      <div class="section-label">Text Fields (Click Container)</div>
+      <div class="form-grid">
+        <div class="field copy-target">
+          <label>Standard Field</label>
+          <input class="input" placeholder="Placeholder...">
+        </div>
+        <div class="field copy-target">
+          <label>Error Field</label>
+          <input class="input" value="Error state" style="border-color:#FF453A;box-shadow:0 0 0 3px rgba(255,69,58,0.20)">
+        </div>
+      </div>
 
-    <div class="section-label">Badges</div>
-    <div class="badge-row">
-      <span class="badge bdg-blue">New</span>
-      <span class="badge bdg-green">Active</span>
-      <span class="badge bdg-orange">Beta</span>
-      <span class="badge bdg-red">Error</span>
-      <span class="badge bdg-purple">Pro</span>
-      <span class="badge bdg-pink">Hot</span>
+      <div class="section-label">Toggles</div>
+      <div class="toggle-row copy-target">
+        <div class="toggle-track on"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label">Active Toggle</span>
+      </div>
     </div>
 
-    <div class="section-label">Skeleton Loading</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px">
-      <div class="skel" style="height:18px;width:65%"></div>
-      <div class="skel" style="height:14px;width:90%"></div>
-      <div class="skel" style="height:14px;width:80%"></div>
-      <div class="skel" style="height:14px;width:55%"></div>
+    <div id="tab-misc" class="tab-panel" style="display:none">
+      <div class="section-label">Badges</div>
+      <div class="badge-row">
+        <span class="badge bdg-blue copy-target">New</span>
+        <span class="badge bdg-green copy-target">Active</span>
+        <span class="badge bdg-orange copy-target">Beta</span>
+        <span class="badge bdg-red copy-target">Error</span>
+      </div>
+
+      <div class="section-label">Toasts</div>
+      <div class="toast success copy-target">
+        <span style="color:#30D158;font-size:16px">✓</span> Success Message
+      </div>
     </div>
 
-    <div class="section-label">Typography Scale</div>
-    <div class="type-stack">
-      <div style="font-size:42px;font-weight:700;letter-spacing:-.04em;line-height:1.06;background:linear-gradient(135deg,#fff,rgba(255,255,255,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Display — Hero heading</div>
-      <div style="font-size:28px;font-weight:600;letter-spacing:-.03em">Headline — Section title</div>
-      <div style="font-size:20px;font-weight:600;letter-spacing:-.02em">Title — Card heading</div>
-      <div style="font-size:16px;color:rgba(255,255,255,.80)">Body — Paragraph text that reads comfortably at scale.</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.50)">Caption — Supplementary details and metadata.</div>
-      <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.35)">Label — Section marker</div>
-    </div>
   </div>
 
-</div>
+  <div id="copy-toast">Copied HTML!</div>
 
-<script>
-function switchTab(el, name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['buttons','cards','inputs','misc'].forEach(n => {
-    const el2 = document.getElementById('tab-' + n);
-    if (el2) el2.style.display = n === name ? '' : 'none';
-  });
-}
-function setSeg(el) {
-  el.closest('.btn-group-wrap').querySelectorAll('.btn-seg').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-}
-</script>
+  <script>
+    // Copy Logic
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('.copy-target');
+      if (target) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Get the HTML, remove the copy-target class for clean output
+        let cleanEl = target.cloneNode(true);
+        cleanEl.classList.remove('copy-target');
+        
+        // If it's the nav wrapper, we specifically want the inner wrap for usability
+        let htmlToCopy = cleanEl.outerHTML;
+        
+        navigator.clipboard.writeText(htmlToCopy).then(() => {
+          const toast = document.getElementById('copy-toast');
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+      }
+    });
+
+    // Simple Tab Switcher
+    function switchTab(el, name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      document.getElementById('tab-' + name).style.display = 'block';
+    }
+  </script>
 </body>
 </html>
