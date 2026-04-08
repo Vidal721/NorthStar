@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USC Admin v5 — Team 935</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="all.css">
+<style>
+/* ══════════════════════════════════════════
+   DESIGN SYSTEM
+══════════════════════════════════════════ */
+:root {
+  --glass-bg: rgba(255,255,255,0.08);
+  --glass-bg-hover: rgba(255,255,255,0.14);
+  --glass-bg-strong: rgba(255,255,255,0.16);
+  --glass-bg-subtle: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.14);
+  --glass-border-strong: rgba(255,255,255,0.30);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.18),0 0 0 0.5px rgba(255,255,255,0.12) inset,0 1px 0 rgba(255,255,255,0.22) inset;
+  --shadow: 0 8px 32px rgba(0,0,0,0.28),0 2px 8px rgba(0,0,0,0.12),0 0 0 0.5px rgba(255,255,255,0.14) inset;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.38),0 0 0 0.5px rgba(255,255,255,0.18) inset,0 1.5px 0 rgba(255,255,255,0.28) inset;
+  --blur: blur(20px);
+  --blur-sm: blur(10px);
+  --blur-xl: blur(60px);
+  --r-pill: 9999px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-2xl: 36px;
+  --text: rgba(255,255,255,0.95);
+  --text-2: rgba(255,255,255,0.60);
+  --text-3: rgba(255,255,255,0.30);
+  --text-4: rgba(255,255,255,0.14);
+  --blue: #0A84FF;
+  --green: #30D158;
+  --purple: #BF5AF2;
+  --pink: #FF375F;
+  --orange: #FF9F0A;
+  --red: #FF453A;
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out: cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;color:var(--text);min-height:100vh;background:#050816;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* BG */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.13),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.16),transparent),radial-gradient(ellipse 70% 70% at 50% 50%,rgba(48,209,88,0.08),transparent),linear-gradient(135deg,#050816 0%,#0a0f26 100%)}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);animation:float 10s ease-in-out infinite;pointer-events:none;z-index:0}
+.b1{width:600px;height:600px;top:-200px;left:-150px;background:radial-gradient(rgba(10,132,255,0.20),transparent 70%)}
+.b2{width:500px;height:500px;bottom:-130px;right:-100px;background:radial-gradient(rgba(191,90,242,0.20),transparent 70%);animation-delay:-4s}
+.b3{width:400px;height:400px;top:45%;left:55%;background:radial-gradient(rgba(48,209,88,0.12),transparent 70%);animation-delay:-7s}
+@keyframes float{0%,100%{transform:translate(0,0)}33%{transform:translate(25px,-18px)}66%{transform:translate(-18px,12px)}}
+
+/* SHELL */
+#shell{position:relative;z-index:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* TOPBAR */
+#topbar{
+  display:flex;
+  align-items:center;
+  justify-content: center;
+  gap:10px;
+  padding:10px 16px;
+  background:rgba(0,0,0,0.50);
+  backdrop-filter:saturate(180%) blur(40px);
+  -webkit-backdrop-filter:saturate(180%) blur(40px);
+  border-bottom:0.5px solid var(--glass-border);
+  box-shadow:var(--shadow);
+  flex-shrink:0;
+}
+.logo{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-shrink:0
+}
+.logo-badge{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#30D158,#0A84FF);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;box-shadow:0 2px 10px rgba(48,209,88,0.4),0 1px 0 rgba(255,255,255,0.3) inset}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.logo-sub{font-size:10px;color:var(--text-3)}
+.tb-mid{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
+.tabs{display:flex;gap:2px;padding:3px;background:var(--glass-bg-subtle);border:0.5px solid var(--glass-border);border-radius:var(--r-pill);backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm)}
+.tab-btn{padding:5px 14px;border-radius:var(--r-pill);font-size:12px;font-weight:500;color:var(--text-3);cursor:pointer;border:none;background:none;transition:all 140ms;white-space:nowrap;font-family:inherit}
+.tab-btn:hover{color:var(--text);background:var(--glass-bg-subtle)}
+.tab-btn.active{color:var(--text);background:var(--glass-bg-strong);box-shadow:var(--shadow-sm)}
+.tb-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.status-pill{display:flex;align-items:center;gap:5px;background:rgba(48,209,88,0.15);border:0.5px solid rgba(48,209,88,0.35);border-radius:var(--r-pill);padding:4px 10px;font-size:11px;font-weight:500;color:var(--green)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s ease-in-out infinite}
+.dot.amber{background:var(--orange)}
+.dot.red{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+#clock{font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;font-weight:500}
+#edit-toggle{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r-pill);background:var(--glass-bg);border:0.5px solid var(--glass-border);font-size:11px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all 140ms;font-family:inherit;box-shadow:var(--shadow-sm)}
+#edit-toggle.on{background:rgba(191,90,242,0.20);border-color:rgba(191,90,242,0.35);color:var(--purple)}
+#add-widget-btn{display:flex;align-items:center;gap:4px;padding:5px 13px;border-radius:var(--r-pill);background:var(--glass-bg-strong);border:0.5px solid var(--glass-border-strong);font-size:12px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow);transition:all 180ms;font-family:inherit;position:relative;overflow:hidden}
+#add-widget-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,transparent 100%);border-radius:var(--r-pill) var(--r-pill) 0 0;pointer-events:none}
+#add-widget-btn:hover{background:rgba(255,255,255,0.28);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+
+/* SYNC STATUS */
+#sync-status{font-size:10px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill);border:0.5px solid;transition:all 400ms}
+#sync-status.idle{color:var(--text-3);border-color:var(--glass-border);background:var(--glass-bg-subtle)}
+#sync-status.syncing{color:var(--orange);border-color:rgba(255,159,10,0.3);background:rgba(255,159,10,0.1);animation:pulse 1s ease-in-out infinite}
+#sync-status.ok{color:var(--green);border-color:rgba(48,209,88,0.3);background:rgba(48,209,88,0.1)}
+#sync-status.error{color:var(--red);border-color:rgba(255,69,58,0.3);background:rgba(255,69,58,0.1)}
+
+/* TAB PAGES */
+.tab-page{display:none;flex:1;overflow:hidden}
+.tab-page.active{display:flex;flex-direction:column}
+
+/* CANVAS */
+#canvas-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px}
+#canvas{position:relative;min-height:calc(100vh - 100px)}
+#canvas.edit-mode::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(191,90,242,.04) 0,rgba(191,90,242,.04) 1px,transparent 1px,transparent 8.333%)}
+
+/* WIDGET */
+.widget{position:absolute;background:var(--glass-bg);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:0.5px solid var(--glass-border);border-radius:var(--r-xl);box-shadow:var(--shadow);overflow:hidden;transition:transform 220ms var(--ease-out),box-shadow 220ms var(--ease-out);min-width:160px;min-height:90px}
+.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,transparent 100%);border-radius:var(--r-xl) var(--r-xl) 0 0;pointer-events:none;z-index:1}
+.widget:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.widget.dragging{box-shadow:var(--shadow-lg),0 0 0 1.5px rgba(191,90,242,0.4);transform:scale(1.012) rotate(0.4deg);z-index:1000!important;transition:none}
+.widget-handle{display:flex;align-items:center;justify-content:space-between;padding:10px 13px 7px;user-select:none;position:relative;z-index:2}
+.widget-title{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:6px}
+.widget-icon{font-size:13px}
+.widget-controls{display:flex;gap:3px;opacity:0;transition:opacity .15s}
+.widget:hover .widget-controls{opacity:1}
+.wc-btn{width:18px;height:18px;border-radius:50%;border:none;background:var(--glass-bg);cursor:pointer;font-size:10px;color:var(--text-3);display:flex;align-items:center;justify-content:center;transition:background .15s}
+.wc-btn:hover{background:var(--glass-bg-hover)}
+.wc-btn.close:hover{background:rgba(255,69,58,0.25);color:var(--red)}
+.widget-body{padding:3px 13px 13px;height:calc(100% - 44px);overflow:hidden;position:relative;z-index:2}
+.widget-body.scroll{overflow-y:auto}
+.resize-corner{position:absolute;bottom:4px;right:4px;width:12px;height:12px;cursor:se-resize;opacity:0;transition:opacity .15s;z-index:3}
+.widget:hover .resize-corner{opacity:.4}
+
+/* GLASS CARD */
+.glass-card{background:var(--glass-bg);border:0.5px solid var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.glass-card::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.14) 0%,transparent 100%);pointer-events:none}
+
+/* MATCH PROGRESS WIDGET */
+.match-wrap{display:flex;flex-direction:column;gap:8px}
+.mc-main{padding:12px 14px}
+.mc-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:3px}
+.mc-num{font-size:30px;font-weight:700;letter-spacing:-1.5px;color:var(--green);line-height:1}
+.mc-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+.prog-track{height:4px;border-radius:var(--r-pill);background:var(--glass-bg);overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:var(--r-pill);background:var(--green);box-shadow:0 0 8px rgba(48,209,88,0.5);transition:width .8s var(--ease-out)}
+.match-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.ms-cell{padding:9px 8px;text-align:center}
+.ms-val{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.ms-lbl{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+
+/* BATTERY WIDGET */
+.batt-grid{display:flex;flex-direction:column;gap:6px}
+.batt-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+.batt-name{font-size:11px;font-weight:500;min-width:76px;color:var(--text-2)}
+.batt-track{flex:1;height:5px;border-radius:var(--r-pill);background:var(--glass-bg);overflow:hidden}
+.batt-fill{height:100%;border-radius:var(--r-pill);transition:width .7s ease}
+.batt-hi{background:var(--green);box-shadow:0 0 6px rgba(48,209,88,0.4)}
+.batt-mid{background:var(--orange)}
+.batt-lo{background:var(--red);animation:battlo 1.4s ease-in-out infinite}
+@keyframes battlo{0%,100%{opacity:1}50%{opacity:.4}}
+.batt-pct{font-size:10px;font-weight:700;min-width:28px;text-align:right;font-variant-numeric:tabular-nums}
+.batt-status{font-size:9px;font-weight:600;padding:2px 7px;border-radius:var(--r-pill);min-width:44px;text-align:center;border:0.5px solid}
+.bst-active{background:rgba(48,209,88,0.15);color:var(--green);border-color:rgba(48,209,88,0.3)}
+.bst-idle{background:rgba(10,132,255,0.15);color:var(--blue);border-color:rgba(10,132,255,0.3)}
+.bst-offline{background:var(--glass-bg-subtle);color:var(--text-3);border-color:var(--glass-border)}
+.bst-warn{background:rgba(255,159,10,0.15);color:var(--orange);border-color:rgba(255,159,10,0.3)}
+
+/* SCOUTER STATUS */
+.sc-list{display:flex;flex-direction:column;gap:6px}
+.sc-item{padding:9px 11px;cursor:default}
+.sc-top-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sc-dot.active{background:var(--green);box-shadow:0 0 8px rgba(48,209,88,0.5)}
+.sc-dot.idle{background:var(--blue)}
+.sc-dot.offline{background:rgba(255,255,255,0.25)}
+.sc-dot.flagged{background:var(--red);animation:battlo 1.2s ease-in-out infinite}
+.sc-nm{font-size:12px;font-weight:600;flex:1}
+.sc-pill{font-size:9px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);border:0.5px solid}
+.sc-pill.active{background:rgba(48,209,88,0.15);color:var(--green);border-color:rgba(48,209,88,0.28)}
+.sc-pill.idle{background:rgba(10,132,255,0.15);color:var(--blue);border-color:rgba(10,132,255,0.28)}
+.sc-pill.offline{background:var(--glass-bg-subtle);color:var(--text-3);border-color:var(--glass-border)}
+.sc-pill.flagged{background:rgba(255,69,58,0.18);color:var(--red);border-color:rgba(255,69,58,0.28)}
+.sc-det{font-size:10px;color:var(--text-3);margin-bottom:5px}
+.form-prog-wrap{display:flex;align-items:center;gap:7px}
+.form-prog-label{font-size:9px;color:var(--text-3);min-width:60px}
+.form-prog-track{flex:1;height:3px;border-radius:var(--r-pill);background:var(--glass-bg);overflow:hidden}
+.form-prog-fill{height:100%;border-radius:var(--r-pill);background:var(--blue);transition:width .6s var(--ease-out)}
+.form-prog-pct{font-size:9px;font-weight:700;color:var(--blue);min-width:26px;text-align:right}
+
+/* CHAT */
+.chat-msgs{display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding-right:2px}
+.cm{display:flex;flex-direction:column;max-width:85%;gap:2px;animation:fadeup .2s ease}
+@keyframes fadeup{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.cm.admin{align-self:flex-end;align-items:flex-end}
+.cm.scouter{align-self:flex-start;align-items:flex-start}
+.cm.broadcast{align-self:stretch;max-width:100%;align-items:center}
+.cm-from{font-size:9px;color:var(--text-3);font-weight:500}
+.cm-bubble{border-radius:var(--r-lg);padding:6px 11px;font-size:12px;line-height:1.5;box-shadow:var(--shadow-sm)}
+.admin .cm-bubble{background:var(--blue);color:#fff;border-bottom-right-radius:5px;box-shadow:0 2px 12px rgba(10,132,255,.30)}
+.scouter .cm-bubble{background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);border-bottom-left-radius:5px}
+.broadcast .cm-bubble{background:rgba(255,159,10,0.15);border:0.5px solid rgba(255,159,10,0.28);color:var(--orange);width:100%;text-align:center;border-radius:var(--r-md);font-weight:500;font-size:11px}
+.chat-input-row{display:flex;gap:5px;margin-top:7px;flex-shrink:0}
+.chat-type{font-size:10px;padding:6px 7px;border-radius:var(--r-md);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;cursor:pointer;font-family:inherit}
+.chat-in{flex:1;font-size:12px;padding:7px 11px;border-radius:var(--r-pill);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;font-family:inherit;box-shadow:var(--shadow-sm);transition:border-color 200ms}
+.chat-in::placeholder{color:var(--text-3)}
+.chat-in:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,132,255,0.20),var(--shadow-sm)}
+.chat-send{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;background:var(--blue);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(10,132,255,.35);transition:transform .15s var(--ease-spring)}
+.chat-send:hover{transform:scale(1.08)}
+
+/* FLAGS */
+.flags-list{display:flex;flex-direction:column;gap:7px}
+.flag-item{background:rgba(255,69,58,0.12);border:0.5px solid rgba(255,69,58,0.25);border-radius:var(--r-md);padding:9px 12px}
+.flag-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.flag-team{font-size:13px;font-weight:700;color:var(--red)}
+.flag-scouter{font-size:10px;color:var(--text-3)}
+.flag-reason{font-size:11px;color:var(--text-2);margin-bottom:6px}
+.flag-actions{display:flex;gap:5px}
+.flag-btn{font-size:10px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);border:0.5px solid;cursor:pointer;transition:opacity .15s;font-family:inherit}
+.flag-btn:hover{opacity:.8}
+.flag-dismiss{background:var(--glass-bg);border-color:var(--glass-border);color:var(--text-2)}
+.flag-review{background:rgba(255,69,58,0.15);border-color:rgba(255,69,58,0.28);color:var(--red)}
+
+/* STAT WIDGET */
+.stat-inner{text-align:center;padding:8px 0}
+.stat-num{font-size:38px;font-weight:700;letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.stat-denom{font-size:18px;font-weight:400;color:var(--text-3);letter-spacing:-1px}
+.stat-lbl{font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em}
+.stat-bar{height:3px;border-radius:var(--r-pill);background:var(--glass-bg);overflow:hidden;margin-top:8px}
+.stat-bar-fill{height:100%;border-radius:var(--r-pill)}
+
+/* ══════════════════════════════════════════
+   LOGIC ENGINE WIDGET
+══════════════════════════════════════════ */
+.eq-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.eq-row{display:flex;align-items:center;gap:7px;padding:7px 10px}
+.eq-nm{font-size:11px;font-weight:700;color:var(--green);min-width:90px;flex-shrink:0}
+.eq-fm{font-size:10px;color:var(--text-3);font-family:'SF Mono',monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eq-type-badge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:var(--r-pill);border:0.5px solid;flex-shrink:0}
+.eq-type-numeric{background:rgba(10,132,255,0.15);color:var(--blue);border-color:rgba(10,132,255,0.3)}
+.eq-type-text{background:rgba(48,209,88,0.15);color:var(--green);border-color:rgba(48,209,88,0.3)}
+.eq-del{border:none;background:none;color:var(--red);font-size:12px;cursor:pointer;flex-shrink:0;opacity:.4;transition:opacity .15s;padding:2px}
+.eq-del:hover{opacity:1}
+.eq-add-row{display:flex;gap:5px;margin-top:4px}
+.eq-inp{font-size:11px;padding:5px 8px;border-radius:var(--r-md);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;font-family:inherit;transition:border-color 200ms}
+.eq-inp:focus{border-color:var(--purple)}
+.eq-inp.nm{width:90px}
+.eq-open-btn{flex:1;font-size:10px;font-weight:600;padding:5px 10px;border-radius:var(--r-md);background:rgba(191,90,242,0.15);border:0.5px solid rgba(191,90,242,0.3);color:var(--purple);cursor:pointer;font-family:inherit;transition:filter .15s}
+.eq-open-btn:hover{filter:brightness(1.2)}
+.eq-add-btn{padding:5px 10px;border-radius:var(--r-md);background:rgba(48,209,88,0.18);border:0.5px solid rgba(48,209,88,0.28);color:var(--green);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:filter .15s;white-space:nowrap}
+.eq-add-btn:hover{filter:brightness(1.2)}
+
+/* ══════════════════════════════════════════
+   CHART WIDGET
+══════════════════════════════════════════ */
+.chart-controls{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap}
+.chart-select{font-size:10px;padding:4px 7px;border-radius:var(--r-md);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;cursor:pointer;font-family:inherit}
+.chart-area{width:100%;flex:1;position:relative;min-height:80px}
+.chart-svg{width:100%;height:100%;overflow:visible}
+.chart-no-data{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:11px}
+.chart-tooltip{position:absolute;background:rgba(5,8,22,0.92);border:0.5px solid var(--glass-border-strong);border-radius:var(--r-md);padding:5px 9px;font-size:10px;pointer-events:none;display:none;z-index:10;backdrop-filter:blur(12px);white-space:nowrap}
+.chart-tooltip b{color:var(--blue)}
+
+/* ══════════════════════════════════════════
+   EQUATION EDITOR MODAL
+══════════════════════════════════════════ */
+#eq-modal{position:fixed;inset:0;z-index:4000;display:none;align-items:center;justify-content:center}
+#eq-modal.open{display:flex}
+#eq-modal-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px)}
+#eq-modal-box{position:relative;z-index:1;width:640px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;background:rgba(8,10,28,0.96);border:0.5px solid var(--glass-border-strong);border-radius:var(--r-2xl);box-shadow:var(--shadow-lg);overflow:hidden}
+#eq-modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 100%);border-radius:var(--r-2xl) var(--r-2xl) 0 0;pointer-events:none;z-index:1}
+.eq-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid var(--glass-border);position:relative;z-index:2}
+.eq-modal-title{font-size:14px;font-weight:600}
+.eq-modal-close{width:26px;height:26px;border-radius:50%;border:none;background:var(--glass-bg);cursor:pointer;font-size:14px;color:var(--text-2);display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .15s}
+.eq-modal-close:hover{background:rgba(255,69,58,0.2);color:var(--red)}
+.eq-modal-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:2}
+.eq-card{background:var(--glass-bg);border:0.5px solid var(--glass-border);border-radius:var(--r-lg);padding:14px;border-left:3px solid var(--purple)}
+.eq-card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.eq-card-name-input{font-size:13px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;flex:1;font-family:inherit;transition:color .15s}
+.eq-card-name-input:focus{color:var(--purple)}
+.eq-card-var-wrap{display:flex;align-items:center;gap:5px}
+.eq-card-var-lbl{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.eq-card-var-input{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--glass-bg-subtle);border:0.5px solid var(--glass-border);color:var(--green);outline:none;font-family:'SF Mono',monospace;width:130px;transition:border-color 200ms}
+.eq-card-var-input:focus{border-color:var(--green)}
+.eq-card-del{margin-left:auto;border:none;background:none;color:var(--text-3);cursor:pointer;font-size:12px;transition:color .15s}
+.eq-card-del:hover{color:var(--red)}
+/* Script editor */
+.script-editor-wrap{position:relative;border-radius:var(--r-md);overflow:hidden;background:rgba(0,0,0,0.55);border:0.5px solid var(--glass-border)}
+.script-editor-wrap:focus-within{border-color:rgba(191,90,242,0.4);box-shadow:0 0 0 3px rgba(191,90,242,0.12)}
+.script-highlight{position:absolute;inset:0;padding:10px 12px;font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;word-break:break-all;pointer-events:none;overflow:hidden;color:var(--text-2)}
+.script-textarea{position:relative;display:block;width:100%;min-height:90px;padding:10px 12px;background:transparent;border:none;outline:none;resize:none;font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.7;color:transparent;caret-color:var(--text);white-space:pre-wrap;word-break:break-all;z-index:1;overflow:visible}
+/* Syntax colors */
+.s-kw{color:#BF5AF2}
+.s-var{color:#61AFEF}
+.s-str{color:#98C379}
+.s-num{color:#FF9F0A}
+.s-op{color:#56B6C2}
+.s-paren{color:#E5C07B}
+.s-comment{color:#5C6370;font-style:italic}
+/* Autocomplete */
+.ac-dropdown{position:absolute;bottom:calc(100% + 4px);left:0;width:220px;background:rgba(8,10,28,0.96);border:0.5px solid var(--glass-border-strong);border-radius:var(--r-md);box-shadow:var(--shadow-lg);z-index:500;overflow:hidden;display:none;max-height:160px;overflow-y:auto;backdrop-filter:blur(20px)}
+.ac-dropdown.show{display:block}
+.ac-header{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);padding:5px 10px;border-bottom:0.5px solid var(--glass-border);background:rgba(10,132,255,0.08)}
+.ac-item{padding:5px 10px;font-size:11px;font-family:'SF Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-2);transition:background .1s}
+.ac-item:hover,.ac-item.selected{background:rgba(191,90,242,0.18)}
+.ac-item-type{font-size:8px;color:var(--text-3);margin-left:auto}
+.ac-match{color:var(--green);font-weight:700}
+.eq-vars-hint{font-size:9px;color:var(--text-3);margin-top:6px;line-height:1.6}
+.eq-vars-hint code{color:var(--blue);background:rgba(10,132,255,0.1);padding:1px 5px;border-radius:4px;font-family:'SF Mono',monospace}
+.eq-modal-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:0.5px solid var(--glass-border);position:relative;z-index:2}
+.eq-add-new-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r-pill);background:rgba(191,90,242,0.18);border:0.5px solid rgba(191,90,242,0.3);color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:filter .15s}
+.eq-add-new-btn:hover{filter:brightness(1.2)}
+.eq-save-btn{display:flex;align-items:center;gap:5px;padding:7px 16px;border-radius:var(--r-pill);background:var(--blue);border:none;color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(10,132,255,.3);transition:transform .15s var(--ease-spring)}
+.eq-save-btn:hover{transform:scale(1.04)}
+
+/* ══════════════════════════════════════════
+   PICKLIST TAB
+══════════════════════════════════════════ */
+#picklist-page{flex:1;overflow:hidden;display:none;flex-direction:column;padding:12px;gap:10px}
+#picklist-page.active{display:flex}
+.pl-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pl-search{padding:7px 13px;border-radius:var(--r-lg);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);font-size:12px;outline:none;width:190px;backdrop-filter:var(--blur);box-shadow:var(--shadow-sm);font-family:inherit;transition:border-color 200ms}
+.pl-search::placeholder{color:var(--text-3)}
+.pl-search:focus{border-color:var(--blue)}
+.pl-sort-btn{padding:6px 13px;border-radius:var(--r-pill);background:var(--glass-bg);border:0.5px solid var(--glass-border);font-size:11px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all 140ms;box-shadow:var(--shadow-sm);font-family:inherit}
+.pl-sort-btn.active{background:rgba(48,209,88,0.18);border-color:rgba(48,209,88,0.30);color:var(--green)}
+.pl-export{margin-left:auto;padding:6px 14px;border-radius:var(--r-pill);background:var(--glass-bg-strong);border:0.5px solid var(--glass-border-strong);font-size:11px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow-sm);font-family:inherit}
+.pl-table-wrap{flex:1;overflow:auto;border-radius:var(--r-xl);background:var(--glass-bg);border:0.5px solid var(--glass-border);backdrop-filter:var(--blur);box-shadow:var(--shadow)}
+#pl-table{width:100%;border-collapse:collapse;font-size:12px}
+#pl-table thead tr{position:sticky;top:0;background:rgba(5,8,22,0.70);backdrop-filter:var(--blur)}
+#pl-table th{padding:10px 13px;text-align:left;font-size:9px;font-weight:700;color:var(--text-3);letter-spacing:.07em;text-transform:uppercase;border-bottom:0.5px solid var(--glass-border);white-space:nowrap;cursor:pointer;user-select:none}
+#pl-table th:hover{color:var(--text-2)}
+#pl-table td{padding:9px 13px;border-bottom:0.5px solid rgba(255,255,255,0.05);color:var(--text-2);vertical-align:middle}
+#pl-table tr:last-child td{border-bottom:none}
+#pl-table tbody tr:hover td{background:var(--glass-bg-subtle)}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;font-size:11px;font-weight:700}
+.r1{background:rgba(255,159,10,0.20);color:var(--orange)}
+.r2{background:rgba(255,255,255,0.12);color:var(--text-2)}
+.r3{background:rgba(191,90,242,0.18);color:var(--purple)}
+.rn{background:var(--glass-bg);color:var(--text-3)}
+.pl-score{font-size:15px;font-weight:700;letter-spacing:-.5px;color:var(--green)}
+.pl-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);border:0.5px solid}
+.pl-red{background:rgba(255,55,95,0.18);color:var(--pink);border-color:rgba(255,55,95,0.28)}
+.pl-blue{background:rgba(10,132,255,0.18);color:var(--blue);border-color:rgba(10,132,255,0.28)}
+.pl-num{font-variant-numeric:tabular-nums;font-size:11px}
+
+/* ══════════════════════════════════════════
+   FORM BUILDER TAB
+══════════════════════════════════════════ */
+#formbuilder-page{flex:1;overflow:hidden;display:none;flex-direction:column;padding:12px;gap:10px}
+#formbuilder-page.active{display:flex}
+.fb-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;overflow:hidden;min-height:0}
+.fb-panel{background:var(--glass-bg);border:0.5px solid var(--glass-border);border-radius:var(--r-xl);box-shadow:var(--shadow);backdrop-filter:var(--blur);display:flex;flex-direction:column;overflow:hidden}
+.fb-panel-head{padding:12px 16px;border-bottom:0.5px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.fb-panel-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.fb-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.field-card{background:var(--glass-bg);border:0.5px solid var(--glass-border);border-radius:var(--r-md);padding:10px 12px;cursor:default;position:relative;box-shadow:var(--shadow-sm)}
+.field-card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.field-type-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:var(--r-pill);text-transform:uppercase;letter-spacing:.05em;border:0.5px solid}
+.ft-counter{background:rgba(10,132,255,0.18);color:var(--blue);border-color:rgba(10,132,255,0.28)}
+.ft-slider{background:rgba(48,209,88,0.18);color:var(--green);border-color:rgba(48,209,88,0.28)}
+.ft-toggle{background:rgba(191,90,242,0.18);color:var(--purple);border-color:rgba(191,90,242,0.28)}
+.ft-text{background:var(--glass-bg-subtle);color:var(--text-3);border-color:var(--glass-border)}
+.ft-dropdown{background:rgba(255,159,10,0.18);color:var(--orange);border-color:rgba(255,159,10,0.28)}
+.field-del{position:absolute;top:8px;right:8px;border:none;background:none;color:var(--text-3);cursor:pointer;font-size:12px;transition:color .15s}
+.field-del:hover{color:var(--red)}
+.field-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fi-group{display:flex;flex-direction:column;gap:3px}
+.fi-lbl{font-size:9px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.fi-input{font-size:11px;padding:5px 8px;border-radius:6px;background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;width:100%;font-family:inherit;transition:border-color 200ms}
+.fi-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(191,90,242,0.15)}
+.fi-select{font-size:11px;padding:5px 8px;border-radius:6px;background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;width:100%;cursor:pointer;font-family:inherit}
+.fi-full{grid-column:1/-1}
+.add-field-row{display:flex;gap:6px;flex-shrink:0;padding:10px 14px;border-top:0.5px solid var(--glass-border)}
+.af-select{flex:1;font-size:11px;padding:7px 10px;border-radius:var(--r-md);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);outline:none;cursor:pointer;font-family:inherit}
+.af-btn{padding:7px 13px;border-radius:var(--r-md);background:rgba(48,209,88,0.18);border:0.5px solid rgba(48,209,88,0.28);color:var(--green);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+.fb-sync-btn{padding:6px 13px;border-radius:var(--r-pill);background:var(--blue);border:none;color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(10,132,255,.3);transition:transform .15s var(--ease-spring)}
+.fb-sync-btn:hover{transform:scale(1.04)}
+.json-preview{font-family:'SF Mono',monospace;font-size:11px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;word-break:break-all;padding:12px 14px;flex:1;overflow-y:auto}
+.json-key{color:var(--blue)}
+.json-str{color:var(--green)}
+.json-num{color:var(--orange)}
+.json-bool{color:var(--purple)}
+.json-null{color:var(--text-3)}
+.schema-diff{background:rgba(255,159,10,0.08);border:0.5px solid rgba(255,159,10,0.25);border-radius:var(--r-md);padding:8px 12px;margin:0 14px 10px;font-size:10px;color:var(--orange)}
+.schema-diff.hidden{display:none}
+.diff-row{display:flex;align-items:center;gap:5px;margin-bottom:2px}
+.diff-add{color:var(--green)}
+.diff-rem{color:var(--red)}
+
+/* DRAWER */
+#widget-drawer{position:fixed;top:0;right:-360px;width:340px;height:100vh;background:rgba(5,8,22,0.92);backdrop-filter:saturate(180%) blur(40px);border-left:0.5px solid var(--glass-border);z-index:2000;transition:right .28s var(--ease-out);display:flex;flex-direction:column;padding:18px;box-shadow:-12px 0 60px rgba(0,0,0,.5)}
+#widget-drawer.open{right:0}
+#drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+#drawer-title{font-size:14px;font-weight:600}
+#drawer-close{width:26px;height:26px;border-radius:50%;border:none;background:var(--glass-bg);cursor:pointer;font-size:14px;color:var(--text-2);display:flex;align-items:center;justify-content:center;font-family:inherit}
+#drawer-search{width:100%;padding:8px 12px;border-radius:var(--r-lg);background:var(--glass-bg);border:0.5px solid var(--glass-border);color:var(--text);font-size:12px;outline:none;margin-bottom:12px;box-shadow:var(--shadow-sm);font-family:inherit;transition:border-color 200ms}
+#drawer-search::placeholder{color:var(--text-3)}
+#drawer-search:focus{border-color:var(--blue)}
+.drawer-section-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+#widget-catalog{display:grid;grid-template-columns:1fr 1fr;gap:7px;overflow-y:auto;flex:1}
+.catalog-item{background:var(--glass-bg);border:0.5px solid var(--glass-border);border-radius:var(--r-lg);padding:12px 10px;cursor:pointer;transition:all 180ms var(--ease-out);text-align:center;position:relative;box-shadow:var(--shadow-sm)}
+.catalog-item::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.14) 0%,transparent 100%);border-radius:var(--r-lg) var(--r-lg) 0 0;pointer-events:none}
+.catalog-item:hover{background:var(--glass-bg-hover);box-shadow:var(--shadow);transform:translateY(-2px) scale(1.02)}
+.catalog-item.added{opacity:.35;cursor:default;transform:none}
+.ci-icon{font-size:22px;margin-bottom:5px}
+.ci-name{font-size:11px;font-weight:600;margin-bottom:2px}
+.ci-desc{font-size:9px;color:var(--text-3);line-height:1.4}
+#drawer-overlay{display:none;position:fixed;inset:0;z-index:1999;background:rgba(0,0,0,.35);backdrop-filter:blur(4px)}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+
+<div id="shell">
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-badge">935</div>
+    <div><div class="doto">NorthStar</div><div class="logo-sub">Powered By: Team 935</div></div>
+  </div>
+  <div class="tb-mid">
+    <div class="nav">
+      <button class="nav-link active" onclick="switchTab('dashboard',this)">Dashboard</button>
+      <button class="nav-link" onclick="switchTab('picklist',this)">Picklist</button>
+      <button class="nav-link" onclick="switchTab('formbuilder',this)">Form Builder</button>
+      <button class="nav-link" onclick="switchTab('settings',this)">Settings</button>
+    </div>
+  </div>
+  <div class="tb-right">
+    <span id="sync-status" class="idle">Idle</span>
+    <div id="edit-toggle" onclick="toggleEdit()">✦ Edit layout</div>
+    <button id="add-widget-btn" onclick="openDrawer()"><span style="font-size:15px;font-weight:300">+</span> Widget</button>
+    <div class="status-pill"><div class="dot"></div>Live</div>
+    <div id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="tab-page active" id="dashboard-page">
+  <div id="canvas-wrap"><div id="canvas"></div></div>
+</div>
+
+<!-- PICKLIST -->
+<div class="tab-page" id="picklist-page">
+  <div class="pl-toolbar">
+    <input class="pl-search" type="text" placeholder="Search teams…" oninput="filterPL(this.value)">
+    <button class="pl-sort-btn" id="plsort-rank" onclick="sortPL('rank',this)">Rank</button>
+    <button class="pl-sort-btn active" id="plsort-total_score" onclick="sortPL('total_score',this)">Score</button>
+    <button class="pl-sort-btn" id="plsort-auto_high" onclick="sortPL('auto_high',this)">Auto</button>
+    <button class="pl-sort-btn" id="plsort-tele_cubes" onclick="sortPL('tele_cubes',this)">Tele Cubes</button>
+    <button class="pl-export" onclick="exportPL()">Export CSV</button>
+  </div>
+  <div class="pl-table-wrap">
+    <table id="pl-table">
+      <thead><tr id="pl-thead"></tr></thead>
+      <tbody id="pl-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FORM BUILDER -->
+<div class="tab-page" id="formbuilder-page">
+  <div class="fb-layout">
+    <div class="fb-panel">
+      <div class="fb-panel-head">
+        <span class="fb-panel-title">Field Editor</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--text-3)">Schema v<span id="sv">1</span></span>
+          <button class="fb-sync-btn" onclick="saveSchemaToServer()">↑ Sync to Pi</button>
+        </div>
+      </div>
+      <div id="schema-diff" class="schema-diff hidden"></div>
+      <div class="fb-body" id="fb-fields"></div>
+      <div class="add-field-row">
+        <select class="af-select" id="af-type">
+          <option value="counter">Counter</option>
+          <option value="slider">Slider</option>
+          <option value="toggle">Toggle</option>
+          <option value="text">Text</option>
+          <option value="dropdown">Dropdown</option>
+        </select>
+        <button class="af-btn" onclick="addField()">+ Add Field</button>
+      </div>
+    </div>
+    <div class="fb-panel">
+      <div class="fb-panel-head">
+        <span class="fb-panel-title">JSON Preview</span>
+        <span style="font-size:10px;color:var(--green);cursor:pointer;font-weight:600" onclick="copyJSON()">Copy</span>
+      </div>
+      <div class="json-preview" id="json-preview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="tab-page" id="settings-page">
+  <div style="padding:40px;text-align:center;color:var(--text-3);font-size:13px">Settings coming soon.</div>
+</div>
+
+<!-- EQUATION EDITOR MODAL -->
+<div id="eq-modal">
+  <div id="eq-modal-bg" onclick="closeEqModal()"></div>
+  <div id="eq-modal-box">
+    <div class="eq-modal-head">
+      <span class="eq-modal-title">⚡ Logic Engine — Equations</span>
+      <button class="eq-modal-close" onclick="closeEqModal()">✕</button>
+    </div>
+    <div class="eq-modal-body" id="eq-modal-body"></div>
+    <div class="eq-modal-footer">
+      <button class="eq-add-new-btn" onclick="addEquation()"><span style="font-size:14px">+</span> New Equation</button>
+      <button class="eq-save-btn" onclick="saveEquations()">Save & Sync to Pi</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIDGET DRAWER -->
+<div id="widget-drawer">
+  <div id="drawer-head">
+    <span id="drawer-title">Add Widget</span>
+    <button id="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <input id="drawer-search" type="text" placeholder="Search widgets…" oninput="filterCatalog(this.value)">
+  <div class="drawer-section-lbl">Available widgets</div>
+  <div id="widget-catalog"></div>
+</div>
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SERVER API LAYER
+// ═══════════════════════════════════════════════════════════
+const API = (() => {
+  const BASE = ''; // same origin — runs on Pi
+  async function req(method, path, body) {
+    setSyncStatus('syncing');
+    try {
+      const res = await fetch(BASE + path, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+      });
+      const data = await res.json();
+      setSyncStatus('ok');
+      return data;
+    } catch (e) {
+      console.warn('API error:', e);
+      setSyncStatus('error');
+      return null;
+    }
+  }
+  return {
+    getSchema:    () => req('GET',  '/api/schema'),
+    putSchema:    (s) => req('PUT',  '/api/schema', s),
+    getEquations: () => req('GET',  '/api/equations'),
+    putEquations: (e) => req('PUT',  '/api/equations', e),
+    getData:      () => req('GET',  '/api/data'),
+    getPicklist:  () => req('GET',  '/api/picklist'),
+    getTeamHistory: (t) => req('GET', `/api/team/${t}/history`),
+  };
+})();
+
+// Sync status indicator
+let syncTimer = null;
+function setSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  el.className = state;
+  const labels = { idle: 'Idle', syncing: '⟳ Syncing…', ok: '✓ Synced', error: '✕ Error' };
+  el.textContent = labels[state] || state;
+  clearTimeout(syncTimer);
+  if (state === 'ok') syncTimer = setTimeout(() => setSyncStatus('idle'), 2000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const TOTAL_MATCHES = 60;
+let currentMatch = 14, matchesLogged = 0, teamsScouted = 0, flags = 0;
+
+const SCOUTERS = [
+  {id:1,name:'Alex',  status:'active', battery:82,match:14,team:1678,alliance:'Red', formPct:78, formSection:'Teleop',  flag:null},
+  {id:2,name:'Jordan',status:'flagged',battery:74,match:14,team:1678,alliance:'Red', formPct:100,formSection:'Done',    flag:'Impossible value: 99 pieces'},
+  {id:3,name:'Sam',   status:'active', battery:63,match:14,team:254, alliance:'Blue',formPct:45, formSection:'Auto',    flag:null},
+  {id:4,name:'Taylor',status:'idle',   battery:91,match:13,team:971, alliance:'Blue',formPct:100,formSection:'Done',    flag:null},
+  {id:5,name:'Morgan',status:'active', battery:18,match:14,team:118, alliance:'Red', formPct:20, formSection:'Pre-match',flag:null},
+  {id:6,name:'Casey', status:'offline',battery:0, match:null,team:null,formPct:0,formSection:null,flag:null},
+];
+
+let chatMessages = [
+  {role:'scouter',from:'S3 · Sam',   text:'Team 254 scored 11 auto — right?',time:'10:42'},
+  {role:'admin',  from:'Admin',      text:'Yes confirmed on stream.',         time:'10:42'},
+  {role:'broadcast',from:'BROADCAST',text:'📢 Match 15 assignments sent',    time:'10:45'},
+];
+
+// Schema & equations — loaded from server on init, fallback to defaults
+let schemaFields = [];
+let equations = [];
+let serverPicklist = [];
+let serverData = [];
+
+// ═══════════════════════════════════════════════════════════
+// INIT — load everything from server
+// ═══════════════════════════════════════════════════════════
+async function initFromServer() {
+  const [schema, eqs, data, picklist] = await Promise.all([
+    API.getSchema(),
+    API.getEquations(),
+    API.getData(),
+    API.getPicklist(),
+  ]);
+
+  if (schema && schema.fields) {
+    schemaFields = schema.fields;
+    document.getElementById('sv').textContent = schema.version || 1;
+  } else {
+    schemaFields = [
+      {varName:'auto_high',label:'Auto High Goals',type:'counter',min:0,max:6,group:'Autonomous'},
+      {varName:'auto_low', label:'Auto Low Goals', type:'counter',min:0,max:6,group:'Autonomous'},
+      {varName:'tele_cubes',label:'Teleop Cubes',  type:'counter',min:0,max:20,group:'Teleop'},
+      {varName:'tele_cones',label:'Teleop Cones',  type:'counter',min:0,max:20,group:'Teleop'},
+      {varName:'climb_level',label:'Climb Level',  type:'counter',min:0,max:3, group:'Endgame'},
+      {varName:'defense_rating',label:'Defense',   type:'slider', min:0,max:5, group:'Teleop'},
+    ];
+  }
+
+  if (eqs && eqs.length) {
+    equations = eqs;
+  } else {
+    equations = [
+      {id:'eq1',varName:'total_score', label:'Total Score', formula:'(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)'},
+      {id:'eq2',varName:'climb_pts',   label:'Climb Points',formula:'climb_level * 6'},
+      {id:'eq3',varName:'climb_status',label:'Climb Status',formula:"if (climb_level === 0) return 'None'; if (climb_level === 1) return 'Low'; if (climb_level === 2) return 'Mid'; return 'High';"},
+    ];
+  }
+
+  if (data && data.length) {
+    serverData = data;
+    matchesLogged = data.length;
+    teamsScouted = new Set(data.map(d => d.team)).size;
+  }
+
+  if (picklist && picklist.length) {
+    serverPicklist = picklist;
+  }
+
+  flags = SCOUTERS.filter(s => s.flag).length;
+
+  // Refresh any open widgets
+  Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
+  setSyncStatus('idle');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════════
+setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US',{hour12:false}); }, 1000);
+document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+
+// ═══════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pg = document.getElementById(tab + '-page');
+  if (pg) pg.classList.add('active');
+  if (tab === 'picklist') renderPicklist();
+  if (tab === 'formbuilder') renderFormBuilder();
+}
+
+// ═══════════════════════════════════════════════════════════
+// EQUATION EVALUATOR (client-side mirror of server logic)
+// ═══════════════════════════════════════════════════════════
+function evalEquation(formula, row) {
+  try {
+    const keys = Object.keys(row);
+    const vals = Object.values(row);
+    let body = formula.trim();
+    if (!body.includes('return') && !body.includes('if') && !body.includes('let') && !body.includes(';')) {
+      body = `return (${body});`;
+    }
+    const fn = new Function(...keys, body);
+    return fn(...vals);
+  } catch (e) { return null; }
+}
+function applyEquations(row) {
+  const r = { ...row };
+  for (let pass = 0; pass < 2; pass++) {
+    equations.forEach(eq => { r[eq.varName] = evalEquation(eq.formula, r); });
+  }
+  return r;
+}
+
+// ═══════════════════════════════════════════════════════════
+// WIDGET CATALOG
+// ═══════════════════════════════════════════════════════════
+const CATALOG = [
+  {id:'match-progress', name:'Match Progress',  icon:'🏟',  desc:'Current match, completion bar, stats',   w:320,h:220},
+  {id:'scouter-status', name:'Scouter Status',  icon:'👥',  desc:'All scouters, form progress',            w:290,h:380},
+  {id:'battery-monitor',name:'Battery Monitor', icon:'🔋',  desc:'Live battery % for all tablets',         w:280,h:230},
+  {id:'live-chat',      name:'Live Chat',        icon:'💬',  desc:'Chat with scouters & broadcasts',        w:300,h:360},
+  {id:'data-flags',     name:'Data Flags',       icon:'🚩',  desc:'Review & dismiss flagged entries',       w:300,h:240},
+  {id:'eq-builder',     name:'Logic Engine',     icon:'⚡',  desc:'Custom scoring equations with scripts',  w:340,h:230},
+  {id:'team-chart',     name:'Team Chart',       icon:'📈',  desc:'Per-team metric timeline from real data',w:380,h:280},
+  {id:'matches-logged', name:'Matches Logged',   icon:'📋',  desc:'Matches scouted vs total',               w:200,h:160},
+  {id:'teams-scouted',  name:'Teams Scouted',    icon:'🤖',  desc:'Total unique teams scouted',             w:200,h:160},
+  {id:'active-scouters',name:'Active Scouters',  icon:'✅',  desc:'Live scouter count',                     w:200,h:160},
+];
+
+let widgets = {}, zCount = 10, editMode = false;
+const SNAP = 8;
+function snap(v) { return Math.round(v / SNAP) * SNAP; }
+
+// ═══════════════════════════════════════════════════════════
+// WIDGET BODY BUILDERS
+// ═══════════════════════════════════════════════════════════
+function buildBody(type, uid) {
+  switch (type) {
+    case 'match-progress':  return matchProgBody();
+    case 'scouter-status':  return scouterBody(uid);
+    case 'battery-monitor': return battBody();
+    case 'live-chat':       return chatBody(uid);
+    case 'data-flags':      return flagsBody(uid);
+    case 'eq-builder':      return eqBuilderBody(uid);
+    case 'team-chart':      return teamChartBody(uid);
+    case 'matches-logged':  return statBody('📋', matchesLogged, TOTAL_MATCHES, 'Matches Logged', 'var(--green)');
+    case 'teams-scouted':   return statBody('🤖', teamsScouted, null, 'Teams Scouted', 'var(--blue)');
+    case 'active-scouters': return statBody('✅', SCOUTERS.filter(s => s.status === 'active').length, 6, 'Active Scouters', 'var(--purple)');
+    default: return '';
+  }
+}
+
+function matchProgBody() {
+  const pct = Math.round((matchesLogged / TOTAL_MATCHES) * 100);
+  return `<div class="match-wrap">
+    <div class="glass-card mc-main">
+      <div class="mc-lbl">Current match</div>
+      <div class="mc-num">${currentMatch}</div>
+      <div class="mc-sub">${matchesLogged} of ${TOTAL_MATCHES} scouted — ${pct}% complete</div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="match-stats">
+      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--green)">${matchesLogged}</div><div class="ms-lbl">Logged</div></div>
+      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--red)">${flags}</div><div class="ms-lbl">Flags</div></div>
+      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--blue)">${teamsScouted}</div><div class="ms-lbl">Teams</div></div>
+    </div>
+  </div>`;
+}
+
+function scouterBody(uid) {
+  return '<div class="sc-list">' + SCOUTERS.map(s => {
+    const fp = s.status === 'offline' ? 0 : s.formPct;
+    const progressRow = (s.status !== 'offline' && s.status !== 'idle') ? `
+      <div class="form-prog-wrap">
+        <span class="form-prog-label">${s.formSection || ''}</span>
+        <div class="form-prog-track"><div class="form-prog-fill" style="width:${fp}%"></div></div>
+        <span class="form-prog-pct">${fp}%</span>
+      </div>` : '';
+    return `<div class="glass-card sc-item">
+      <div class="sc-top-row">
+        <div class="sc-dot ${s.status}"></div>
+        <span class="sc-nm">S${s.id} · ${s.name}</span>
+        <span class="sc-pill ${s.status}">${s.status.charAt(0).toUpperCase() + s.status.slice(1)}</span>
+      </div>
+      <div class="sc-det">${s.match ? `Match ${s.match} · Team ${s.team} (${s.alliance})` : 'Not connected'}${s.flag ? ` · ⚠ ${s.flag}` : ''}</div>
+      ${progressRow}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function battBody() {
+  return '<div class="batt-grid">' + SCOUTERS.map(s => {
+    const bc = s.battery > 50 ? 'batt-hi' : s.battery > 20 ? 'batt-mid' : 'batt-lo';
+    const bs = s.status === 'offline' ? 'bst-offline' : s.battery <= 20 ? 'bst-warn' : s.status === 'active' ? 'bst-active' : 'bst-idle';
+    const bl = s.status === 'offline' ? 'Offline' : s.battery <= 20 ? 'Low!' : s.status === 'active' ? 'Active' : 'Idle';
+    return `<div class="batt-row">
+      <span class="batt-name">S${s.id} ${s.name}</span>
+      <div class="batt-track"><div class="batt-fill ${bc}" style="width:${s.battery}%"></div></div>
+      <span class="batt-pct" style="color:${s.battery <= 20 && s.status !== 'offline' ? 'var(--red)' : 'var(--text-2)'}">${s.battery}%</span>
+      <span class="batt-status ${bs}">${bl}</span>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function chatBody(uid) {
+  return `<div class="chat-msgs" id="cm-${uid}" style="height:calc(100% - 52px)">
+    ${chatMessages.map(m => `<div class="cm ${m.role}">
+      <span class="cm-from">${m.from} · ${m.time}</span>
+      <div class="cm-bubble">${m.text}</div>
+    </div>`).join('')}
+  </div>
+  <div class="chat-input-row">
+    <select class="chat-type" id="ct-${uid}"><option value="direct">Direct</option><option value="broadcast">Broadcast</option></select>
+    <input class="chat-in" id="cin-${uid}" type="text" placeholder="Message…" maxlength="160">
+    <button class="chat-send" onclick="sendChat('${uid}')">↑</button>
+  </div>`;
+}
+function sendChat(uid) {
+  const inp = document.getElementById('cin-' + uid);
+  const t = document.getElementById('ct-' + uid)?.value;
+  if (!inp?.value.trim()) return;
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  chatMessages.push(t === 'broadcast'
+    ? { role: 'broadcast', from: 'BROADCAST', text: '📢 ' + inp.value.trim(), time: now }
+    : { role: 'admin', from: 'Admin', text: inp.value.trim(), time: now });
+  inp.value = '';
+  Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
+}
+
+function flagsBody(uid) {
+  const fl = SCOUTERS.filter(s => s.flag);
+  if (!fl.length) return '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No flags 🎉</div>';
+  return '<div class="flags-list">' + fl.map(s => `
+    <div class="flag-item">
+      <div class="flag-top"><span class="flag-team">Team ${s.team}</span><span class="flag-scouter">S${s.id} · ${s.name}</span></div>
+      <div class="flag-reason">${s.flag}</div>
+      <div class="flag-actions">
+        <button class="flag-btn flag-dismiss" onclick="dismissFlag(${s.id})">Dismiss</button>
+        <button class="flag-btn flag-review">Mark for review</button>
+      </div>
+    </div>`).join('') + '</div>';
+}
+function dismissFlag(id) {
+  const s = SCOUTERS.find(x => x.id === id);
+  if (s) { delete s.flag; s.status = 'active'; flags = Math.max(0, flags - 1); }
+  Object.entries(widgets).forEach(([id, w]) => { if (['data-flags','match-progress','scouter-status'].includes(w.type)) refreshWidget(id); });
+}
+
+// ── Logic Engine Widget (compact, opens modal for editing)
+function eqBuilderBody(uid) {
+  const eqRows = equations.map((eq, i) => {
+    const sample = serverData.length ? applyEquations(serverData[0])[eq.varName] : null;
+    const typeClass = typeof sample === 'string' ? 'eq-type-text' : 'eq-type-numeric';
+    const typeLabel = typeof sample === 'string' ? 'text' : 'num';
+    return `<div class="glass-card eq-row">
+      <span class="eq-nm">${eq.label || eq.varName}</span>
+      <span class="eq-fm">= ${eq.formula.replace(/\n/g,' ').slice(0,32)}…</span>
+      <span class="eq-type-badge ${typeClass}">${typeLabel}</span>
+    </div>`;
+  }).join('');
+  return `<div class="eq-list">${eqRows}</div>
+    <div class="eq-add-row">
+      <button class="eq-open-btn" onclick="openEqModal()">⚡ Edit Equations & Scripts…</button>
+    </div>`;
+}
+
+// ── Team Chart Widget
+function teamChartBody(uid) {
+  const teams = [...new Set(serverData.map(d => d.team))].sort((a,b) => a - b);
+  const numericEqs = equations.filter(eq => {
+    if (!serverData.length) return typeof evalEquation(eq.formula, {}) === 'number';
+    const sample = applyEquations(serverData[0]);
+    return typeof sample[eq.varName] === 'number';
+  });
+  const numericFields = schemaFields.filter(f => f.type !== 'text' && f.type !== 'dropdown');
+  const allMetrics = [...numericFields.map(f => ({id:f.varName, label:f.label})), ...numericEqs.map(e => ({id:e.varName, label:e.label||e.varName}))];
+
+  const stateKey = `chart_state_${uid}`;
+  if (!window[stateKey]) window[stateKey] = { team: teams[0] || 935, metric: allMetrics[allMetrics.length-1]?.id || 'total_score' };
+  const st = window[stateKey];
+
+  const teamData = serverData
+    .filter(d => String(d.team) === String(st.team))
+    .map(d => applyEquations(d))
+    .sort((a, b) => a.match - b.match);
+
+  const metricData = teamData.map(d => d[st.metric]);
+  const hasData = metricData.length > 0 && metricData.some(v => v !== null);
+
+  let chartSVG = '';
+  if (hasData && typeof metricData[0] === 'number') {
+    const maxVal = Math.max(...metricData.filter(v => v !== null)) * 1.15 || 1;
+    const W = 100, H = 100;
+    const pts = metricData.map((v, i) => {
+      const x = metricData.length === 1 ? 50 : (i / (metricData.length - 1)) * W;
+      const y = H - ((v / maxVal) * H * 0.85) - 5;
+      return `${x},${y}`;
+    });
+    const areaPath = `M${pts[0].split(',')[0]},${H} ` + pts.map(p => `L${p}`).join(' ') + ` L${pts[pts.length-1].split(',')[0]},${H} Z`;
+    const linePath = 'M' + pts.join(' L');
+
+    const dotsSVG = teamData.map((d, i) => {
+      const x = metricData.length === 1 ? 50 : (i / (metricData.length - 1)) * W;
+      const y = H - ((metricData[i] / maxVal) * H * 0.85) - 5;
+      return `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--blue)" stroke="rgba(5,8,22,0.8)" stroke-width="1.5"
+        data-match="${d.match}" data-val="${metricData[i] !== null ? metricData[i].toFixed?.(1) ?? metricData[i] : 'N/A'}" class="chart-dot"/>`;
+    }).join('');
+
+    // Y-axis labels
+    const yLabels = [0, Math.round(maxVal/2), Math.round(maxVal)].map((v, i) => {
+      const y = H - (v/maxVal * H * 0.85) - 5;
+      return `<text x="-2" y="${y}" font-size="7" text-anchor="end" fill="rgba(255,255,255,0.25)" dominant-baseline="middle">${v}</text>`;
+    }).join('');
+
+    chartSVG = `<svg viewBox="-12 0 112 105" class="chart-svg" id="csv-${uid}" onmouseleave="hideChartTip('${uid}')">
+      <defs>
+        <linearGradient id="cg-${uid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="var(--blue)" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+      ${yLabels}
+      <path d="${areaPath}" fill="url(#cg-${uid})"/>
+      <path d="${linePath}" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${dotsSVG}
+    </svg>
+    <div class="chart-tooltip" id="ctt-${uid}"></div>`;
+  } else if (hasData && typeof metricData[0] === 'string') {
+    const cats = [...new Set(metricData.filter(v => v !== null))].sort();
+    const barW = cats.length > 0 ? 80 / metricData.length : 80;
+    const catColors = ['var(--green)', 'var(--blue)', 'var(--orange)', 'var(--purple)', 'var(--red)'];
+    const bars = teamData.map((d, i) => {
+      const catIdx = cats.indexOf(metricData[i]);
+      const pct = cats.length > 0 ? ((catIdx + 1) / cats.length) * 80 : 0;
+      const x = metricData.length === 1 ? 45 : (i / (metricData.length - 1)) * 80 + 10;
+      const color = catColors[catIdx % catColors.length] || 'var(--text-3)';
+      return `<g>
+        <rect x="${x - barW*0.4}" y="${100 - pct - 5}" width="${barW*0.8}" height="${pct}" fill="${color}" opacity="0.5" rx="2"/>
+        <text x="${x}" y="${100 - pct - 8}" font-size="7" text-anchor="middle" fill="${color}">${metricData[i]}</text>
+      </g>`;
+    }).join('');
+    chartSVG = `<svg viewBox="0 0 100 105" class="chart-svg">${bars}</svg>`;
+  } else {
+    chartSVG = `<div class="chart-no-data">No data yet — sync from Pi</div>`;
+  }
+
+  const teamOpts = teams.map(t => `<option value="${t}" ${String(t) === String(st.team) ? 'selected' : ''}>${t}</option>`).join('');
+  const metricOpts = allMetrics.map(m => `<option value="${m.id}" ${m.id === st.metric ? 'selected' : ''}>${m.label}</option>`).join('');
+
+  return `<div style="display:flex;flex-direction:column;height:100%;gap:6px">
+    <div class="chart-controls">
+      <select class="chart-select" onchange="setChartState('${uid}','team',this.value);refreshWidget('${uid}')">
+        ${teamOpts || '<option>No data</option>'}
+      </select>
+      <select class="chart-select" onchange="setChartState('${uid}','metric',this.value);refreshWidget('${uid}')">
+        ${metricOpts || '<option>No metrics</option>'}
+      </select>
+      <button class="chart-select" style="cursor:pointer;color:var(--blue)" onclick="loadTeamChart('${uid}')">↻</button>
+    </div>
+    <div class="chart-area" id="ca-${uid}" onmousemove="chartMouseMove(event,'${uid}')">
+      ${chartSVG}
+    </div>
+  </div>`;
+}
+
+function setChartState(uid, key, val) {
+  const stateKey = `chart_state_${uid}`;
+  if (!window[stateKey]) window[stateKey] = {};
+  window[stateKey][key] = val;
+}
+
+async function loadTeamChart(uid) {
+  const stateKey = `chart_state_${uid}`;
+  const st = window[stateKey];
+  if (!st) return;
+  const history = await API.getTeamHistory(st.team);
+  if (history) {
+    // Merge into serverData
+    serverData = serverData.filter(d => String(d.team) !== String(st.team));
+    serverData.push(...history);
+    refreshWidget(uid);
+  }
+}
+
+function chartMouseMove(e, uid) {
+  const svg = document.getElementById('csv-' + uid);
+  if (!svg) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const dots = svg.querySelectorAll('.chart-dot');
+  let nearest = null, minDist = 30;
+  dots.forEach(dot => {
+    const cr = dot.getBoundingClientRect();
+    const dx = e.clientX - (cr.left + cr.width/2);
+    const dy = e.clientY - (cr.top + cr.height/2);
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < minDist) { minDist = d; nearest = dot; }
+  });
+  const tip = document.getElementById('ctt-' + uid);
+  if (!tip) return;
+  if (nearest) {
+    tip.style.display = 'block';
+    tip.innerHTML = `Match <b>${nearest.dataset.match}</b>: ${nearest.dataset.val}`;
+    const x = e.clientX - rect.left + 8;
+    const y = e.clientY - rect.top - 28;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  } else {
+    tip.style.display = 'none';
+  }
+}
+function hideChartTip(uid) {
+  const tip = document.getElementById('ctt-' + uid);
+  if (tip) tip.style.display = 'none';
+}
+
+function statBody(icon, val, total, label, color) {
+  const pct = total ? Math.round((val / total) * 100) : null;
+  return `<div class="stat-inner">
+    <div style="font-size:22px;margin-bottom:4px">${icon}</div>
+    <div class="stat-num" style="color:${color}">${val}${total ? `<span class="stat-denom">/${total}</span>` : ''}</div>
+    <div class="stat-lbl">${label}</div>
+    ${pct !== null ? `<div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%;background:${color};box-shadow:0 0 6px ${color}88"></div></div>` : ''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EQUATION EDITOR MODAL
+// ═══════════════════════════════════════════════════════════
+function openEqModal() {
+  document.getElementById('eq-modal').classList.add('open');
+  renderEqModal();
+}
+function closeEqModal() {
+  document.getElementById('eq-modal').classList.remove('open');
+}
+
+function getAllVarNames() {
+  return [
+    ...schemaFields.map(f => f.varName),
+    ...equations.map(e => e.varName),
+  ];
+}
+
+function syntaxHighlight(code) {
+  const varNames = getAllVarNames();
+  // Escape HTML first
+  let s = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Comments
+  s = s.replace(/(\/\/[^\n]*)/g, '<span class="s-comment">$1</span>');
+  // Strings
+  s = s.replace(/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)/g, '<span class="s-str">$1</span>');
+  // Keywords
+  s = s.replace(/\b(if|else|return|let|const|var|for|while|function)\b/g, '<span class="s-kw">$1</span>');
+  // User-defined variables
+  varNames.forEach(v => {
+    s = s.replace(new RegExp(`\\b(${v})\\b`, 'g'), '<span class="s-var">$1</span>');
+  });
+  // Numbers
+  s = s.replace(/\b(\d+\.?\d*)\b/g, '<span class="s-num">$1</span>');
+  // Parens/braces
+  s = s.replace(/([(){}[\]])/g, '<span class="s-paren">$1</span>');
+  // Operators
+  s = s.replace(/([+\-*\/=<>!&|;])/g, '<span class="s-op">$1</span>');
+  return s;
+}
+
+function renderEqModal() {
+  const vars = getAllVarNames();
+  const body = document.getElementById('eq-modal-body');
+  body.innerHTML = equations.map((eq, i) => `
+    <div class="eq-card" id="eqcard-${i}">
+      <div class="eq-card-head">
+        <input class="eq-card-name-input" value="${eq.label || eq.varName}" placeholder="Equation Name"
+          onchange="equations[${i}].label = this.value; renderEqModal()">
+        <div class="eq-card-var-wrap">
+          <span class="eq-card-var-lbl">Output ID:</span>
+          <input class="eq-card-var-input" value="${eq.varName}" placeholder="var_name"
+            onchange="equations[${i}].varName = this.value.toLowerCase().replace(/[^a-z0-9_]/g,''); renderEqModal()">
+        </div>
+        <button class="eq-card-del" onclick="equations.splice(${i},1); renderEqModal()">✕</button>
+      </div>
+      <div class="script-editor-wrap" id="sew-${i}">
+        <div class="script-highlight" id="seh-${i}">${syntaxHighlight(eq.formula)}&ZeroWidthSpace;</div>
+        <textarea class="script-textarea" id="set-${i}" spellcheck="false"
+          oninput="onScriptInput(${i}, this)"
+          onkeydown="onScriptKeydown(event, ${i})"
+          onblur="hideAC(${i})"
+        >${eq.formula}</textarea>
+        <div class="ac-dropdown" id="ac-${i}">
+          <div class="ac-header">⚡ Variables</div>
+        </div>
+      </div>
+      <div class="eq-vars-hint">
+        Available: ${vars.map(v => `<code>${v}</code>`).join(' ')}
+        <br><span style="opacity:.5">Use JS: <code>if/else</code>, <code>let</code>, <code>return</code>. Simple expressions auto-wrapped in return.</span>
+      </div>
+    </div>`).join('');
+
+  // Sync highlight divs height to textareas
+  equations.forEach((_, i) => {
+    const ta = document.getElementById('set-' + i);
+    const hl = document.getElementById('seh-' + i);
+    if (ta && hl) {
+      ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
+    }
+  });
+}
+
+let acSelectedIdx = {};
+function onScriptInput(idx, ta) {
+  equations[idx].formula = ta.value;
+  const hl = document.getElementById('seh-' + idx);
+  if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
+  ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
+  // Autocomplete
+  const pos = ta.selectionStart;
+  const before = ta.value.slice(0, pos);
+  const word = before.match(/[A-Za-z_]\w*$/) ? before.match(/[A-Za-z_]\w*$/)[0] : '';
+  const dd = document.getElementById('ac-' + idx);
+  if (!word || word.length < 1) { dd.classList.remove('show'); return; }
+  const vars = getAllVarNames();
+  const kws = ['if','else','return','let','const'];
+  const matches = [...kws, ...vars].filter(v => v.toLowerCase().startsWith(word.toLowerCase()) && v !== word);
+  if (!matches.length) { dd.classList.remove('show'); return; }
+  acSelectedIdx[idx] = 0;
+  dd.innerHTML = '<div class="ac-header">⚡ Suggestions</div>' + matches.map((m, i) => {
+    const type = vars.includes(m) ? 'var' : 'keyword';
+    const prefix = m.slice(0, word.length);
+    const rest = m.slice(word.length);
+    return `<div class="ac-item${i===0?' selected':''}" data-var="${m}" data-idx="${i}"
+      onmousedown="applyAC(event,${idx})"
+      onmouseover="acHover(${i},${idx})">
+      <span><span class="ac-match">${prefix}</span>${rest}</span>
+      <span class="ac-item-type">${type}</span>
+    </div>`;
+  }).join('');
+  dd.classList.add('show');
+}
+
+function acHover(itemIdx, eqIdx) {
+  acSelectedIdx[eqIdx] = itemIdx;
+  document.querySelectorAll(`#ac-${eqIdx} .ac-item`).forEach((el, i) => el.classList.toggle('selected', i === itemIdx));
+}
+
+function applyAC(e, idx) {
+  e.preventDefault();
+  const varName = e.currentTarget.dataset.var;
+  const ta = document.getElementById('set-' + idx);
+  const pos = ta.selectionStart;
+  const before = ta.value.slice(0, pos);
+  const word = before.match(/[A-Za-z_]\w*$/) ? before.match(/[A-Za-z_]\w*$/)[0] : '';
+  const start = pos - word.length;
+  ta.value = ta.value.slice(0, start) + varName + ta.value.slice(pos);
+  ta.selectionStart = ta.selectionEnd = start + varName.length;
+  equations[idx].formula = ta.value;
+  const hl = document.getElementById('seh-' + idx);
+  if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
+  document.getElementById('ac-' + idx).classList.remove('show');
+  ta.focus();
+}
+
+function hideAC(idx) {
+  setTimeout(() => { document.getElementById('ac-' + idx)?.classList.remove('show'); }, 200);
+}
+
+function onScriptKeydown(e, idx) {
+  const dd = document.getElementById('ac-' + idx);
+  const items = dd?.querySelectorAll('.ac-item') || [];
+  const showing = dd?.classList.contains('show');
+
+  // Auto-close parens/braces
+  const ta = document.getElementById('set-' + idx);
+  if (e.key === '(') {
+    e.preventDefault();
+    const pos = ta.selectionStart;
+    ta.value = ta.value.slice(0, pos) + '()' + ta.value.slice(pos);
+    ta.selectionStart = ta.selectionEnd = pos + 1;
+    equations[idx].formula = ta.value;
+    const hl = document.getElementById('seh-' + idx);
+    if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
+    return;
+  }
+  if (e.key === '{') {
+    e.preventDefault();
+    const pos = ta.selectionStart;
+    ta.value = ta.value.slice(0, pos) + '{}' + ta.value.slice(pos);
+    ta.selectionStart = ta.selectionEnd = pos + 1;
+    equations[idx].formula = ta.value;
+    return;
+  }
+
+  if (!showing || !items.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); acSelectedIdx[idx] = Math.min((acSelectedIdx[idx]||0)+1, items.length-1); items.forEach((el,i) => el.classList.toggle('selected', i === acSelectedIdx[idx])); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); acSelectedIdx[idx] = Math.max((acSelectedIdx[idx]||0)-1, 0); items.forEach((el,i) => el.classList.toggle('selected', i === acSelectedIdx[idx])); }
+  else if (e.key === 'Tab' || e.key === 'Enter') {
+    const sel = acSelectedIdx[idx] >= 0 ? items[acSelectedIdx[idx]] : null;
+    if (sel) { e.preventDefault(); applyAC({ preventDefault: () => {}, currentTarget: sel }, idx); }
+  }
+  else if (e.key === 'Escape') { dd.classList.remove('show'); }
+}
+
+function addEquation() {
+  equations.push({ id: 'eq' + Date.now(), varName: 'new_metric', label: 'New Metric', formula: 'return 0;' });
+  renderEqModal();
+  // Scroll to bottom
+  setTimeout(() => {
+    const body = document.getElementById('eq-modal-body');
+    if (body) body.scrollTop = body.scrollHeight;
+  }, 50);
+}
+
+async function saveEquations() {
+  const result = await API.putEquations(equations);
+  if (result?.ok) {
+    closeEqModal();
+    // Refresh picklist and chart widgets since equations changed
+    Object.entries(widgets).forEach(([id, w]) => {
+      if (['eq-builder','team-chart','matches-logged','teams-scouted'].includes(w.type)) refreshWidget(id);
+    });
+    await refreshPicklist();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// WIDGET SYSTEM
+// ═══════════════════════════════════════════════════════════
+function makeWidget(type, x, y, w, h) {
+  const def = CATALOG.find(c => c.id === type);
+  if (!def) return;
+  const uid = type + '_' + Date.now().toString(36);
+  const el = document.createElement('div');
+  el.className = 'widget'; el.id = uid;
+  el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${++zCount}`;
+  el.innerHTML = `
+    <div class="widget-handle" data-drag="${uid}">
+      <div class="widget-title"><span class="widget-icon">${def.icon}</span>${def.name}</div>
+      <div class="widget-controls"><div class="wc-btn close" onclick="removeWidget('${uid}')">✕</div></div>
+    </div>
+    <div class="widget-body${['live-chat','scouter-status','data-flags'].includes(type) ? ' scroll' : ''}" id="wb-${uid}">${buildBody(type, uid)}</div>
+    <svg class="resize-corner" width="12" height="12" viewBox="0 0 12 12" data-resize="${uid}">
+      <path d="M2 12 L12 2 M7 12 L12 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+    </svg>`;
+  document.getElementById('canvas').appendChild(el);
+  widgets[uid] = { type, x, y, w, h, el };
+  bindWidget(uid);
+  if (type === 'live-chat') {
+    const inp = document.getElementById('cin-' + uid);
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
+  }
+  updateCatalog();
+  saveLayout();
+  return uid;
+}
+
+function refreshWidget(uid) {
+  if (!uid || !widgets[uid]) return;
+  const body = document.getElementById('wb-' + uid);
+  if (!body) return;
+  body.innerHTML = buildBody(widgets[uid].type, uid);
+  if (widgets[uid].type === 'live-chat') {
+    const inp = document.getElementById('cin-' + uid);
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
+    const cm = document.getElementById('cm-' + uid);
+    if (cm) cm.scrollTop = cm.scrollHeight;
+  }
+}
+
+function removeWidget(uid) {
+  widgets[uid]?.el?.remove();
+  delete widgets[uid];
+  updateCatalog();
+  saveLayout();
+}
+
+let drag = null;
+function bindWidget(uid) {
+  const el = document.getElementById(uid);
+  el.querySelector('[data-drag]')?.addEventListener('mousedown', e => {
+    if (e.target.closest('.wc-btn,.chart-select,.eq-open-btn,.eq-add-btn,.flag-btn,.chat-in,.chat-send,.chat-type')) return;
+    e.preventDefault();
+    el.style.zIndex = ++zCount;
+    el.classList.add('dragging');
+    const w = widgets[uid];
+    drag = { uid, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y };
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('mouseup', endDrag);
+  });
+  el.querySelector('[data-resize]')?.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation();
+    const w = widgets[uid];
+    drag = { uid, resize: true, sx: e.clientX, sy: e.clientY, ow: w.w, oh: w.h };
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('mouseup', endDrag);
+  });
+}
+function onDrag(e) {
+  if (!drag) return;
+  const w = widgets[drag.uid];
+  if (drag.resize) {
+    w.w = Math.max(160, snap(drag.ow + (e.clientX - drag.sx)));
+    w.h = Math.max(90, snap(drag.oh + (e.clientY - drag.sy)));
+    w.el.style.width = w.w + 'px'; w.el.style.height = w.h + 'px';
+  } else {
+    const canvas = document.getElementById('canvas');
+    w.x = Math.max(0, Math.min(snap(drag.ox + (e.clientX - drag.sx)), canvas.offsetWidth - w.w));
+    w.y = Math.max(0, snap(drag.oy + (e.clientY - drag.sy)));
+    w.el.style.left = w.x + 'px'; w.el.style.top = w.y + 'px';
+  }
+}
+function endDrag() {
+  if (drag) { document.getElementById(drag.uid)?.classList.remove('dragging'); drag = null; saveLayout(); }
+  window.removeEventListener('mousemove', onDrag);
+  window.removeEventListener('mouseup', endDrag);
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  const btn = document.getElementById('edit-toggle');
+  btn.classList.toggle('on', editMode);
+  btn.textContent = editMode ? '✓ Done' : '✦ Edit layout';
+  document.getElementById('canvas').classList.toggle('edit-mode', editMode);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DRAWER + CATALOG
+// ═══════════════════════════════════════════════════════════
+function renderCatalog(filter = '') {
+  const active = new Set(Object.values(widgets).map(w => w.type));
+  document.getElementById('widget-catalog').innerHTML = CATALOG.filter(c =>
+    !filter || c.name.toLowerCase().includes(filter) || c.desc.toLowerCase().includes(filter)
+  ).map(c => `
+    <div class="catalog-item${active.has(c.id) ? ' added' : ''}"
+      onmousedown="${active.has(c.id) ? '' : "spawnWidget('" + c.id + "')"}">
+      <div class="ci-icon">${c.icon}</div>
+      <div class="ci-name">${c.name}</div>
+      <div class="ci-desc">${active.has(c.id) ? 'Already on dashboard' : c.desc}</div>
+    </div>`).join('');
+}
+function updateCatalog() { renderCatalog(document.getElementById('drawer-search')?.value || ''); }
+function filterCatalog(v) { renderCatalog(v.toLowerCase()); }
+
+function spawnWidget(type) {
+  const def = CATALOG.find(c => c.id === type);
+  if (!def) return;
+  const ids = Object.keys(widgets);
+  const offset = ids.length * 28 % 140;
+  makeWidget(type, 14 + offset, 14 + offset, def.w, def.h);
+  closeDrawer();
+}
+
+function openDrawer() { updateCatalog(); document.getElementById('widget-drawer').classList.add('open'); document.getElementById('drawer-overlay').style.display = 'block'; }
+function closeDrawer() { document.getElementById('widget-drawer').classList.remove('open'); document.getElementById('drawer-overlay').style.display = 'none'; }
+
+// ═══════════════════════════════════════════════════════════
+// LAYOUT SAVE / RESTORE
+// ═══════════════════════════════════════════════════════════
+function saveLayout() {
+  try { localStorage.setItem('usc-v5-layout', JSON.stringify(Object.entries(widgets).map(([uid, w]) => ({ uid, type: w.type, x: w.x, y: w.y, ww: w.w, h: w.h })))); } catch (e) {}
+}
+function loadLayout() {
+  try {
+    const s = localStorage.getItem('usc-v5-layout');
+    if (!s) return false;
+    JSON.parse(s).forEach(item => {
+      if (!CATALOG.find(c => c.id === item.type)) return;
+      makeWidget(item.type, item.x, item.y, item.ww, item.h);
+    });
+    return true;
+  } catch (e) { return false; }
+}
+function loadDefaults() {
+  makeWidget('match-progress',  14,  14, 320, 220);
+  makeWidget('battery-monitor', 350, 14, 290, 230);
+  makeWidget('scouter-status',  14, 250, 290, 380);
+  makeWidget('live-chat',       320, 250, 310, 380);
+  makeWidget('eq-builder',      650, 14,  340, 220);
+  makeWidget('team-chart',      650, 248, 380, 280);
+}
+if (!loadLayout()) loadDefaults();
+
+// ═══════════════════════════════════════════════════════════
+// PICKLIST (server-driven)
+// ═══════════════════════════════════════════════════════════
+let plSort = 'total_score', plFilter = '';
+let plData = [];
+
+async function refreshPicklist() {
+  const data = await API.getPicklist();
+  if (data) serverPicklist = data;
+  if (document.getElementById('picklist-page').classList.contains('active')) renderPicklist();
+}
+
+function renderPicklist() {
+  let data = serverPicklist.length ? [...serverPicklist] : [];
+
+  // Build dynamic columns from equations + schema numeric fields
+  const numericEqCols = equations.filter(eq => {
+    if (!data.length) return false;
+    return typeof data[0][eq.varName] === 'number';
+  });
+  const allCols = [
+    { key: 'team', label: 'Team' },
+    { key: 'matches', label: 'Matches' },
+    ...equations.filter(eq => data.length && typeof data[0][eq.varName] === 'number').map(eq => ({ key: eq.varName, label: eq.label || eq.varName })),
+  ];
+
+  // Sort
+  if (plFilter) data = data.filter(t => String(t.team).includes(plFilter));
+  data.sort((a, b) => (b[plSort] || 0) - (a[plSort] || 0));
+
+  // Render header
+  const rb = i => { const c = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn'; return `<span class="rank-badge ${c}">${i + 1}</span>`; };
+  document.getElementById('pl-thead').innerHTML = `<th style="width:32px"></th><th>#</th>` +
+    allCols.map(c => `<th onclick="sortPL('${c.key}',this)">${c.label}</th>`).join('') +
+    `<th>Matches</th>`;
+
+  document.getElementById('pl-body').innerHTML = data.map((t, i) => {
+    const eqCells = equations.filter(eq => data.length && typeof data[0]?.[eq.varName] === 'number').map(eq =>
+      `<td><span class="pl-score">${t[eq.varName] !== undefined ? t[eq.varName].toFixed?.(1) ?? t[eq.varName] : '—'}</span></td>`
+    ).join('');
+    return `<tr>
+      <td>${rb(i)}</td>
+      <td>${i + 1}</td>
+      <td><div style="font-weight:700">${t.team}</div></td>
+      ${eqCells}
+      <td class="pl-num">${t.matches}</td>
+    </tr>`;
+  }).join('');
+
+  if (!data.length) {
+    document.getElementById('pl-body').innerHTML = `<tr><td colspan="20" style="text-align:center;padding:30px;color:var(--text-3)">No data — sync scouting tablets to Pi</td></tr>`;
+  }
+}
+
+function sortPL(by, btn) {
+  plSort = by;
+  document.querySelectorAll('.pl-sort-btn').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  renderPicklist();
+}
+function filterPL(v) { plFilter = v; renderPicklist(); }
+
+function exportPL() {
+  if (!serverPicklist.length) return;
+  const keys = Object.keys(serverPicklist[0]);
+  const rows = [keys, ...serverPicklist.map(t => keys.map(k => t[k]))];
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(rows.map(r => r.join(',')).join('\n'));
+  a.download = 'picklist.csv'; a.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FORM BUILDER (syncs to server)
+// ═══════════════════════════════════════════════════════════
+let formFields = [];
+let originalSchemaFields = [];
+
+function initFormFields() {
+  formFields = schemaFields.map(f => ({ ...f, id: f.varName }));
+  originalSchemaFields = schemaFields.map(f => ({ ...f }));
+}
+
+function renderFormBuilder() {
+  if (!formFields.length) initFormFields();
+  const diff = computeSchemaDiff();
+  const diffEl = document.getElementById('schema-diff');
+  if (diff.added.length || diff.removed.length) {
+    diffEl.classList.remove('hidden');
+    diffEl.innerHTML = `<div style="font-weight:600;margin-bottom:4px">⚠ Unsaved changes — will migrate existing data</div>` +
+      diff.added.map(v => `<div class="diff-row"><span class="diff-add">+ Added: ${v}</span></div>`).join('') +
+      diff.removed.map(v => `<div class="diff-row"><span class="diff-rem">− Removed: ${v}</span></div>`).join('');
+  } else {
+    diffEl.classList.add('hidden');
+  }
+
+  document.getElementById('fb-fields').innerHTML = formFields.map((f, i) => `
+    <div class="field-card">
+      <div class="field-card-top">
+        <span class="field-type-badge ft-${f.type}">${f.type}</span>
+        <button class="field-del" onclick="delField(${i})">✕</button>
+      </div>
+      <div class="field-inputs">
+        <div class="fi-group">
+          <label class="fi-lbl">Display Label</label>
+          <input class="fi-input" value="${f.label || ''}" onchange="formFields[${i}].label=this.value;renderJSONPreview()">
+        </div>
+        <div class="fi-group">
+          <label class="fi-lbl">Variable Name</label>
+          <input class="fi-input" value="${f.varName}" onchange="formFields[${i}].varName=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'');renderFormBuilder()" style="font-family:'SF Mono',monospace;color:var(--green)">
+        </div>
+        <div class="fi-group">
+          <label class="fi-lbl">Section</label>
+          <input class="fi-input" value="${f.group || ''}" onchange="formFields[${i}].group=this.value;renderJSONPreview()">
+        </div>
+        <div class="fi-group">
+          <label class="fi-lbl">Type</label>
+          <select class="fi-select" onchange="formFields[${i}].type=this.value;renderFormBuilder()">
+            ${['counter','slider','toggle','text','dropdown'].map(t => `<option value="${t}"${f.type===t?' selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        ${(f.type==='counter'||f.type==='slider') ? `
+        <div class="fi-group"><label class="fi-lbl">Min</label>
+          <input class="fi-input" type="number" value="${f.min||0}" onchange="formFields[${i}].min=+this.value;renderJSONPreview()"></div>
+        <div class="fi-group"><label class="fi-lbl">Max</label>
+          <input class="fi-input" type="number" value="${f.max||10}" onchange="formFields[${i}].max=+this.value;renderJSONPreview()"></div>
+        ` : f.type==='dropdown' ? `
+        <div class="fi-group fi-full"><label class="fi-lbl">Options (comma-separated)</label>
+          <input class="fi-input" value="${f.options||''}" onchange="formFields[${i}].options=this.value;renderJSONPreview()"></div>
+        ` : ''}
+      </div>
+    </div>`).join('');
+  renderJSONPreview();
+}
+
+function computeSchemaDiff() {
+  const origVars = new Set(originalSchemaFields.map(f => f.varName));
+  const newVars = new Set(formFields.map(f => f.varName));
+  return {
+    added: [...newVars].filter(v => !origVars.has(v)),
+    removed: [...origVars].filter(v => !newVars.has(v)),
+  };
+}
+
+function addField() {
+  const type = document.getElementById('af-type').value;
+  formFields.push({ id: Date.now().toString(), label: 'New Field', varName: 'new_field', type, group: 'Teleop', min: 0, max: 10, step: 1, options: '' });
+  renderFormBuilder();
+}
+function delField(i) { formFields.splice(i, 1); renderFormBuilder(); }
+
+async function saveSchemaToServer() {
+  const schema = {
+    version: (parseInt(document.getElementById('sv').textContent) || 1),
+    fields: formFields,
+  };
+  const result = await API.putSchema(schema);
+  if (result?.ok) {
+    document.getElementById('sv').textContent = result.version;
+    schemaFields = [...formFields];
+    originalSchemaFields = [...formFields];
+    // Reload data since migration happened
+    const [data, picklist] = await Promise.all([API.getData(), API.getPicklist()]);
+    if (data) { serverData = data; matchesLogged = data.length; teamsScouted = new Set(data.map(d => d.team)).size; }
+    if (picklist) serverPicklist = picklist;
+    renderFormBuilder();
+    // Refresh widgets that depend on schema
+    Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
+  }
+}
+
+function renderJSONPreview() {
+  const groups = {};
+  formFields.forEach(f => { if (!groups[f.group]) groups[f.group] = []; groups[f.group].push(f); });
+  const schema = { schema_version: parseInt(document.getElementById('sv').textContent) || 1, groups: {} };
+  Object.entries(groups).forEach(([g, fields]) => {
+    schema.groups[g] = fields.map(f => {
+      const fd = { id: f.varName, label: f.label, type: f.type };
+      if (f.type === 'counter' || f.type === 'slider') { fd.min = f.min || 0; fd.max = f.max || 10; }
+      if (f.type === 'dropdown') fd.options = (f.options || '').split(',').map(s => s.trim()).filter(Boolean);
+      return fd;
+    });
+  });
+  const sample = {};
+  formFields.forEach(f => { sample[f.varName] = f.type === 'toggle' ? false : f.type === 'text' ? '' : f.type === 'dropdown' ? '' : 0; });
+  const out = { schema, sample_submission: { scouter_id: 'scouter_1', match: 14, team: 935, data: sample } };
+  document.getElementById('json-preview').innerHTML = syntaxHL(JSON.stringify(out, null, 2));
+}
+
+function syntaxHL(json) {
+  return json.replace(/("[\w]+")\s*:/g, '<span class="json-key">$1</span>:')
+    .replace(/:\s*(".*?")/g, ': <span class="json-str">$1</span>')
+    .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-num">$1</span>')
+    .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
+    .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+}
+function copyJSON() {
+  const el = document.getElementById('json-preview');
+  navigator.clipboard?.writeText(el.innerText);
+}
+
+// ═══════════════════════════════════════════════════════════
+// LIVE SIMULATION (scouters only — data comes from server)
+// ═══════════════════════════════════════════════════════════
+setInterval(() => {
+  SCOUTERS.forEach(s => {
+    if (s.status !== 'offline' && s.battery > 2) s.battery = Math.max(2, s.battery - (Math.random() < .2 ? 1 : 0));
+    if (s.status === 'active' && s.formPct < 100) s.formPct = Math.min(100, s.formPct + (Math.random() < .3 ? Math.floor(Math.random() * 8 + 1) : 0));
+    const sections = ['Pre-match','Auto','Teleop','Endgame','Done'];
+    if (s.status === 'active') s.formSection = sections[Math.min(4, Math.floor(s.formPct / 25))];
+  });
+  Object.entries(widgets).forEach(([id, w]) => {
+    if (['battery-monitor','scouter-status','match-progress','active-scouters'].includes(w.type)) refreshWidget(id);
+  });
+}, 9000);
+
+const inMsgs = ['Team 4451 looks different today','971 climbed — level 3?','Log defense separately?','Team 118 auto failed again','M15 red looks strong'];
+setInterval(() => {
+  const s = SCOUTERS[Math.floor(Math.random() * 5)];
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  chatMessages.push({ role: 'scouter', from: `S${s.id} · ${s.name}`, text: inMsgs[Math.floor(Math.random() * inMsgs.length)], time: now });
+  if (chatMessages.length > 60) chatMessages.shift();
+  Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
+}, 22000);
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+// Try to fetch from server; fall back gracefully if not running
+initFromServer().catch(() => setSyncStatus('error'));
+</script>
+</body>
+</html>

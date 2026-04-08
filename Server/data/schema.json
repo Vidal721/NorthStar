@@ -1,0 +1,59 @@
+{
+  "version": 5,
+  "fields": [
+    {
+      "varName": "auto_score",
+      "label": "Auto Score",
+      "type": "counter",
+      "min": 0,
+      "max": 6,
+      "group": "Autonomous",
+      "id": "auto_high"
+    },
+    {
+      "varName": "auto_low",
+      "label": "Auto Low Goals",
+      "type": "counter",
+      "min": 0,
+      "max": 6,
+      "group": "Autonomous",
+      "id": "auto_low"
+    },
+    {
+      "varName": "tele_cubes",
+      "label": "Teleop Cubes",
+      "type": "counter",
+      "min": 0,
+      "max": 20,
+      "group": "Teleop",
+      "id": "tele_cubes"
+    },
+    {
+      "varName": "tele_cones",
+      "label": "Teleop Cones",
+      "type": "counter",
+      "min": 0,
+      "max": 20,
+      "group": "Teleop",
+      "id": "tele_cones"
+    },
+    {
+      "varName": "climb_level",
+      "label": "Climb Level (0–3)",
+      "type": "counter",
+      "min": 0,
+      "max": 3,
+      "group": "Endgame",
+      "id": "climb_level"
+    },
+    {
+      "varName": "defense_rating",
+      "label": "Defense Rating",
+      "type": "slider",
+      "min": 0,
+      "max": 5,
+      "group": "Teleop",
+      "id": "defense_rating"
+    }
+  ]
+}
