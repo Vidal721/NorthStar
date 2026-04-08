@@ -2374,26 +2374,25 @@
   <div class="blob b2"></div>
   <div class="blob b3"></div>
 
-  <div id="shell">
-
-
     <!-- STICKY NAV WRAPPER -->
     <div class="nav-sticky-wrapper">
       <div class="wrap" style="padding-bottom:0">
         <nav class="nav">
           <div class="logo">
-            <div class="logo-badge">935</div>
             <div>
               <div class="doto">NorthStar</div>
               <div class="logo-sub">Powered By: Team 935</div>
             </div>
           </div>
           <div>
+
             <div>
-              <button class="nav-link active" onclick="switchTab('dashboard',this)">Dashboard</button>
-              <button class="nav-link" onclick="switchTab('picklist',this)">Picklist</button>
-              <button class="nav-link" onclick="switchTab('formbuilder',this)">Form Builder</button>
-              <button class="nav-link" onclick="switchTab('settings',this)">Settings</button>
+              <div class="btn-group-wrap">
+              <button class="btn-seg active" onclick="switchTab('dashboard',this)">Dashboard</button>
+              <button class="btn-seg" onclick="switchTab('picklist',this)">Picklist</button>
+              <button class="btn-seg" onclick="switchTab('formbuilder',this)">Form Builder</button>
+              <button class="btn-seg" onclick="switchTab('settings',this)">Settings</button>
+              </div>
             </div>
           </div>
           <div class="tb-right">
@@ -2540,7 +2539,7 @@
         };
       })();
 
-      const links = document.querySelectorAll('.nav-link');
+      const links = document.querySelectorAll('.btn-seg');
 
       links.forEach(link => {
         link.addEventListener('click', function () {
