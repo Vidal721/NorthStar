@@ -50,28 +50,50 @@
     </div>
 
     <div id="teamconfig-screen" class="page hidden" style="text-align: center;">
-        <div class="field">
-            <label>Dropdown Select</label>
-            <div class="select-wrap">
-                <select class="select">
-                    <option>Background1</option>
-                    <option>Background2</option>
-                    <option>Background3</option>
-                </select>
-            </div>
-      </div><br>
-                <div class="field">
-            <label>Team Name</label>
-            <input class="input" placeholder="The RoboRaptors...">
-        </div><br>
-        <div style="max-width:400px;" class="">
-        <div class="slider-wrap">
-            <div class="slider-label-row">
-                <label class="field" style="flex-direction:row;gap:0"><label style="font-size:12px;font-weight:500;color:var(--t2)">Years In First</label></label>
-                <span class="slider-val" id="slider-out">5</span>
-            </div>
-            <input type="range" class="range-input" min="0" max="60" value="5" oninput="document.getElementById('slider-out').textContent=this.value">
-        </div>
+  <div id="tab-background" class="tab-panel">
+    <div class="section-label">Page Background CSS — click a swatch to copy</div>
+    <div class="bg-copy-strip">
+
+      <div class="bg-swatch copy-target" data-id="bg-default" data-css="background:#060a18" style="background:#060a18;border-color:rgba(255,255,255,0.15)">
+        <div class="swatch-label">Default</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-blob-blue-purple" data-css="background:radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18"
+        style="background:radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18">
+        <div class="swatch-label">Blue / Purple</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-green-teal" data-css="background:radial-gradient(ellipse 70% 70% at 15% 85%,rgba(48,209,88,0.18),transparent),radial-gradient(ellipse 50% 50% at 85% 15%,rgba(90,200,250,0.18),transparent),#050e10"
+        style="background:radial-gradient(ellipse 70% 70% at 15% 85%,rgba(48,209,88,0.18),transparent),radial-gradient(ellipse 50% 50% at 85% 15%,rgba(90,200,250,0.18),transparent),#050e10">
+        <div class="swatch-label">Green / Teal</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-pink-orange" data-css="background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(255,55,95,0.18),transparent),radial-gradient(ellipse 60% 80% at 70% 80%,rgba(255,159,10,0.18),transparent),#12060a"
+        style="background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(255,55,95,0.18),transparent),radial-gradient(ellipse 60% 80% at 70% 80%,rgba(255,159,10,0.18),transparent),#12060a">
+        <div class="swatch-label">Pink / Orange</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-midnight" data-css="background:linear-gradient(135deg,#050816 0%,#0a0f26 100%)"
+        style="background:linear-gradient(135deg,#050816 0%,#0a0f26 100%)">
+        <div class="swatch-label">Midnight</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-aurora" data-css="background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(191,90,242,0.22),transparent 60%),radial-gradient(ellipse 80% 80% at 10% 100%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 80% 80% at 90% 100%,rgba(48,209,88,0.15),transparent),#060a18"
+        style="background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(191,90,242,0.22),transparent 60%),radial-gradient(ellipse 80% 80% at 10% 100%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 80% 80% at 90% 100%,rgba(48,209,88,0.15),transparent),#060a18">
+        <div class="swatch-label">Aurora</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-cosmos" data-css="background:radial-gradient(ellipse 50% 50% at 20% 30%,rgba(90,200,250,0.12),transparent),radial-gradient(ellipse 60% 60% at 80% 70%,rgba(255,55,95,0.14),transparent),radial-gradient(ellipse 40% 40% at 60% 20%,rgba(191,90,242,0.12),transparent),#04050f"
+        style="background:radial-gradient(ellipse 50% 50% at 20% 30%,rgba(90,200,250,0.12),transparent),radial-gradient(ellipse 60% 60% at 80% 70%,rgba(255,55,95,0.14),transparent),radial-gradient(ellipse 40% 40% at 60% 20%,rgba(191,90,242,0.12),transparent),#04050f">
+        <div class="swatch-label">Cosmos</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-ocean" data-css="background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(10,132,255,0.25),transparent),radial-gradient(ellipse 60% 40% at 50% 0%,rgba(90,200,250,0.12),transparent),#030810"
+        style="background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(10,132,255,0.25),transparent),radial-gradient(ellipse 60% 40% at 50% 0%,rgba(90,200,250,0.12),transparent),#030810">
+        <div class="swatch-label">Ocean</div>
+      </div>
+
+    </div>
         
       </div><br>
       <button id="start-btn" class="btn btn-primary btn-lg" onclick="navigateTo('confirmation-screen')">Next 🡒</button>
