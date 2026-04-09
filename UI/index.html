@@ -1,196 +1,789 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NorthStar — Style Guide</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="all.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NorthStar — Style Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Vidal721/Scouting-App@main/UI/all.css">
 
-  <style>
-    /* UI Guide styles */
-    .copy-target {
-      cursor: copy !important;
-      position: relative;
-      transition: transform 0.1s ease;
-    }
-    .copy-target:active {
-      transform: scale(0.96);
-    }
-    .copy-target::after {
-      content: 'Click to Copy HTML';
-      position: absolute;
-      bottom: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      background: #007aff;
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s;
-      white-space: nowrap;
-      z-index: 100;
-    }
-    .copy-target:hover::after {
-      opacity: 1;
-    }
+<style>
+/* ── Mobile-only responsive additions ── */
+@media (max-width: 768px) {
 
-    /* Success Toast */
-    #copy-toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #30D158;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      transform: translateY(100px);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 1000;
-    }
-    #copy-toast.show {
-      transform: translateY(0);
-    }
-  </style>
+  /* Wrap & spacing */
+  .wrap {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Nav */
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Hero */
+  .display {
+    font-size: clamp(28px, 8vw, 52px) !important;
+  }
+  .subtext {
+    font-size: 14px !important;
+  }
+
+  /* Tabs — scrollable row */
+  .tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Button rows — wrap */
+  .btn-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Form grid — single column */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Cards grid — single column */
+  .cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stat cards — stack */
+  div[style*="grid-template-columns:repeat(3,1fr)"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Pricing grid — single column, scrollable */
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Avatar group wrapping */
+  div[style*="display:flex;gap:16px;align-items:center"] {
+    flex-wrap: wrap;
+  }
+
+  /* Badge row wrapping */
+  .badge-row {
+    flex-wrap: wrap;
+  }
+
+  /* Steps — scale down */
+  .steps {
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .step-label {
+    font-size: 10px !important;
+  }
+
+  /* Progress bars full width */
+  div[style*="max-width:400px"] {
+    max-width: 100% !important;
+  }
+  div[style*="max-width:420px"] {
+    max-width: 100% !important;
+  }
+  div[style*="max-width:360px"] {
+    max-width: 100% !important;
+  }
+
+  /* Toasts full width */
+  .toast {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Background swatches — 2-column grid */
+  .bg-copy-strip {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .bg-swatch {
+    width: auto !important;
+    height: 90px !important;
+  }
+
+  /* Glass tokens — single column */
+  div[style*="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Code blocks horizontal scroll */
+  .code-block {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px !important;
+  }
+
+  /* Color palette wrapping */
+  div[style*="display:flex;flex-wrap:wrap;gap:10px"] {
+    gap: 8px !important;
+  }
+
+  /* Menu — full width */
+  .menu {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  /* Tooltip — stack */
+  .tooltip-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Keyboard shortcuts wrapping */
+  div[data-id="kbd"] {
+    flex-wrap: wrap;
+  }
+
+  /* Pricing card price font size */
+  .plan-price {
+    font-size: clamp(28px, 8vw, 48px) !important;
+  }
+
+  /* Copy toast — wider on mobile */
+  #copy-toast {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) translateY(20px) !important;
+    bottom: 24px !important;
+    white-space: nowrap;
+  }
+  #copy-toast.show {
+    transform: translateX(-50%) translateY(0) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .display {
+    font-size: clamp(24px, 7vw, 40px) !important;
+  }
+  .bg-copy-strip {
+    grid-template-columns: 1fr !important;
+  }
+  .bg-swatch {
+    height: 80px !important;
+  }
+}
+</style>
+
 </head>
-
 <body>
 
-  <div class="bg">
-    <div class="blob b1"></div>
-    <div class="blob b2"></div>
-    <div class="blob b3"></div>
+<div class="bg">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+
+<!-- NAV — copy target -->
+<div class="nav-sticky-wrapper copy-target" data-copy-type="element" data-id="nav-sticky-wrapper">
+  <div class="wrap" style="padding-bottom:0">
+    <nav class="nav">
+      <span class="doto">NorthStar</span>
+      <div class="nav-links">
+        <a class="nav-link active">Home</a>
+        <a class="nav-link">Features</a>
+        <a class="nav-link">Pricing</a>
+        <a class="nav-link">About</a>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero-text" id="home">
+    <div class="display">Style Guide</div>
+    <div class="subtext">Click any element to copy its HTML. <strong style="color:var(--t1)">⌃ Control+Click</strong> copies just the class name.</div>
   </div>
 
-  <div class="nav-sticky-wrapper copy-target" data-copy-type="nav">
-    <div class="wrap" style="padding-bottom:0">
-      <nav class="nav">
-        <span class="doto">NorthStar</span>
-        <div class="nav-links">
-          <a class="nav-link active">Home</a>
-          <a class="nav-link">Features</a>
-          <a class="nav-link">Pricing</a>
-          <a class="nav-link">About</a>
-        </div>
-      </nav>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'buttons')">Buttons</div>
+    <div class="tab" onclick="switchTab(this,'inputs')">Inputs</div>
+    <div class="tab" onclick="switchTab(this,'cards')">Cards</div>
+    <div class="tab" onclick="switchTab(this,'misc')">Misc</div>
+    <div class="tab" onclick="switchTab(this,'typography')">Type</div>
+    <div class="tab" onclick="switchTab(this,'background')">Background</div>
+  </div>
+
+  <!-- BUTTONS TAB -->
+  <div id="tab-buttons" class="tab-panel">
+    <div class="section-label">Basic Buttons</div>
+    <div class="btn-row">
+      <button class="btn btn-glass copy-target" data-id="btn-glass">Glass Default</button>
+      <button class="btn btn-primary copy-target" data-id="btn-primary">Primary</button>
+      <button class="btn btn-ghost copy-target" data-id="btn-ghost">Ghost</button>
+      <button class="btn btn-destructive copy-target" data-id="btn-destructive">Destructive</button>
+      <button class="btn btn-success copy-target" data-id="btn-success">Success</button>
+    </div>
+
+    <div class="section-label">Tinted Variants</div>
+    <div class="btn-row">
+      <button class="btn btn-tinted-blue copy-target" data-id="btn-tinted-blue">Blue</button>
+      <button class="btn btn-tinted-green copy-target" data-id="btn-tinted-green">Green</button>
+      <button class="btn btn-tinted-purple copy-target" data-id="btn-tinted-purple">Purple</button>
+      <button class="btn btn-tinted-pink copy-target" data-id="btn-tinted-pink">Pink</button>
+    </div>
+
+    <div class="section-label">Sizes</div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-sm copy-target" data-id="btn-sm">Small</button>
+      <button class="btn btn-primary copy-target" data-id="btn-primary">Default</button>
+      <button class="btn btn-primary btn-lg copy-target" data-id="btn-lg">Large</button>
+      <button class="btn btn-glass btn-icon-only copy-target" data-id="btn-icon-only">✦</button>
+    </div>
+
+    <div class="section-label">States</div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-loading copy-target" data-id="btn-loading" style="min-width:110px">Loading</button>
+      <button class="btn btn-glass copy-target" data-id="btn-disabled" disabled style="opacity:0.38;cursor:not-allowed">Disabled</button>
+    </div>
+
+    <div class="section-label">Segmented</div>
+    <div class="btn-row">
+      <div class="btn-group-wrap copy-target" data-id="btn-group-wrap">
+        <button class="btn-seg active">Daily</button>
+        <button class="btn-seg">Weekly</button>
+        <button class="btn-seg">Monthly</button>
+      </div>
     </div>
   </div>
 
-  <div class="wrap">
-    <div class="hero-text" id="home">
-      <div class="display">Style Guide</div>
-      <div class="subtext">Click any element to copy its HTML code.</div>
-    </div>
-
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab(this,'buttons')">Buttons</div>
-      <div class="tab" onclick="switchTab(this,'inputs')">Inputs</div>
-      <div class="tab" onclick="switchTab(this,'misc')">Misc</div>
-    </div>
-
-    <div id="tab-buttons" class="tab-panel">
-      <div class="section-label">Basic Buttons</div>
-      <div class="btn-row">
-        <button class="btn btn-glass copy-target">Glass Default</button>
-        <button class="btn btn-primary copy-target">Primary</button>
-        <button class="btn btn-ghost copy-target">Ghost</button>
+  <!-- INPUTS TAB -->
+  <div id="tab-inputs" class="tab-panel" style="display:none">
+    <div class="section-label">Text Fields</div>
+    <div class="form-grid">
+      <div class="field copy-target" data-id="field-standard">
+        <label>Standard Field</label>
+        <input class="input" placeholder="Placeholder...">
       </div>
-
-      <div class="section-label">Tinted Variants</div>
-      <div class="btn-row">
-        <button class="btn btn-tinted-blue copy-target">Blue</button>
-        <button class="btn btn-tinted-green copy-target">Green</button>
-        <button class="btn btn-tinted-purple copy-target">Purple</button>
-        <button class="btn btn-tinted-pink copy-target">Pink</button>
+      <div class="field copy-target" data-id="field-error">
+        <label>Error Field</label>
+        <input class="input" value="Error state" style="border-color:#FF453A;box-shadow:0 0 0 3px rgba(255,69,58,0.20)">
       </div>
-
-      <div class="section-label">Segmented</div>
-      <div class="btn-row">
-        <div class="btn-group-wrap copy-target">
-          <button class="btn-seg active">Daily</button>
-          <button class="btn-seg">Weekly</button>
-          <button class="btn-seg">Monthly</button>
+      <div class="field copy-target" data-id="field-success">
+        <label>Success Field</label>
+        <input class="input input-success" value="Looks great!">
+      </div>
+      <div class="field copy-target" data-id="field-icon">
+        <label>With Icon</label>
+        <div class="input-with-icon">
+          <span class="input-icon">🔍</span>
+          <input class="input" placeholder="Search...">
         </div>
       </div>
     </div>
 
-    <div id="tab-inputs" class="tab-panel" style="display:none">
-      <div class="section-label">Text Fields (Click Container)</div>
-      <div class="form-grid">
-        <div class="field copy-target">
-          <label>Standard Field</label>
-          <input class="input" placeholder="Placeholder...">
-        </div>
-        <div class="field copy-target">
-          <label>Error Field</label>
-          <input class="input" value="Error state" style="border-color:#FF453A;box-shadow:0 0 0 3px rgba(255,69,58,0.20)">
+    <div class="section-label" style="margin-top:24px">Textarea & Select</div>
+    <div class="form-grid">
+      <div class="field copy-target" data-id="field-textarea">
+        <label>Textarea</label>
+        <textarea class="textarea" placeholder="Write something..."></textarea>
+      </div>
+      <div class="field copy-target" data-id="field-select">
+        <label>Dropdown Select</label>
+        <div class="select-wrap">
+          <select class="select">
+            <option>Option One</option>
+            <option>Option Two</option>
+            <option>Option Three</option>
+          </select>
         </div>
       </div>
+    </div>
 
-      <div class="section-label">Toggles</div>
-      <div class="toggle-row copy-target">
-        <div class="toggle-track on"><div class="toggle-thumb"></div></div>
+    <div class="section-label" style="margin-top:24px">Range Slider</div>
+    <div style="max-width:400px;" class="copy-target" data-id="slider-wrap">
+      <div class="slider-wrap">
+        <div class="slider-label-row">
+          <label class="field" style="flex-direction:row;gap:0"><label style="font-size:12px;font-weight:500;color:var(--t2)">Intensity</label></label>
+          <span class="slider-val" id="slider-out">64</span>
+        </div>
+        <input type="range" class="range-input" min="0" max="100" value="64" oninput="document.getElementById('slider-out').textContent=this.value">
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:24px">Toggles</div>
+    <div class="copy-target" data-id="toggle-default">
+      <div class="toggle-row">
+        <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
         <span class="toggle-label">Active Toggle</span>
       </div>
     </div>
-
-    <div id="tab-misc" class="tab-panel" style="display:none">
-      <div class="section-label">Badges</div>
-      <div class="badge-row">
-        <span class="badge bdg-blue copy-target">New</span>
-        <span class="badge bdg-green copy-target">Active</span>
-        <span class="badge bdg-orange copy-target">Beta</span>
-        <span class="badge bdg-red copy-target">Error</span>
+    <div class="copy-target" data-id="toggle-blue">
+      <div class="toggle-row">
+        <div class="toggle-track blue on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label">Blue Toggle</span>
       </div>
-
-      <div class="section-label">Toasts</div>
-      <div class="toast success copy-target">
-        <span style="color:#30D158;font-size:16px">✓</span> Success Message
+    </div>
+    <div class="copy-target" data-id="toggle-purple">
+      <div class="toggle-row">
+        <div class="toggle-track purple" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label">Purple Toggle (off)</span>
       </div>
     </div>
 
+    <div class="section-label" style="margin-top:24px">Checkboxes & Radio</div>
+    <div class="copy-target" data-id="check-row">
+      <div class="check-row" onclick="this.querySelector('.check-box').classList.toggle('checked')">
+        <div class="check-box checked"></div>
+        <span class="check-label">Checked option</span>
+      </div>
+      <div class="check-row" onclick="this.querySelector('.check-box').classList.toggle('checked')">
+        <div class="check-box"></div>
+        <span class="check-label">Unchecked option</span>
+      </div>
+    </div>
+    <div style="margin-top:10px" class="copy-target" data-id="radio-row">
+      <div class="check-row">
+        <div class="radio-btn checked"></div>
+        <span class="check-label">Selected</span>
+      </div>
+      <div class="check-row">
+        <div class="radio-btn"></div>
+        <span class="check-label">Unselected</span>
+      </div>
+    </div>
   </div>
 
-  <div id="copy-toast">Copied HTML!</div>
+  <!-- CARDS TAB -->
+  <div id="tab-cards" class="tab-panel" style="display:none">
+    <div class="section-label">Feature Cards</div>
+    <div class="cards copy-target" data-id="cards-grid">
+      <div class="card card-liquid">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Real-time Sync</div>
+        <div class="card-body">Data updates across all devices the moment it changes.</div>
+      </div>
+      <div class="card card-liquid card-blue">
+        <div class="card-icon">🔐</div>
+        <div class="card-title">End-to-End</div>
+        <div class="card-body">Zero-knowledge encryption baked in at every layer.</div>
+      </div>
+      <div class="card card-liquid">
+        <div class="card-icon">🌊</div>
+        <div class="card-title">Liquid Glass</div>
+        <div class="card-body">Translucent surfaces that adapt to any background.</div>
+      </div>
+    </div>
 
-  <script>
-    // Copy Logic
-    document.addEventListener('click', (e) => {
-      const target = e.target.closest('.copy-target');
-      if (target) {
-        e.preventDefault();
-        e.stopPropagation();
+    <div class="section-label">Stat Cards</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px">
+      <div class="card-stat copy-target" data-id="card-stat-green">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-value" style="color:var(--green)">$48.2K</div>
+        <span class="stat-change stat-up">▲ 12.4%</span>
+      </div>
+      <div class="card-stat copy-target" data-id="card-stat-blue">
+        <div class="stat-label">Active Users</div>
+        <div class="stat-value" style="color:var(--blue)">3,841</div>
+        <span class="stat-change stat-up">▲ 6.1%</span>
+      </div>
+      <div class="card-stat copy-target" data-id="card-stat-red">
+        <div class="stat-label">Churn Rate</div>
+        <div class="stat-value" style="color:var(--red)">2.3%</div>
+        <span class="stat-change stat-down">▼ 0.4%</span>
+      </div>
+    </div>
 
-        // Get the HTML, remove the copy-target class for clean output
-        let cleanEl = target.cloneNode(true);
-        cleanEl.classList.remove('copy-target');
-        
-        // If it's the nav wrapper, we specifically want the inner wrap for usability
-        let htmlToCopy = cleanEl.outerHTML;
-        
-        navigator.clipboard.writeText(htmlToCopy).then(() => {
-          const toast = document.getElementById('copy-toast');
-          toast.classList.add('show');
-          setTimeout(() => toast.classList.remove('show'), 2000);
-        });
+    <div class="section-label">Pricing Cards</div>
+    <div class="pricing-grid copy-target" data-id="pricing-grid">
+      <div class="pricing-card" onclick="selectPlan(this)">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price"><sup>$</sup>0<span class="per">/mo</span></div>
+        <div class="plan-desc">Everything you need to get started for free.</div>
+        <div class="plan-divider"></div>
+        <ul class="checklist">
+          <li><span class="check">✓</span><span>5 projects</span></li>
+          <li><span class="check">✓</span><span>1GB storage</span></li>
+          <li><span class="check-x">✕</span><span style="color:var(--t3)">Priority support</span></li>
+        </ul>
+        <button class="buy-btn buy-btn-default">Get Started</button>
+      </div>
+      <div class="pricing-card selected" onclick="selectPlan(this)">
+        <div class="popular-badge">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>$</sup>29<span class="per">/mo</span></div>
+        <div class="plan-desc">For teams that need more power and flexibility.</div>
+        <div class="plan-divider"></div>
+        <ul class="checklist">
+          <li><span class="check">✓</span><span>Unlimited projects</span></li>
+          <li><span class="check">✓</span><span>50GB storage</span></li>
+          <li><span class="check">✓</span><span>Priority support</span></li>
+        </ul>
+        <button class="buy-btn buy-btn-primary">Subscribe</button>
+      </div>
+      <div class="pricing-card" onclick="selectPlan(this)">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price"><sup></sup>Custom</div>
+        <div class="plan-desc">Dedicated infrastructure and SLA guarantees.</div>
+        <div class="plan-divider"></div>
+        <ul class="checklist">
+          <li><span class="check">✓</span><span>Unlimited everything</span></li>
+          <li><span class="check">✓</span><span>SSO & audit logs</span></li>
+          <li><span class="check">✓</span><span>24/7 dedicated support</span></li>
+        </ul>
+        <button class="buy-btn buy-btn-default">Contact Sales</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISC TAB -->
+  <div id="tab-misc" class="tab-panel" style="display:none">
+
+    <div class="section-label">Badges</div>
+    <div class="badge-row">
+      <span class="badge bdg-blue copy-target" data-id="bdg-blue">New</span>
+      <span class="badge bdg-green copy-target" data-id="bdg-green">Active</span>
+      <span class="badge bdg-orange copy-target" data-id="bdg-orange">Beta</span>
+      <span class="badge bdg-red copy-target" data-id="bdg-red">Error</span>
+      <span class="badge bdg-purple copy-target" data-id="bdg-purple">Pro</span>
+      <span class="badge bdg-pink copy-target" data-id="bdg-pink">Live</span>
+    </div>
+
+    <div class="section-label">Status Pills</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px">
+      <div class="status-pill copy-target" data-id="status-pill-success"><span class="dot"></span>Online</div>
+      <div class="status-pill warning copy-target" data-id="status-pill-warning"><span class="dot"></span>Degraded</div>
+      <div class="status-pill error copy-target" data-id="status-pill-error"><span class="dot"></span>Offline</div>
+      <div class="status-pill info copy-target" data-id="status-pill-info"><span class="dot"></span>Syncing</div>
+    </div>
+
+    <div class="section-label">Avatars</div>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:32px">
+      <div class="avatar avatar-sm av-blue copy-target" data-id="avatar-sm">AB</div>
+      <div class="avatar avatar-md av-green copy-target" data-id="avatar-md">JD</div>
+      <div class="avatar avatar-lg av-purple copy-target" data-id="avatar-lg">MR</div>
+      <div class="avatar-group copy-target" data-id="avatar-group">
+        <div class="avatar avatar-md av-blue">A</div>
+        <div class="avatar avatar-md av-green">B</div>
+        <div class="avatar avatar-md av-pink">C</div>
+        <div class="avatar avatar-md av-orange" style="font-size:11px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.1)">+4</div>
+      </div>
+    </div>
+
+    <div class="section-label">Notifications</div>
+    <div style="max-width:420px;margin-bottom:32px">
+      <div class="notif-item unread copy-target" data-id="notif-unread">
+        <div class="notif-dot"></div>
+        <div class="notif-body">
+          <div class="notif-title">New comment on your post</div>
+          <div class="notif-desc">Alex left a reply: "This looks incredible, great work!"</div>
+          <div class="notif-time">2 min ago</div>
+        </div>
+      </div>
+      <div class="notif-item copy-target" data-id="notif-read">
+        <div style="width:8px;height:8px;flex-shrink:0;margin-top:4px"></div>
+        <div class="notif-body">
+          <div class="notif-title" style="color:var(--t2);font-weight:500">Deployment complete</div>
+          <div class="notif-desc">v2.4.1 shipped to production without errors.</div>
+          <div class="notif-time">1 hour ago</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Steps / Progress Indicator</div>
+    <div style="margin-bottom:32px" class="copy-target" data-id="steps">
+      <div class="steps">
+        <div class="step">
+          <div class="step-circle done">✓</div>
+          <span class="step-label done">Account</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+          <div class="step-circle active">2</div>
+          <span class="step-label active">Profile</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-circle pending">3</div>
+          <span class="step-label pending">Billing</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-circle pending">4</div>
+          <span class="step-label pending">Done</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Progress Bars</div>
+    <div style="max-width:400px;margin-bottom:32px" class="copy-target" data-id="progress-bars">
+      <div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;color:var(--t2)">Upload</span><span style="font-size:12px;color:var(--blue)">72%</span></div><div class="prog"><div class="prog-fill prog-blue" style="width:72%"></div></div></div>
+      <div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;color:var(--t2)">Storage</span><span style="font-size:12px;color:var(--green)">48%</span></div><div class="prog"><div class="prog-fill prog-green" style="width:48%"></div></div></div>
+      <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;color:var(--t2)">Memory</span><span style="font-size:12px;color:var(--orange)">89%</span></div><div class="prog"><div class="prog-fill prog-orange" style="width:89%"></div></div></div>
+    </div>
+
+    <div class="section-label">Toasts</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px">
+      <div class="toast success copy-target" data-id="toast-success"><span style="color:#30D158;font-size:16px">✓</span> Saved successfully</div>
+      <div class="toast error copy-target" data-id="toast-error"><span style="color:#FF453A;font-size:16px">✕</span> Something went wrong</div>
+      <div class="toast info copy-target" data-id="toast-info"><span style="color:#0A84FF;font-size:16px">ℹ</span> Update available</div>
+      <div class="toast warning copy-target" data-id="toast-warning"><span style="color:#FF9F0A;font-size:16px">⚠</span> Storage almost full</div>
+    </div>
+
+    <div class="section-label">Tooltip</div>
+    <div style="display:flex;gap:24px;margin-bottom:32px;flex-wrap:wrap">
+      <div class="tooltip-wrap copy-target" data-id="tooltip">
+        <div class="tooltip-box">Keyboard shortcut: ⌘K</div>
+        <div class="tooltip-arrow"></div>
+        <button class="btn btn-glass btn-sm">Hover target</button>
+      </div>
+    </div>
+
+    <div class="section-label">Keyboard Shortcuts</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;align-items:center">
+      <span class="kbd copy-target" data-id="kbd">⌘</span>
+      <span class="kbd copy-target" data-id="kbd">K</span>
+      <span style="color:var(--t3);font-size:13px">·</span>
+      <span class="kbd copy-target" data-id="kbd">⌃</span>
+      <span class="kbd copy-target" data-id="kbd">⇧</span>
+      <span class="kbd copy-target" data-id="kbd">P</span>
+      <span style="color:var(--t3);font-size:13px">·</span>
+      <span class="kbd copy-target" data-id="kbd">Esc</span>
+    </div>
+
+    <div class="section-label">Skeleton Loaders</div>
+    <div style="display:flex;flex-direction:column;gap:8px;max-width:360px;margin-bottom:32px" class="copy-target" data-id="skeleton">
+      <div class="skel" style="height:16px;width:40%"></div>
+      <div class="skel" style="height:12px;width:100%"></div>
+      <div class="skel" style="height:12px;width:85%"></div>
+      <div class="skel" style="height:12px;width:60%"></div>
+    </div>
+
+    <div class="section-label">Context Menu</div>
+    <div class="menu copy-target" data-id="menu" style="display:inline-flex;margin-bottom:32px">
+      <div class="menu-item active"><span>🏠</span> Home</div>
+      <div class="menu-item"><span>⚙️</span> Settings</div>
+      <div class="menu-item"><span>📊</span> Analytics</div>
+      <div class="menu-divider"></div>
+      <div class="menu-item danger"><span>🗑</span> Delete</div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY TAB -->
+  <div id="tab-typography" class="tab-panel" style="display:none">
+    <div class="section-label">Code Snippets</div>
+    <div class="code-block copy-target" data-id="code-block" style="margin-bottom:32px">
+      <span class="code-lang">CSS</span>
+      <span class="c-purple">:root</span> {<br>
+      &nbsp;&nbsp;<span class="c-blue">--glass</span>: <span class="c-green">rgba(255,255,255,0.11)</span>;<br>
+      &nbsp;&nbsp;<span class="c-blue">--blur</span>: <span class="c-orange">blur(20px)</span>;<br>
+      &nbsp;&nbsp;<span class="c-blue">--r-xl</span>: <span class="c-orange">28px</span>;<br>
       }
-    });
+    </div>
 
-    // Simple Tab Switcher
-    function switchTab(el, name) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-      document.getElementById('tab-' + name).style.display = 'block';
-    }
-  </script>
+    <div class="section-label">Type Scale</div>
+    <div style="margin-bottom:32px;display:flex;flex-direction:column;gap:16px">
+      <div class="copy-target" data-id="display-text"><span style="font-size:52px;font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(125deg,#ffffff 0%,#a5d8ff 62%,#e0cffc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Display</span></div>
+      <div class="copy-target" data-id="h1-text"><span style="font-size:32px;font-weight:700;letter-spacing:-0.03em">Heading 1</span></div>
+      <div class="copy-target" data-id="h2-text"><span style="font-size:24px;font-weight:600;letter-spacing:-0.02em">Heading 2</span></div>
+      <div class="copy-target" data-id="h3-text"><span style="font-size:18px;font-weight:600;letter-spacing:-0.01em">Heading 3</span></div>
+      <div class="copy-target" data-id="body-text"><span style="font-size:15px;color:var(--t2);line-height:1.65">Body text — The quick brown fox jumps over the lazy dog. Translucent surfaces with liquid glass aesthetics.</span></div>
+      <div class="copy-target" data-id="caption-text"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)">Caption / Label</span></div>
+      <div class="copy-target" data-id="mono-text"><span style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:var(--blue)">monospace — 0xdeadbeef</span></div>
+    </div>
+
+    <div class="section-label">Color Palette</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px">
+      <div class="copy-target" data-id="color-blue" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--blue);box-shadow:0 4px 16px rgba(10,132,255,0.4)"></div><span style="font-size:10px;color:var(--t3)">--blue</span></div>
+      <div class="copy-target" data-id="color-green" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--green);box-shadow:0 4px 16px rgba(48,209,88,0.4)"></div><span style="font-size:10px;color:var(--t3)">--green</span></div>
+      <div class="copy-target" data-id="color-purple" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--purple);box-shadow:0 4px 16px rgba(191,90,242,0.4)"></div><span style="font-size:10px;color:var(--t3)">--purple</span></div>
+      <div class="copy-target" data-id="color-pink" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--pink);box-shadow:0 4px 16px rgba(255,55,95,0.4)"></div><span style="font-size:10px;color:var(--t3)">--pink</span></div>
+      <div class="copy-target" data-id="color-orange" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--orange);box-shadow:0 4px 16px rgba(255,159,10,0.4)"></div><span style="font-size:10px;color:var(--t3)">--orange</span></div>
+      <div class="copy-target" data-id="color-red" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--red);box-shadow:0 4px 16px rgba(255,69,58,0.4)"></div><span style="font-size:10px;color:var(--t3)">--red</span></div>
+      <div class="copy-target" data-id="color-teal" style="display:flex;flex-direction:column;gap:4px;align-items:center"><div style="width:48px;height:48px;border-radius:12px;background:var(--teal);box-shadow:0 4px 16px rgba(90,200,250,0.4)"></div><span style="font-size:10px;color:var(--t3)">--teal</span></div>
+    </div>
+  </div>
+
+  <!-- BACKGROUND TAB -->
+  <div id="tab-background" class="tab-panel" style="display:none">
+    <div class="section-label">Page Background CSS — click a swatch to copy</div>
+    <div class="bg-copy-strip">
+
+      <div class="bg-swatch copy-target" data-id="bg-default" data-css="background:#060a18" style="background:#060a18;border-color:rgba(255,255,255,0.15)">
+        <div class="swatch-label">Default</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-blob-blue-purple" data-css="background:radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18"
+        style="background:radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18">
+        <div class="swatch-label">Blue / Purple</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-green-teal" data-css="background:radial-gradient(ellipse 70% 70% at 15% 85%,rgba(48,209,88,0.18),transparent),radial-gradient(ellipse 50% 50% at 85% 15%,rgba(90,200,250,0.18),transparent),#050e10"
+        style="background:radial-gradient(ellipse 70% 70% at 15% 85%,rgba(48,209,88,0.18),transparent),radial-gradient(ellipse 50% 50% at 85% 15%,rgba(90,200,250,0.18),transparent),#050e10">
+        <div class="swatch-label">Green / Teal</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-pink-orange" data-css="background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(255,55,95,0.18),transparent),radial-gradient(ellipse 60% 80% at 70% 80%,rgba(255,159,10,0.18),transparent),#12060a"
+        style="background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(255,55,95,0.18),transparent),radial-gradient(ellipse 60% 80% at 70% 80%,rgba(255,159,10,0.18),transparent),#12060a">
+        <div class="swatch-label">Pink / Orange</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-midnight" data-css="background:linear-gradient(135deg,#050816 0%,#0a0f26 100%)"
+        style="background:linear-gradient(135deg,#050816 0%,#0a0f26 100%)">
+        <div class="swatch-label">Midnight</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-aurora" data-css="background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(191,90,242,0.22),transparent 60%),radial-gradient(ellipse 80% 80% at 10% 100%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 80% 80% at 90% 100%,rgba(48,209,88,0.15),transparent),#060a18"
+        style="background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(191,90,242,0.22),transparent 60%),radial-gradient(ellipse 80% 80% at 10% 100%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 80% 80% at 90% 100%,rgba(48,209,88,0.15),transparent),#060a18">
+        <div class="swatch-label">Aurora</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-cosmos" data-css="background:radial-gradient(ellipse 50% 50% at 20% 30%,rgba(90,200,250,0.12),transparent),radial-gradient(ellipse 60% 60% at 80% 70%,rgba(255,55,95,0.14),transparent),radial-gradient(ellipse 40% 40% at 60% 20%,rgba(191,90,242,0.12),transparent),#04050f"
+        style="background:radial-gradient(ellipse 50% 50% at 20% 30%,rgba(90,200,250,0.12),transparent),radial-gradient(ellipse 60% 60% at 80% 70%,rgba(255,55,95,0.14),transparent),radial-gradient(ellipse 40% 40% at 60% 20%,rgba(191,90,242,0.12),transparent),#04050f">
+        <div class="swatch-label">Cosmos</div>
+      </div>
+
+      <div class="bg-swatch copy-target" data-id="bg-ocean" data-css="background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(10,132,255,0.25),transparent),radial-gradient(ellipse 60% 40% at 50% 0%,rgba(90,200,250,0.12),transparent),#030810"
+        style="background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(10,132,255,0.25),transparent),radial-gradient(ellipse 60% 40% at 50% 0%,rgba(90,200,250,0.12),transparent),#030810">
+        <div class="swatch-label">Ocean</div>
+      </div>
+
+    </div>
+
+    <div class="section-label">Animated Blob CSS — add to any background</div>
+    <div class="code-block copy-target" data-id="blob-css" style="margin-bottom:32px">
+      <span class="code-lang">CSS</span>
+      <span class="c-purple">.blob</span> {<br>
+      &nbsp;&nbsp;<span class="c-blue">position</span>: <span class="c-green">fixed</span>;<br>
+      &nbsp;&nbsp;<span class="c-blue">border-radius</span>: <span class="c-orange">50%</span>;<br>
+      &nbsp;&nbsp;<span class="c-blue">filter</span>: <span class="c-orange">blur(80px)</span>;<br>
+      &nbsp;&nbsp;<span class="c-blue">animation</span>: <span class="c-green">blobFloat 10s ease-in-out infinite</span>;<br>
+      &nbsp;&nbsp;<span class="c-blue">pointer-events</span>: <span class="c-green">none</span>;<br>
+      }<br>
+      <span class="c-purple">@keyframes blobFloat</span> {<br>
+      &nbsp;&nbsp;<span class="c-blue">0%, 100%</span> { <span class="c-blue">transform</span>: <span class="c-orange">translate(0,0)</span>; }<br>
+      &nbsp;&nbsp;<span class="c-blue">33%</span> &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="c-blue">transform</span>: <span class="c-orange">translate(25px,-18px)</span>; }<br>
+      &nbsp;&nbsp;<span class="c-blue">66%</span> &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="c-blue">transform</span>: <span class="c-orange">translate(-18px,12px)</span>; }<br>
+      }
+    </div>
+
+    <div class="section-label">Glass Surface Tokens</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:32px">
+      <div class="copy-target" data-id="glass-token-1" style="background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.14);border-radius:16px;padding:16px;backdrop-filter:blur(20px)">
+        <div style="font-size:10px;color:var(--t3);margin-bottom:4px">--glass-bg subtle</div>
+        <div style="font-size:11px;font-family:'SF Mono',monospace;color:var(--t2)">rgba(255,255,255, 0.08)</div>
+      </div>
+      <div class="copy-target" data-id="glass-token-2" style="background:rgba(255,255,255,0.14);border:0.5px solid rgba(255,255,255,0.26);border-radius:16px;padding:16px;backdrop-filter:blur(20px)">
+        <div style="font-size:10px;color:var(--t3);margin-bottom:4px">--glass mid</div>
+        <div style="font-size:11px;font-family:'SF Mono',monospace;color:var(--t2)">rgba(255,255,255, 0.14)</div>
+      </div>
+      <div class="copy-target" data-id="glass-token-3" style="background:rgba(255,255,255,0.22);border:0.5px solid rgba(255,255,255,0.40);border-radius:16px;padding:16px;backdrop-filter:blur(20px)">
+        <div style="font-size:10px;color:var(--t3);margin-bottom:4px">--glass-s strong</div>
+        <div style="font-size:11px;font-family:'SF Mono',monospace;color:var(--t2)">rgba(255,255,255, 0.22)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="copy-toast">Copied!</div>
+
+<script>
+// Tab switcher
+function switchTab(el, name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = 'block';
+}
+
+// Pricing card select
+function selectPlan(card) {
+  document.querySelectorAll('.pricing-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+// Segmented button
+document.querySelectorAll('.btn-seg').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    this.closest('.btn-group-wrap').querySelectorAll('.btn-seg').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Copy logic
+document.addEventListener('click', function(e) {
+  const target = e.target.closest('.copy-target');
+  if (!target) return;
+
+  // Prevent propagation within nested copy targets — use innermost
+  e.stopPropagation();
+
+  let textToCopy;
+  let toastLabel;
+
+  if (e.ctrlKey || e.metaKey) {
+    // Ctrl+Click → copy the primary CSS class or data-id
+    const id = target.dataset.id || '';
+    const mainClass = [...target.classList].find(c => c !== 'copy-target' && c !== 'active');
+    textToCopy = mainClass || id;
+    toastLabel = 'Copied class!';
+    showToast(toastLabel, '#BF5AF2');
+  } else if (target.dataset.css) {
+    // Background swatch → copy just the CSS value
+    textToCopy = target.dataset.css;
+    toastLabel = 'Copied CSS!';
+    showToast(toastLabel, '#0A84FF');
+  } else {
+    // Regular click → copy full HTML
+    const clone = target.cloneNode(true);
+    clone.classList.remove('copy-target');
+    clone.removeAttribute('data-id');
+    clone.removeAttribute('data-css');
+    // Remove nested copy-target markers too
+    clone.querySelectorAll('.copy-target').forEach(el => {
+      el.classList.remove('copy-target');
+      el.removeAttribute('data-id');
+    });
+    textToCopy = clone.outerHTML;
+    toastLabel = 'Copied HTML!';
+    showToast(toastLabel, '#30D158');
+  }
+
+  navigator.clipboard.writeText(textToCopy).catch(() => {});
+});
+
+function showToast(msg, color) {
+  const toast = document.getElementById('copy-toast');
+  toast.textContent = msg;
+  toast.style.background = color;
+  toast.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+</script>
 </body>
 </html>

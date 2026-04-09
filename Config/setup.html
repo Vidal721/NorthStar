@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Vidal721/Scouting-App@main/UI/all.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background:radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18;
+        }
+        /* Simple utility to hide the screen not in use */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home" class="page" style="text-align: center;">
+        <div class=""><span style="font-size:52px;font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(125deg,#ffffff 0%,#a5d8ff 62%,#e0cffc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;padding-right: 10px;">Welcome to the future </span></div><br>
+    
+        <button id="start-btn" class="btn btn-primary btn-lg" onclick="navigateTo('form-screen')">Get Started 🡒</button>
+    </div>
+
+    <div id="form-screen" class="page hidden" style="text-align: center;">
+        <div class="field">
+            <label>Team Number</label>
+            <input class="input" placeholder="935...">
+        </div><br>
+                <div class="field">
+            <label>Team Name</label>
+            <input class="input" placeholder="The RoboRaptors...">
+        </div><br>
+        <div style="max-width:400px;" class="">
+        <div class="slider-wrap">
+            <div class="slider-label-row">
+                <label class="field" style="flex-direction:row;gap:0"><label style="font-size:12px;font-weight:500;color:var(--t2)">Years In First</label></label>
+                <span class="slider-val" id="slider-out">5</span>
+            </div>
+            <input type="range" class="range-input" min="0" max="60" value="5" oninput="document.getElementById('slider-out').textContent=this.value">
+        </div>
+        
+      </div><br>
+      <button id="start-btn" class="btn btn-primary btn-lg" onclick="navigateTo('teamconfig-screen')">Next 🡒</button>
+    </div>
+
+    <div id="teamconfig-screen" class="page hidden" style="text-align: center;">
+        <div class="field">
+            <label>Dropdown Select</label>
+            <div class="select-wrap">
+                <select class="select">
+                    <option>Background1</option>
+                    <option>Background2</option>
+                    <option>Background3</option>
+                </select>
+            </div>
+      </div><br>
+                <div class="field">
+            <label>Team Name</label>
+            <input class="input" placeholder="The RoboRaptors...">
+        </div><br>
+        <div style="max-width:400px;" class="">
+        <div class="slider-wrap">
+            <div class="slider-label-row">
+                <label class="field" style="flex-direction:row;gap:0"><label style="font-size:12px;font-weight:500;color:var(--t2)">Years In First</label></label>
+                <span class="slider-val" id="slider-out">5</span>
+            </div>
+            <input type="range" class="range-input" min="0" max="60" value="5" oninput="document.getElementById('slider-out').textContent=this.value">
+        </div>
+        
+      </div><br>
+      <button id="start-btn" class="btn btn-primary btn-lg" onclick="navigateTo('confirmation-screen')">Next 🡒</button>
+    </div>
+
+    <div id="confirmation-screen" class="page hidden" style="text-align: center;">
+        <h2>Confirmation</h2>
+        <p>Please confirm your details:</p>
+        <p>Team Number: <span id="confirm-team-number"></span></p>
+        <p>Team Name: <span id="confirm-team-name"></span></p>
+        <p>Years in First: <span id="confirm-years"></span></p>
+        <button class="btn btn-primary btn-lg" onclick="navigateTo('home')">Edit Details</button>
+        <button class="btn btn-success btn-lg" onclick="submitForm()">Submit</button>
+    </div>
+
+    <script src="startup.js"></script>
+</body>
+</html>
