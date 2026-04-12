@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "fields": [
     {
       "varName": "auto_score",
@@ -8,7 +8,7 @@
       "min": 0,
       "max": 6,
       "group": "Autonomous",
-      "id": "auto_high"
+      "id": "auto_score"
     },
     {
       "varName": "auto_low",

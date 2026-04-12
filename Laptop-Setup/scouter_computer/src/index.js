@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs   = require('fs');
+require('../../../Server/Server.js');
 
 // ── Data directory ────────────────────────────────────────────────────────────
 const DATA_DIR = app.isPackaged
@@ -173,6 +174,9 @@ function createWindow() {
   win.loadFile('src/index.html');
   win.once('ready-to-show', () => win.show());
 }
+
+
+  
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
