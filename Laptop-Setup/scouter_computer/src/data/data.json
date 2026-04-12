@@ -1,0 +1,61 @@
+{
+  "games": [
+    {
+      "id": 1,
+      "name": "Reefscape 2025",
+      "year": 2025,
+      "matches": 37,
+      "scouts": 6,
+      "status": "archived",
+      "created": "2025-01-04"
+    },
+    {
+      "id": 2,
+      "name": "Crescendo 2024",
+      "year": 2024,
+      "matches": 112,
+      "scouts": 8,
+      "status": "archived",
+      "created": "2024-01-06"
+    },
+    {
+      "id": 3,
+      "name": "Charged Up 2023",
+      "year": 2023,
+      "matches": 98,
+      "scouts": 7,
+      "status": "archived",
+      "created": "2023-01-07"
+    },
+    {
+      "name": "Rebuilt",
+      "year": 2026,
+      "event": "",
+      "created": "2026-04-11",
+      "matches": 0,
+      "scouts": 0,
+      "status": "active",
+      "id": 4
+    }
+  ],
+  "matchLogs": [],
+  "activity": [
+    {
+      "text": "Alex M. logged 22 scouting minutes — Match 38 vs Team 1114",
+      "time": "12 min ago"
+    },
+    {
+      "text": "Casey R. submitted form for Team 254 — Qualification round",
+      "time": "38 min ago"
+    },
+    {
+      "text": "Jordan D. flagged Team 973 data for review",
+      "time": "1 hr ago"
+    },
+    {
+      "text": "Sam K. role changed to Assistant Scout by coach",
+      "time": "3 hr ago"
+    }
+  ],
+  "nextGameId": 5
+}
