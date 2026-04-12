@@ -24,9 +24,7 @@
       <span class="doto">NorthStar</span>
       <div class="nav-links">
         <a class="nav-link active" href="#home">Home</a>
-        <a class="nav-link" href="#features">Features</a>
-        <a class="nav-link" href="#pricing">Pricing</a>
-        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="#contact">Contact</a>
       </div>
     </nav>
   </div>
@@ -42,47 +40,76 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <div class="tab active" onclick="switchTab(this,'buttons')">Buttons</div>
+    <div class="tab active" onclick="switchTab(this,'about')">About</div>
     <div class="tab" onclick="switchTab(this,'pricing')">Pricing</div>
-    <div class="tab" onclick="switchTab(this,'inputs')">Inputs</div>
-    <div class="tab" onclick="switchTab(this,'misc')">Misc</div>
   </div>
 
   <!-- ── BUTTONS TAB ── -->
-  <div id="tab-buttons" class="tab-panel">
-    <div class="section-label">Glass &amp; Filled Buttons</div>
-    <div class="btn-row">
-      <button class="btn btn-glass">Glass Default</button>
-      <button class="btn btn-primary">Primary</button>
-      <button class="btn btn-ghost">Ghost</button>
-    </div>
-
-    <div class="section-label">Tinted Variants</div>
-    <div class="btn-row">
-      <button class="btn btn-tinted-blue">Blue</button>
-      <button class="btn btn-tinted-green">Green</button>
-      <button class="btn btn-tinted-purple">Purple</button>
-      <button class="btn btn-tinted-pink">Pink</button>
-    </div>
-
-    <div class="section-label">Segmented Control</div>
-    <div class="btn-row">
-      <div class="btn-group-wrap">
-        <button class="btn-seg active" onclick="setSeg(this)">Daily</button>
-        <button class="btn-seg" onclick="setSeg(this)">Weekly</button>
-        <button class="btn-seg" onclick="setSeg(this)">Monthly</button>
-        <button class="btn-seg" onclick="setSeg(this)">Yearly</button>
+  <div id="tab-about" class="tab-panel">
+    <div class="cards">
+      <div class="card card-liquid">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Real-time data</div>
+        <div class="card-body">Data updates across all devices with NO INTERNET REQUIRED.</div>
+      </div>
+      <div class="card card-liquid card-blue">
+        <div class="card-icon">🔐</div>
+        <div class="card-title">Your team, your data</div>
+        <div class="card-body">All of you team data is safe in your own cloud.</div>
+      </div>
+      <div class="card card-liquid">
+        <div class="card-icon">🌊</div>
+        <div class="card-title">Your interface, your way</div>
+        <div class="card-body">Customize the look and feel to match your team's identity.</div>
       </div>
     </div>
 
-    <div class="section-label">Sizes</div>
-    <div class="btn-row" style="align-items:center">
-      <button class="btn btn-glass" style="font-size:12px;padding:6px 12px">XS</button>
-      <button class="btn btn-glass" style="font-size:13px;padding:8px 16px">Small</button>
-      <button class="btn btn-glass">Default</button>
-      <button class="btn btn-glass" style="font-size:17px;padding:13px 26px">Large</button>
-      <button class="btn btn-primary" style="font-size:19px;padding:16px 34px">XL</button>
-    </div>
+    <div class=""><span style="font-size:32px;font-weight:700;letter-spacing:-0.03em">Our History</span></div><br>
+
+    <div class="card-stat">
+        <div class=""><span style="font-size:32px;font-weight:700;letter-spacing:-0.03em">Our Foundation</span></div><br>
+        <span class="body-text">Founded in 2026 by Sam Menninga and Austin Rich of Team 935, Northstar was born out of a mission to revolutionize the scouting landscape within the FIRST community. Observing a widespread need for higher-quality, data-driven insights—both within our own program and across the competition as a whole—we identified a significant gap in existing tools. Traditional scouting solutions often lacked the flexibility and depth required to meet the evolving demands of modern FRC teams. We engineered Northstar to bridge this gap. By combining the advanced features our own team required with the intuitive functionality necessary for teams of all experience levels, we have created a comprehensive ecosystem designed to make scouting seamless, efficient, and accessible for everyone.</span>
+    </div><br>
+<div class="card-stat">
+        <div class=""><span style="font-size:32px;font-weight:700;letter-spacing:-0.03em">Key Pillars of Northstar</span></div><br>
+    
+    <ul class="body-text" style="list-style-type: none; padding: 0; line-height: 1.6;">
+        <li style="margin-bottom: 15px;">
+            <strong>Innovation:</strong> Moving beyond static spreadsheets to dynamic, real-time data analysis tailored for the heat of competition.
+        </li>
+        <li style="margin-bottom: 15px;">
+            <strong>Inclusivity:</strong> Developing a platform that empowers rookie teams and seasoned veterans alike, regardless of their technical background.
+        </li>
+        <li style="margin-bottom: 15px;">
+            <strong>Efficiency:</strong> Streamlining the data collection process so teams can focus on high-level strategy rather than manual entry.
+        </li>
+        <li style="margin-bottom: 15px;">
+            <strong>Built by Participants:</strong> As members of Team 935, we designed Northstar with a deep, first-hand understanding of the unique challenges faced on the field and in the pits.
+        </li>
+    </ul>
+</div><br>
+
+  <div class="hero-text" id="contact">
+    <div class="display">Get in Touch</div>
+    <div class="subtext">Have questions or feedback? We'd love to hear from you!</div><br>
+
+    <div class="field">
+        <label>Team Number</label>
+        <input class="input" placeholder="eg. 935">
+      </div><br>
+      <div class="field">
+        <label>Team Name</label>
+        <input class="input" placeholder="RaileRobotics">
+      </div><br>
+            <div class="field">
+        <label>Email</label>
+        <input class="input" placeholder="yourname@gmail.com">
+      </div><br>
+<div class="field">
+        <label>Message (Optional)</label>
+        <textarea class="textarea" placeholder="Write something..."></textarea>
+      </div>
+  </div>
   </div>
 
   <!-- ── PRICING TAB ── -->
@@ -95,17 +122,42 @@
         <!-- STARTER -->
         <div class="pricing-card" onclick="selectPlan(this)" data-plan="starter">
         <div class="plan-name">Starter</div>
-        <div class="plan-price"><sup>$</sup>0<span class="per"> + $20/yr</span></div>
+        <div class="plan-price"><sup></sup>$20<span class="per">/yr</span></div>
         <div class="plan-desc">Everything you need to get started with basic scouting.</div>
         <div class="plan-divider"></div>
         <ul class="checklist">
-            <li><span class="check">✓</span><div><strong>5 scout reports</strong> <span>/ yr</span></div></li>
+            <li><span class="check">✓</span><div><strong>Unlimited</strong> <span>scout reports</span></div></li>
             <li><span class="check">✓</span><div><strong>Basic analytics</strong> <span>dashboard</span></div></li>
-            <li><span class="check">✓</span><div><strong>Player profiles</strong> <span>up to 50</span></div></li>
-            <li><span class="check">✓</span><div><strong>Email support</strong></div></li>
-            <li><span class="check-x">✕</span><div style="color:var(--t3)">AI match predictions</div></li>
-            <li><span class="check-x">✕</span><div style="color:var(--t3)">Video analysis tools</div></li>
-            <li><span class="check-x">✕</span><div style="color:var(--t3)">Team collaboration</div</li>
+            <li><span class="check">✓</span><div><strong>Scouter Profiles</strong> <span>up to 10</span></div></li>
+            <li><span class="check">✓</span><div><strong>Form Building</strong></div></li>
+        </ul>
+        <button class="buy-btn buy-btn-default" onclick="buyPlan(event,'Starter')">Get Started Free</button>
+        </div>
+
+                <div class="pricing-card" onclick="selectPlan(this)" data-plan="starter">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup></sup>$50<span class="per">/yr</span></div>
+        <div class="plan-desc">Everything you need to get started with basic scouting.</div>
+        <div class="plan-divider"></div>
+        <ul class="checklist">
+            <li><span class="check">✓</span><div><strong>Unlimited</strong> <span>scout reports</span></div></li>
+            <li><span class="check">✓</span><div><strong>Basic analytics</strong> <span>dashboard</span></div></li>
+            <li><span class="check">✓</span><div><strong>Scouter Profiles</strong> <span>up to 10</span></div></li>
+            <li><span class="check">✓</span><div><strong>Form Building</strong></div></li>
+        </ul>
+        <button class="buy-btn buy-btn-default" onclick="buyPlan(event,'Starter')">Get Started Free</button>
+        </div>
+
+                <div class="pricing-card" onclick="selectPlan(this)" data-plan="starter">
+        <div class="plan-name">Elite</div>
+        <div class="plan-price"><sup></sup>$100<span class="per">/yr</span></div>
+        <div class="plan-desc">Everything you need to get started with basic scouting.</div>
+        <div class="plan-divider"></div>
+        <ul class="checklist">
+            <li><span class="check">✓</span><div><strong>Unlimited</strong> <span>scout reports</span></div></li>
+            <li><span class="check">✓</span><div><strong>Basic analytics</strong> <span>dashboard</span></div></li>
+            <li><span class="check">✓</span><div><strong>Scouter Profiles</strong> <span>up to 10</span></div></li>
+            <li><span class="check">✓</span><div><strong>Form Building</strong></div></li>
         </ul>
         <button class="buy-btn buy-btn-default" onclick="buyPlan(event,'Starter')">Get Started Free</button>
         </div>
@@ -113,25 +165,40 @@
       <!-- PRO (default selected) -->
         <div class="pricing-card selected" onclick="selectPlan(this)" data-plan="pro">
         <div class="popular-badge">★ Most Popular</div>
-        <div class="plan-name">Pro</div>
+        <div class="plan-name">Silver</div>
         <div class="plan-price"><sup>$</sup>1,500<span class="per"> + $29/yr</span></div>
         <div class="plan-desc">Unlock the full power of NorthStar for serious scouts.</div>
         <div class="plan-divider"></div>
         <ul class="checklist">
-          <li><span class="check">✓</span><div><strong>Unlimited</strong> <span>scout reports</span></div></li>
-          <li><span class="check">✓</span><div><strong>Advanced analytics</strong> <span>+ heat maps</span></div></li>
-          <li><span class="check">✓</span><div><strong>Player profiles</strong> <span>up to 500</span></div></li>
-          <li><span class="check">✓</span><div><strong>Priority support</strong> <span>24 / 7</span></div></li>
-          <li><span class="check">✓</span><div><strong>AI match predictions</strong></div></li>
-          <li><span class="check">✓</span><div><strong>Video analysis</strong> <span>tools</span></div></li>
-          <li><span class="check-x">✕</span><div style="color:var(--t3)">Team collaboration</div></li>
+          <li><span class="check">✓</span><div><strong>Everything in Starter</strong> <span></span></div></li>
+          <li><span class="check">✓</span><div><strong>6 scouter tablets</strong> <span>Galaxy Tab A9's</span></div></li>
+          <li><span class="check">✓</span><div><strong>1 lead scout tablet</strong> <span>Still Deciding</span></div></li>
+          <li><span class="check">✓</span><div><strong>7 Scouter stadium seats</strong></div></li>
+          <li><span class="check">✓</span><div><strong>Limited Beta Access</strong> <span>Like AI scouting</span></div></li>
+          <li><span class="check">✓</span><div><strong>Limited cloud storage</strong> <span>Firebase</span></div></li>
         </ul>
         <button class="buy-btn buy-btn-primary" onclick="buyPlan(event,'Pro')">Buy Pro : $1,500 + $29/yr</button>
      </div>
 
       <!-- ELITE -->
      <div class="pricing-card" onclick="selectPlan(this)" data-plan="elite">
-        <div class="plan-name">Elite</div>
+        <div class="plan-name">Gold</div>
+        <div class="plan-price"><sup>$</sup>1,600<span class="per"> + $79/yr</span></div>
+        <div class="plan-desc">Built for professional clubs and scouting agencies.</div>
+        <div class="plan-divider"></div>
+        <ul class="checklist">
+          <li><span class="check">✓</span><div><strong>Unlimited</strong> <span>everything</span></div></li>
+          <li><span class="check">✓</span><div><strong>Full analytics suite</strong> <span>+ exports</span></div></li>
+          <li><span class="check">✓</span><div><strong>Unlimited</strong> <span>player profiles</span></div></li>
+          <li><span class="check">✓</span><div><strong>Dedicated account</strong> <span>manager</span></div></li>
+          <li><span class="check">✓</span><div><strong>AI match predictions</strong></div></li>
+          <li><span class="check">✓</span><div><strong>Video analysis</strong> <span>+ clipping</span></div></li>
+          <li><span class="check">✓</span><div><strong>Team collaboration</strong> <span>unlimited seats</span></div></li>
+        </ul>
+        <button class="buy-btn buy-btn-default" onclick="buyPlan(event,'Elite')">Buy Elite : $1,600 + $79/yr</button>
+      </div>  
+      <div class="pricing-card" onclick="selectPlan(this)" data-plan="elite">
+        <div class="plan-name">Diamond</div>
         <div class="plan-price"><sup>$</sup>1,600<span class="per"> + $79/yr</span></div>
         <div class="plan-desc">Built for professional clubs and scouting agencies.</div>
         <div class="plan-divider"></div>
@@ -267,7 +334,7 @@
 </div><!-- /wrap -->
 
 <script>
-const TABS = ['buttons','pricing','inputs','misc'];
+const TABS = ['about','pricing','inputs','misc'];
 
 function switchTab(el, name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

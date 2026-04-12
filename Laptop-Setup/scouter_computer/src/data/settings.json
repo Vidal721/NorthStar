@@ -1,5 +1,5 @@
 {
-  "setupComplete": false,
+  "setupComplete": true,
   "teamNumber": "935",
   "teamName": "RaileRobotics",
   "school": "Newton High School",
@@ -31,7 +31,8 @@
   },
   "adminRoles": [
     "coach",
-    "lead"
+    "lead",
+    "assistant"
   ],
   "perUserDashboard": false,
   "activeGame": "Rebuilt"

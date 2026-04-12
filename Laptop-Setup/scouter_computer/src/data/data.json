@@ -1,33 +1,6 @@
 {
   "games": [
     {
-      "id": 1,
-      "name": "Reefscape 2025",
-      "year": 2025,
-      "matches": 37,
-      "scouts": 6,
-      "status": "archived",
-      "created": "2025-01-04"
-    },
-    {
-      "id": 2,
-      "name": "Crescendo 2024",
-      "year": 2024,
-      "matches": 112,
-      "scouts": 8,
-      "status": "archived",
-      "created": "2024-01-06"
-    },
-    {
-      "id": 3,
-      "name": "Charged Up 2023",
-      "year": 2023,
-      "matches": 98,
-      "scouts": 7,
-      "status": "archived",
-      "created": "2023-01-07"
-    },
-    {
       "name": "Rebuilt",
       "year": 2026,
       "event": "",
