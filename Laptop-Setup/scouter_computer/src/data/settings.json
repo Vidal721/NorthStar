@@ -1,0 +1,38 @@
+{
+  "setupComplete": true,
+  "teamNumber": "935",
+  "teamName": "RaileRobotics",
+  "school": "Newton High School",
+  "city": "Newton",
+  "state": "KS",
+  "yearsInFirst": 25,
+  "theme": {
+    "id": "ocean",
+    "label": "Ocean",
+    "css": "radial-gradient(ellipse 80% 60% at 50% 100%,rgba(10,132,255,0.25),transparent),#030810"
+  },
+  "colors": {
+    "primary": "#000000",
+    "secondary": "#ffd60a",
+    "accent": "#ffd60a"
+  },
+  "display": {
+    "mode": "Dark",
+    "fontSize": "Large",
+    "fontSizePx": 16,
+    "cardStyle": "Flat",
+    "density": "Comfortable"
+  },
+  "scouting": {
+    "system": "2 scouts per robot (12-person)",
+    "priority": "",
+    "events": "",
+    "device": "Tablet"
+  },
+  "adminRoles": [
+    "coach",
+    "lead"
+  ],
+  "perUserDashboard": false,
+  "activeGame": "Rebuilt"
+}

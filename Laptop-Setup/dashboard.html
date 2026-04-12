@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRC Scout — Team 4028</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #060a18;
+      --bg2:       #0b1028;
+      --surface:   rgba(255,255,255,0.06);
+      --border:    rgba(255,255,255,0.11);
+      --border2:   rgba(255,255,255,0.18);
+      --text:      rgba(255,255,255,0.93);
+      --muted:     rgba(255,255,255,0.40);
+      --blue:      #0A84FF;
+      --green:     #30D158;
+      --orange:    #FF9F0A;
+      --red:       #FF453A;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-head);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════════
+       SCREENS
+    ═══════════════════════════════════════════ */
+    .screen { display: none; position: fixed; inset: 0; z-index: 10; }
+    .screen.show { display: flex; }
+
+    /* ─── Loading ─── */
+    #screen-loading {
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--bg);
+    }
+
+    .loading-logo {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .loading-sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2px solid rgba(255,255,255,0.10);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Gate (non-admin landing) ─── */
+    #screen-gate {
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .gate-card {
+      width: 380px;
+      background: rgba(255,255,255,0.05);
+      border: 0.5px solid var(--border2);
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+
+    .gate-icon {
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(48,209,88,0.20), rgba(10,132,255,0.20));
+      border: 0.5px solid rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 18px;
+    }
+
+    .gate-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .gate-sub { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+    .gate-sub strong { color: rgba(255,255,255,0.65); font-weight: 600; }
+
+    .gate-divider {
+      height: 0.5px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    .gate-hint { font-size: 11px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 14px; }
+
+    /* ─── Login form (shared) ─── */
+    .form-group { margin-bottom: 13px; }
+
+    .form-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 13px;
+      font-size: 13px;
+      border-radius: 11px;
+      border: 0.5px solid var(--border2);
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      outline: none;
+      font-family: var(--font-head);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .form-input:focus {
+      border-color: rgba(10,132,255,0.55);
+      background: rgba(255,255,255,0.09);
+    }
+
+    .form-input::placeholder { color: rgba(255,255,255,0.22); }
+
+    .btn {
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0.5px solid var(--border2);
+      background: rgba(255,255,255,0.09);
+      color: var(--text);
+      font-family: var(--font-head);
+      transition: all 0.15s;
+      letter-spacing: 0.01em;
+    }
+
+    .btn:hover { background: rgba(255,255,255,0.15); }
+
+    .btn.primary {
+      background: var(--blue);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(10,132,255,0.35);
+    }
+
+    .btn.primary:hover { background: #3a9eff; box-shadow: 0 4px 20px rgba(10,132,255,0.50); }
+
+    .btn.sm {
+      width: auto;
+      padding: 7px 14px;
+      font-size: 12px;
+    }
+
+    .btn.danger {
+      background: rgba(255,69,58,0.12);
+      border-color: rgba(255,69,58,0.35);
+      color: var(--red);
+    }
+
+    .btn.danger:hover { background: rgba(255,69,58,0.22); }
+
+    .error-msg {
+      font-size: 12px;
+      color: var(--red);
+      background: rgba(255,69,58,0.10);
+      border: 0.5px solid rgba(255,69,58,0.25);
+      border-radius: 9px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      display: none;
+      font-family: var(--font-mono);
+    }
+
+    .error-msg.show { display: block; }
+
+    /* ─── Scouter dashboard ─── */
+    #screen-scouter {
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .scout-topbar {
+      padding: 14px 24px;
+      border-bottom: 0.5px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .scout-topbar-left { display: flex; align-items: center; gap: 12px; }
+
+    .topbar-logo {
+      font-size: 14px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .topbar-sep { width: 0.5px; height: 16px; background: var(--border2); }
+
+    .topbar-greeting { font-size: 13px; color: var(--muted); }
+    .topbar-greeting strong { color: var(--text); font-weight: 600; }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 0.5px solid var(--border2);
+      color: var(--muted);
+      background: var(--surface);
+      font-family: var(--font-mono);
+    }
+
+    .pill.green { background: rgba(48,209,88,0.12); color: var(--green); border-color: rgba(48,209,88,0.28); }
+    .pill.blue  { background: rgba(10,132,255,0.12); color: var(--blue);  border-color: rgba(10,132,255,0.28); }
+
+    .logout-btn {
+      font-size: 11px;
+      padding: 5px 11px;
+      border-radius: 9px;
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-head);
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .logout-btn:hover { background: rgba(255,69,58,0.12); color: var(--red); border-color: rgba(255,69,58,0.30); }
+
+    .scout-body { flex: 1; overflow-y: auto; padding: 24px; }
+
+    .scout-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); margin-bottom: 8px; }
+    .stat-value { font-size: 30px; font-weight: 800; letter-spacing: -1px; }
+    .stat-sub   { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: var(--font-mono); }
+    .stat-sub.up { color: var(--green); }
+
+    .panel {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .panel-head {
+      padding: 13px 18px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title  { font-size: 13px; font-weight: 700; }
+    .panel-body   { padding: 10px 18px; }
+
+    .activity-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    }
+
+    .activity-row:last-child { border-bottom: none; }
+
+    .act-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    .act-text { font-size: 12px; line-height: 1.55; color: rgba(255,255,255,0.75); }
+    .act-time { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--font-mono); }
+
+    /* ═══════════════════════════════════════════
+       ADMIN SHELL
+    ═══════════════════════════════════════════ */
+    #screen-admin {
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.05);
+      border-right: 0.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(20px);
+    }
+
+    .sidebar-top {
+      padding: 16px 12px 14px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.09);
+    }
+
+    .team-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .badge-circle {
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0;
+      box-shadow: 0 2px 12px rgba(48,209,88,0.30);
+      font-family: var(--font-mono);
+    }
+
+    .badge-name { font-size: 13px; font-weight: 700; }
+    .badge-sub  { font-size: 10px; color: var(--muted); font-family: var(--font-mono); }
+
+    .new-game-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 11px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.07);
+      border: 0.5px solid var(--border2);
+      color: rgba(255,255,255,0.88);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: var(--font-head);
+    }
+
+    .new-game-btn:hover { background: rgba(255,255,255,0.13); }
+
+    .plus-circle {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(10,132,255,0.25);
+      color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; line-height: 1; flex-shrink: 0;
+    }
+
+    .nav-section {
+      padding: 14px 14px 5px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
+      font-family: var(--font-mono);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      margin: 1px 8px;
+      border-radius: 11px;
+      cursor: pointer;
+      font-size: 13px;
+      color: rgba(255,255,255,0.50);
+      transition: all 0.12s;
+      font-weight: 500;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.88); }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border: 0.5px solid var(--border2);
+    }
+
+    .nav-icon { font-size: 14px; width: 18px; text-align: center; }
+
+    .sidebar-scroll { overflow-y: auto; flex: 1; }
+
+    .sidebar-bottom {
+      padding: 12px;
+      border-top: 0.5px solid rgba(255,255,255,0.09);
+    }
+
+    .user-row { display: flex; align-items: center; gap: 9px; }
+
+    .user-av {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(48,209,88,0.18);
+      color: var(--green);
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      border: 0.5px solid rgba(48,209,88,0.32);
+      font-family: var(--font-mono);
+    }
+
+    .user-name { font-size: 12px; font-weight: 700; }
+    .user-role { font-size: 10px; color: var(--muted); font-family: var(--font-mono); }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .topbar {
+      padding: 14px 22px 13px;
+      border-bottom: 0.5px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .greeting { font-size: 17px; font-weight: 700; }
+    .greeting span { color: var(--muted); font-weight: 400; }
+
+    /* ── Pages ── */
+    .page { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .page.active { display: flex; }
+
+    .page-scroll { flex: 1; overflow-y: auto; padding: 20px 22px; }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.30);
+      margin-bottom: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 15px;
+      padding: 14px 16px;
+    }
+
+    .metric-label { font-size: 10px; color: var(--muted); margin-bottom: 6px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-value { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .metric-sub   { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: var(--font-mono); }
+    .metric-sub.up   { color: var(--green); }
+    .metric-sub.warn { color: var(--orange); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+    .scout-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 0;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    }
+
+    .scout-row:last-child { border-bottom: none; }
+
+    .scout-av-sm {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(10,132,255,0.18);
+      color: var(--blue);
+      font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+
+    .scout-name { font-size: 12px; font-weight: 600; flex: 1; }
+    .scout-mins { font-size: 11px; color: var(--muted); margin-right: 6px; font-family: var(--font-mono); }
+
+    .role-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 0.5px solid var(--border2);
+      color: var(--muted);
+      background: var(--surface);
+      font-family: var(--font-mono);
+    }
+
+    .role-badge.lead  { background: rgba(10,132,255,0.15);  color: var(--blue);  border-color: rgba(10,132,255,0.28); }
+    .role-badge.coach { background: rgba(48,209,88,0.12);   color: var(--green); border-color: rgba(48,209,88,0.26); }
+
+    .game-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    }
+
+    .game-row:last-child { border-bottom: none; }
+
+    .game-icon {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+
+    .game-name { font-size: 12px; font-weight: 700; }
+    .game-meta { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+
+    .game-status {
+      font-size: 10px; font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      margin-left: auto;
+      font-family: var(--font-mono);
+    }
+
+    .game-status.active   { background: rgba(48,209,88,0.12);  color: var(--green); }
+    .game-status.archived { background: rgba(255,255,255,0.06); color: var(--muted); }
+
+    .panel-action { font-size: 11px; color: var(--blue); cursor: pointer; font-weight: 700; font-family: var(--font-mono); }
+
+    /* ── Team & Accounts page ── */
+    .account-header {
+      padding: 18px 22px 16px;
+      border-bottom: 0.5px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      flex-shrink: 0;
+    }
+
+    .account-header h2 { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+    .account-header p  { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+    .member-table-wrap { flex: 1; overflow-y: auto; padding: 16px 22px; }
+
+    .add-member-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+
+    .add-member-bar input,
+    .add-member-bar select {
+      padding: 8px 11px;
+      font-size: 13px;
+      border-radius: 10px;
+      border: 0.5px solid var(--border2);
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      outline: none;
+      font-family: var(--font-head);
+    }
+
+    .add-member-bar input { flex: 1; min-width: 120px; }
+    .add-member-bar input::placeholder { color: rgba(255,255,255,0.25); }
+    .add-member-bar select { cursor: pointer; }
+    .add-member-bar select option { background: #0a0f26; }
+
+    .inline-btn {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0.5px solid var(--border2);
+      background: var(--blue);
+      color: #fff;
+      font-family: var(--font-head);
+      transition: all 0.15s;
+      box-shadow: 0 2px 10px rgba(10,132,255,0.30);
+    }
+
+    .inline-btn:hover { background: #3a9eff; }
+
+    .member-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+    .member-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      border-bottom: 0.5px solid var(--border);
+      font-family: var(--font-mono);
+    }
+
+    .member-table td {
+      padding: 10px 12px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.05);
+      vertical-align: middle;
+    }
+
+    .member-table tr:last-child td { border-bottom: none; }
+    .member-table tbody tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .role-select {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 0.5px solid var(--border2);
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      outline: none;
+      font-family: var(--font-head);
+    }
+
+    .role-select option { background: #0a0f26; }
+
+    .remove-btn {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 8px;
+      border: 0.5px solid rgba(255,69,58,0.32);
+      background: rgba(255,69,58,0.10);
+      color: var(--red);
+      cursor: pointer;
+      font-family: var(--font-head);
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    .remove-btn:hover { background: rgba(255,69,58,0.20); }
+
+    .mins-badge {
+      font-size: 11px; font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.55);
+      border: 0.5px solid var(--border);
+      font-family: var(--font-mono);
+    }
+
+    .status-dot-active { color: var(--green); font-size: 11px; font-weight: 700; font-family: var(--font-mono); }
+    .status-dot-idle   { color: var(--muted); font-size: 11px; font-family: var(--font-mono); }
+
+    /* ── Settings page ── */
+    .settings-wrap { flex: 1; overflow-y: auto; padding: 20px 22px; }
+
+    .settings-section {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .settings-section-head {
+      padding: 13px 18px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.07);
+    }
+
+    .settings-section-title { font-size: 13px; font-weight: 700; }
+    .settings-section-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--font-mono); }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 18px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.05);
+      gap: 16px;
+    }
+
+    .settings-row:last-child { border-bottom: none; }
+
+    .settings-row-label { font-size: 13px; font-weight: 600; }
+    .settings-row-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--font-mono); }
+
+    .settings-input {
+      padding: 7px 11px;
+      font-size: 12px;
+      border-radius: 9px;
+      border: 0.5px solid var(--border2);
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      outline: none;
+      font-family: var(--font-mono);
+      min-width: 160px;
+    }
+
+    .settings-input:focus { border-color: rgba(10,132,255,0.55); }
+
+    /* Toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+    .toggle-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.12);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 0.5px solid var(--border2);
+    }
+
+    .toggle input:checked + .toggle-track { background: var(--blue); border-color: transparent; }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    .settings-save-bar {
+      padding: 14px 22px;
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.02);
+      flex-shrink: 0;
+    }
+
+    .save-notice { font-size: 11px; color: var(--green); font-family: var(--font-mono); display: none; }
+    .save-notice.show { display: block; }
+
+    /* Multi-select for admin roles */
+    .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .check-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 9999px;
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      transition: all 0.12s;
+      user-select: none;
+    }
+
+    .check-pill input { display: none; }
+    .check-pill.checked { background: rgba(10,132,255,0.15); color: var(--blue); border-color: rgba(10,132,255,0.30); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+    }
+
+    .empty-state .icon { font-size: 36px; opacity: 0.4; }
+    .empty-state h3 { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.45); }
+    .empty-state p  { font-size: 13px; color: var(--muted); font-family: var(--font-mono); text-align: center; max-width: 280px; line-height: 1.6; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.60);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 20px;
+      z-index: 500;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: rgba(8,10,28,0.98);
+      border: 0.5px solid rgba(255,255,255,0.22);
+      border-radius: 22px;
+      padding: 24px;
+      width: 100%;
+      max-width: 460px;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    }
+
+    .modal-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+    .modal-sub   { font-size: 12px; color: var(--muted); margin-bottom: 18px; font-family: var(--font-mono); }
+
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 0.5px solid var(--border2);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head);
+      transition: all 0.15s;
+    }
+
+    .modal-close:hover { background: rgba(255,69,58,0.18); color: var(--red); }
+
+    .modal-divider { height: 0.5px; background: var(--border); margin: 16px 0; }
+    .modal-section-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.32); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 10px; font-family: var(--font-mono); }
+
+    .field-placeholder {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px dashed rgba(255,255,255,0.16);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-row  { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+    .btn-row .btn { width: auto; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 9999px; }
+
+    /* ── Animations ── */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .screen.show { animation: fadeIn 0.25s ease; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOADING ═══ -->
+<div class="screen show" id="screen-loading">
+  <div style="text-align:center">
+    <div class="loading-logo">FRC Scout</div>
+    <div class="loading-sub" style="margin:8px 0 18px">Team 4028 · Bravely Bold</div>
+    <div class="spinner" style="margin:0 auto"></div>
+  </div>
+</div>
+
+<!-- ═══ GATE — shown to non-admins first ═══ -->
+<div class="screen" id="screen-gate">
+  <div class="gate-card">
+    <div class="gate-icon">🔒</div>
+    <div class="gate-title">Admin access required</div>
+    <div class="gate-sub">
+      The full dashboard is only available to <strong id="gate-roles-label">coaches and lead scouts</strong>.<br>
+      Ask your team admin to log you in, or log in below if you have access.
+    </div>
+
+    <button class="btn" onclick="showGateLogin()" id="gate-next-btn">I'm an admin — log in</button>
+
+    <div class="gate-divider"></div>
+
+    <div id="gate-login-section" style="display:none">
+      <div class="gate-hint">Admin credentials</div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="gate-username" placeholder="username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="gate-password" placeholder="••••••••" type="password" autocomplete="current-password" />
+      </div>
+      <button class="btn primary" onclick="attemptAdminLogin()">Log in to admin dashboard</button>
+      <div class="error-msg" id="gate-error"></div>
+    </div>
+
+    <div class="gate-divider"></div>
+    <button class="btn" onclick="showScouterLogin()" style="background:rgba(255,255,255,0.04)">Log in as scout</button>
+  </div>
+</div>
+
+<!-- ═══ SCOUTER LOGIN ═══ -->
+<div class="screen" id="screen-scouter-login">
+  <div class="gate-card">
+    <div class="gate-icon">🎯</div>
+    <div class="gate-title">Scout login</div>
+    <div class="gate-sub">Enter your credentials to view your scouting data.</div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="scout-username" placeholder="username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="scout-password" placeholder="••••••••" type="password" autocomplete="current-password" />
+    </div>
+    <button class="btn primary" onclick="attemptScouterLogin()">Log in</button>
+    <div class="error-msg" id="scout-error"></div>
+    <div class="gate-divider"></div>
+    <button class="btn" onclick="showScreen('screen-gate')" style="background:rgba(255,255,255,0.04)">← Back</button>
+  </div>
+</div>
+
+<!-- ═══ SCOUTER DASHBOARD ═══ -->
+<div class="screen" id="screen-scouter">
+  <div class="scout-topbar">
+    <div class="scout-topbar-left">
+      <div class="topbar-logo">FRC Scout</div>
+      <div class="topbar-sep"></div>
+      <div class="topbar-greeting">Hello, <strong id="scouter-name">—</strong></div>
+    </div>
+    <div class="topbar-right">
+      <span class="pill green" id="scouter-active-game">● Active</span>
+      <span class="pill" id="scouter-clock">—</span>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+  <div class="scout-body">
+    <div class="scout-stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">My scouting mins</div>
+        <div class="stat-value" id="sc-mins">0</div>
+        <div class="stat-sub">this season</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Matches logged</div>
+        <div class="stat-value" id="sc-matches">0</div>
+        <div class="stat-sub up">keep it up</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Team rank</div>
+        <div class="stat-value" id="sc-rank">#—</div>
+        <div class="stat-sub">by scout minutes</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Recent team activity</div>
+      </div>
+      <div class="panel-body" id="scouter-activity"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN DASHBOARD ═══ -->
+<div class="screen" id="screen-admin">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="team-badge">
+        <div class="badge-circle" id="admin-badge-num">4028</div>
+        <div>
+          <div class="badge-name" id="admin-badge-name">Team 4028</div>
+          <div class="badge-sub" id="admin-badge-sub">Bravely Bold</div>
+        </div>
+      </div>
+      <button class="new-game-btn" onclick="openModal()">
+        <div class="plus-circle">+</div>
+        New game setup
+      </button>
+    </div>
+
+    <div class="sidebar-scroll">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="switchPage('dashboard', this)">
+        <span class="nav-icon">⊞</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="switchPage('games', this)">
+        <span class="nav-icon">◈</span> Games
+      </div>
+      <div class="nav-item" onclick="switchPage('account', this)">
+        <span class="nav-icon">⊙</span> Team &amp; Accounts
+      </div>
+
+      <div class="nav-section">Scouting</div>
+      <div class="nav-item" onclick="switchPage('matchdata', this)">
+        <span class="nav-icon">≡</span> Match Data
+      </div>
+      <div class="nav-item" onclick="switchPage('analytics', this)">
+        <span class="nav-icon">△</span> Analytics
+      </div>
+      <div class="nav-item" onclick="switchPage('exports', this)">
+        <span class="nav-icon">↓</span> Exports
+      </div>
+
+      <div class="nav-section">Config</div>
+      <div class="nav-item" onclick="switchPage('settings', this)">
+        <span class="nav-icon">⚙</span> Settings
+      </div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-row" style="margin-bottom:10px">
+        <div class="user-av" id="admin-user-av">JD</div>
+        <div>
+          <div class="user-name" id="admin-user-name">—</div>
+          <div class="user-role" id="admin-user-role">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" style="width:100%" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="greeting">Hello, <span id="admin-greeting">—</span> 👋</div>
+      <div class="topbar-right">
+        <span class="pill green">● Season active</span>
+        <span class="pill" id="admin-clock">—</span>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-scroll">
+        <div class="section-title">Overview</div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Total scout mins</div>
+            <div class="metric-value" id="m-total-mins">—</div>
+            <div class="metric-sub up">this season</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Active scouts</div>
+            <div class="metric-value" id="m-active-scouts">—</div>
+            <div class="metric-sub" id="m-active-scouts-sub">of — members</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Matches logged</div>
+            <div class="metric-value" id="m-matches">—</div>
+            <div class="metric-sub up">current game</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Flags pending</div>
+            <div class="metric-value">2</div>
+            <div class="metric-sub warn">Needs review</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Scout leaderboard</div>
+              <div class="panel-action" onclick="switchPage('account', document.querySelectorAll('.nav-item')[2])">View all</div>
+            </div>
+            <div class="panel-body" id="scout-list"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Recent games</div>
+              <div class="panel-action" onclick="openModal()">+ New</div>
+            </div>
+            <div class="panel-body" id="games-panel-body"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Recent activity</div></div>
+          <div class="panel-body" id="activity-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Games -->
+    <div id="page-games" class="page">
+      <div class="page-scroll">
+        <div class="section-title">All games</div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Game library</div>
+            <button class="inline-btn" onclick="openModal()">+ New game</button>
+          </div>
+          <div class="panel-body" id="games-full-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team & Accounts -->
+    <div id="page-account" class="page">
+      <div class="account-header">
+        <h2>Team &amp; Accounts</h2>
+        <p>Manage members, roles, and scouting minute tracking</p>
+      </div>
+      <div class="member-table-wrap">
+        <div class="add-member-bar">
+          <input id="new-name"     placeholder="Name" />
+          <input id="new-username" placeholder="Username" style="flex:0.8" />
+          <input id="new-email"    placeholder="Email" />
+          <input id="new-password" placeholder="Password" type="password" style="flex:0.8" />
+          <select id="new-role">
+            <option value="scouter">Scouter</option>
+            <option value="assistant">Asst. Scout</option>
+            <option value="lead">Lead Scout</option>
+            <option value="coach">Coach</option>
+          </select>
+          <button class="inline-btn" onclick="addMember()">Add member</button>
+        </div>
+        <table class="member-table">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Scout mins</th>
+              <th>Matches</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="member-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Match Data -->
+    <div id="page-matchdata" class="page">
+      <div class="empty-state">
+        <div class="icon">≡</div>
+        <h3>Match Data</h3>
+        <p>Match scouting data will appear here once scouts start logging.</p>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div id="page-analytics" class="page">
+      <div class="empty-state">
+        <div class="icon">△</div>
+        <h3>Analytics</h3>
+        <p>Charts and team performance breakdowns will appear as data is collected.</p>
+      </div>
+    </div>
+
+    <!-- Exports -->
+    <div id="page-exports" class="page">
+      <div class="empty-state">
+        <div class="icon">↓</div>
+        <h3>Exports</h3>
+        <p>Download match data as CSV, JSON, or share reports with alliance partners.</p>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="page-settings" class="page">
+      <div class="settings-wrap">
+        <div class="section-title">App settings</div>
+
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <div class="settings-section-title">Team info</div>
+            <div class="settings-section-sub">Basic team identity shown throughout the app</div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Team number</div>
+              <div class="settings-row-sub">Your FRC team number</div>
+            </div>
+            <input class="settings-input" id="s-team-number" placeholder="4028" />
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Team name / nickname</div>
+              <div class="settings-row-sub">Shown in the sidebar</div>
+            </div>
+            <input class="settings-input" id="s-team-name" placeholder="Bravely Bold" />
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <div class="settings-section-title">Access control</div>
+            <div class="settings-section-sub">Which roles can access the admin dashboard</div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Admin roles</div>
+              <div class="settings-row-sub">Users with these roles bypass the gate screen</div>
+            </div>
+            <div class="checkbox-group" id="admin-roles-group">
+              <label class="check-pill" id="chk-coach">
+                <input type="checkbox" value="coach" onchange="syncCheckPill(this)" /> Coach
+              </label>
+              <label class="check-pill" id="chk-lead">
+                <input type="checkbox" value="lead" onchange="syncCheckPill(this)" /> Lead Scout
+              </label>
+              <label class="check-pill" id="chk-assistant">
+                <input type="checkbox" value="assistant" onchange="syncCheckPill(this)" /> Asst. Scout
+              </label>
+              <label class="check-pill" id="chk-scouter">
+                <input type="checkbox" value="scouter" onchange="syncCheckPill(this)" /> Scouter
+              </label>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Per-user dashboards</div>
+              <div class="settings-row-sub">Each user sees their own personal stats view on login (instead of the gate screen)</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="s-per-user" onchange="syncToggle(this)" />
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+      <div class="settings-save-bar">
+        <button class="inline-btn" onclick="saveSettings()">Save settings</button>
+        <span class="save-notice" id="save-notice">✓ Saved</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ NEW GAME MODAL ═══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Set up a new game</div>
+    <div class="modal-sub">Configure the basic details — you can add custom fields later</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Game name</label>
+        <input class="form-input" id="modal-game-name" placeholder="e.g. Reefscape 2025" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Season year</label>
+        <input class="form-input" id="modal-game-year" placeholder="2025" type="number" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Event / competition</label>
+        <input class="form-input" id="modal-game-event" placeholder="e.g. District Championship" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Start date</label>
+        <input class="form-input" id="modal-game-date" type="date" />
+      </div>
+    </div>
+
+    <div class="modal-divider"></div>
+    <div class="modal-section-label">Scouting form fields</div>
+    <div class="field-placeholder">Custom form fields (counters, toggles, sliders) — coming soon</div>
+    <div class="field-placeholder" style="margin-bottom:0">Equation / scoring logic builder — coming soon</div>
+
+    <div class="btn-row">
+      <button class="btn sm" onclick="closeModal()">Cancel</button>
+      <button class="btn sm primary" onclick="createGame()">Create game</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ STATE ═══════════════════════════════════════════════════════════
+let appState = {
+  users:    null,
+  settings: null,
+  data:     null,
+  currentUser: null,
+};
+
+const ROLE_LABELS = {
+  coach:     'Coach',
+  lead:      'Lead Scout',
+  assistant: 'Asst. Scout',
+  scouter:   'Scouter',
+};
+
+// ═══ UTILITY ═════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+function initials(name) {
+  return name.trim().split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// ═══ CLOCK ═══════════════════════════════════════════════════════════
+function updateClocks() {
+  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const adminClock   = document.getElementById('admin-clock');
+  const scouterClock = document.getElementById('scouter-clock');
+  if (adminClock)   adminClock.textContent   = t;
+  if (scouterClock) scouterClock.textContent = t;
+}
+
+updateClocks();
+setInterval(updateClocks, 1000);
+
+// ═══ STARTUP ═════════════════════════════════════════════════════════
+async function init() {
+  // In Electron: load from files. In browser dev: use mock data.
+  const api = window.api;
+  if (api) {
+    const all = await api.loadAll();
+    appState.users    = all.users;
+    appState.settings = all.settings;
+    appState.data     = all.data;
+  } else {
+    // Dev fallback (browser preview)
+    appState.users    = { members: [], nextId: 1 };
+    appState.settings = { teamNumber: '4028', teamName: 'Bravely Bold', adminRoles: ['coach','lead'], perUserDashboard: false, activeGame: '' };
+    appState.data     = { games: [], matchLogs: [], activity: [], nextGameId: 1 };
+  }
+
+  // Short artificial pause for polish
+  await new Promise(r => setTimeout(r, 600));
+
+  const { settings, users } = appState;
+
+  // Update gate label
+  const roleNames = (settings.adminRoles || ['coach','lead'])
+    .map(r => ROLE_LABELS[r] || r)
+    .join(' and ');
+  document.getElementById('gate-roles-label').textContent = roleNames.toLowerCase() + 's';
+
+  // Update sidebar team info
+  document.getElementById('admin-badge-num').textContent  = settings.teamNumber;
+  document.getElementById('admin-badge-name').textContent = 'Team ' + settings.teamNumber;
+  document.getElementById('admin-badge-sub').textContent  = settings.teamName;
+
+  // If perUserDashboard is OFF → show gate
+  // If perUserDashboard is ON  → show scouter login (everyone logs in)
+  if (settings.perUserDashboard) {
+    showScreen('screen-scouter-login');
+  } else {
+    showScreen('screen-gate');
+  }
+}
+
+// ═══ GATE FLOW ═══════════════════════════════════════════════════════
+function showGateLogin() {
+  document.getElementById('gate-login-section').style.display = 'block';
+  document.getElementById('gate-next-btn').style.display = 'none';
+  document.getElementById('gate-username').focus();
+}
+
+function showScouterLogin() {
+  showScreen('screen-scouter-login');
+}
+
+async function attemptAdminLogin() {
+  const username = document.getElementById('gate-username').value.trim();
+  const password = document.getElementById('gate-password').value;
+  const errEl    = document.getElementById('gate-error');
+
+  errEl.classList.remove('show');
+
+  let result;
+  if (window.api) {
+    result = await window.api.login({ username, password });
+  } else {
+    // Dev fallback
+    result = { ok: false, error: 'No Electron API (dev mode).' };
+  }
+
+  if (!result.ok) {
+    errEl.textContent = result.error;
+    errEl.classList.add('show');
+    return;
+  }
+
+  if (!result.isAdmin) {
+    errEl.textContent = 'Your role (' + ROLE_LABELS[result.member.role] + ') does not have admin access.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  appState.currentUser = result.member;
+  enterAdmin();
+}
+
+async function attemptScouterLogin() {
+  const username = document.getElementById('scout-username').value.trim();
+  const password = document.getElementById('scout-password').value;
+  const errEl    = document.getElementById('scout-error');
+
+  errEl.classList.remove('show');
+
+  let result;
+  if (window.api) {
+    result = await window.api.login({ username, password });
+  } else {
+    result = { ok: false, error: 'No Electron API (dev mode).' };
+  }
+
+  if (!result.ok) {
+    errEl.textContent = result.error;
+    errEl.classList.add('show');
+    return;
+  }
+
+  appState.currentUser = result.member;
+
+  // If the user is an admin AND perUserDashboard is off, send them to admin
+  const isAdmin = (appState.settings.adminRoles || []).includes(result.member.role);
+  if (isAdmin && !appState.settings.perUserDashboard) {
+    enterAdmin();
+  } else {
+    enterScouter();
+  }
+}
+
+// ═══ ENTER SCOUTER ═══════════════════════════════════════════════════
+function enterScouter() {
+  const member = appState.currentUser;
+  const users  = appState.users.members;
+  const data   = appState.data;
+
+  document.getElementById('scouter-name').textContent = member.name.split(' ')[0];
+  document.getElementById('sc-mins').textContent      = member.mins;
+  document.getElementById('sc-matches').textContent   = member.matches;
+
+  // Rank by mins (non-coaches)
+  const ranked = [...users].filter(m => m.role !== 'coach').sort((a, b) => b.mins - a.mins);
+  const rank   = ranked.findIndex(m => m.id === member.id) + 1;
+  document.getElementById('sc-rank').textContent = rank > 0 ? '#' + rank : '#—';
+
+  // Active game pill
+  const activeGame = (data.games || []).find(g => g.status === 'active');
+  document.getElementById('scouter-active-game').textContent =
+    activeGame ? '● ' + activeGame.name : '● No active game';
+
+  // Activity
+  const actEl = document.getElementById('scouter-activity');
+  actEl.innerHTML = (data.activity || []).slice(0, 5).map(a =>
+    `<div class="activity-row">
+      <div class="act-dot"></div>
+      <div><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div>
+    </div>`
+  ).join('') || '<div style="font-size:12px;color:var(--muted);padding:10px 0">No recent activity.</div>';
+
+  showScreen('screen-scouter');
+}
+
+// ═══ ENTER ADMIN ═════════════════════════════════════════════════════
+function enterAdmin() {
+  const member   = appState.currentUser;
+  const users    = appState.users.members;
+  const data     = appState.data;
+  const settings = appState.settings;
+
+  // Topbar
+  document.getElementById('admin-greeting').textContent     = member.name.split(' ')[0];
+  document.getElementById('admin-user-av').textContent      = initials(member.name);
+  document.getElementById('admin-user-name').textContent    = member.name;
+  document.getElementById('admin-user-role').textContent    = ROLE_LABELS[member.role] || member.role;
+
+  // Metrics
+  const totalMins    = users.reduce((s, m) => s + (m.mins || 0), 0);
+  const activeScouts = users.filter(m => m.status === 'active').length;
+  const activeGame   = (data.games || []).find(g => g.status === 'active');
+
+  document.getElementById('m-total-mins').textContent          = totalMins.toLocaleString();
+  document.getElementById('m-active-scouts').textContent       = activeScouts;
+  document.getElementById('m-active-scouts-sub').textContent   = 'of ' + users.length + ' members';
+  document.getElementById('m-matches').textContent             = activeGame ? activeGame.matches : 0;
+
+  renderScoutList();
+  renderGamesPanelBody();
+  renderActivity();
+  renderGamesFull();
+  loadSettingsUI();
+
+  switchPage('dashboard', document.querySelector('.nav-item.active'));
+  showScreen('screen-admin');
+}
+
+// ═══ ADMIN PAGE SWITCH ════════════════════════════════════════════════
+function switchPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (id === 'account') renderMemberTable();
+}
+
+// ═══ RENDER HELPERS ═══════════════════════════════════════════════════
+function renderScoutList() {
+  const top4 = [...appState.users.members]
+    .filter(m => m.role !== 'coach')
+    .sort((a, b) => b.mins - a.mins)
+    .slice(0, 4);
+
+  document.getElementById('scout-list').innerHTML = top4.map(m => {
+    const cls = m.role === 'lead' ? 'lead' : m.role === 'coach' ? 'coach' : '';
+    return `<div class="scout-row">
+      <div class="scout-av-sm">${initials(m.name)}</div>
+      <div class="scout-name">${m.name}</div>
+      <div class="scout-mins">${m.mins} min</div>
+      <span class="role-badge ${cls}">${ROLE_LABELS[m.role] || m.role}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderGamesPanelBody() {
+  const games = (appState.data.games || []).slice(0, 3);
+  const icons = { active: '🏆', archived: '⚙️', draft: '📋' };
+  document.getElementById('games-panel-body').innerHTML = games.map(g =>
+    `<div class="game-row">
+      <div class="game-icon">${icons[g.status] || '⚙️'}</div>
+      <div><div class="game-name">${g.name}</div><div class="game-meta">${g.matches} matches · ${g.scouts || 0} scouts</div></div>
+      <div class="game-status ${g.status}">${g.status === 'active' ? 'Active' : 'Archived'}</div>
+    </div>`
+  ).join('') || '<div style="font-size:12px;color:var(--muted);padding:10px 0">No games yet.</div>';
+}
+
+function renderGamesFull() {
+  const games = appState.data.games || [];
+  const icons = { active: '🏆', archived: '⚙️', draft: '📋' };
+  document.getElementById('games-full-list').innerHTML = games.map(g =>
+    `<div class="game-row">
+      <div class="game-icon">${icons[g.status] || '⚙️'}</div>
+      <div>
+        <div class="game-name">${g.name}</div>
+        <div class="game-meta">${g.matches} matches · Created ${g.created}</div>
+      </div>
+      <div class="game-status ${g.status}">${g.status === 'active' ? 'Active' : 'Archived'}</div>
+      ${g.status !== 'active' ? `<button class="inline-btn" style="font-size:11px;padding:5px 10px;margin-left:8px" onclick="setActiveGame(${g.id})">Set active</button>` : ''}
+    </div>`
+  ).join('') || '<div style="font-size:12px;color:var(--muted);padding:10px 0">No games yet. Create one!</div>';
+}
+
+function renderActivity() {
+  const acts = appState.data.activity || [];
+  document.getElementById('activity-panel').innerHTML = acts.slice(0, 5).map(a =>
+    `<div class="activity-row">
+      <div class="act-dot"></div>
+      <div><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div>
+    </div>`
+  ).join('') || '<div style="font-size:12px;color:var(--muted);padding:10px 0">No activity yet.</div>';
+}
+
+function renderMemberTable() {
+  const sorted = [...appState.users.members].sort((a, b) => b.mins - a.mins);
+  document.getElementById('member-tbody').innerHTML = sorted.map(m => {
+    const roleOptions = ['coach','lead','assistant','scouter']
+      .map(r => `<option value="${r}"${m.role === r ? ' selected' : ''}>${ROLE_LABELS[r]}</option>`)
+      .join('');
+    const statusHtml = m.status === 'active'
+      ? `<span class="status-dot-active">● Active</span>`
+      : `<span class="status-dot-idle">● Idle</span>`;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:9px">
+          <div class="scout-av-sm">${initials(m.name)}</div>
+          <div>
+            <div style="font-size:12px;font-weight:700">${m.name}</div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">${m.email || '—'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${m.username || '—'}</td>
+      <td><select class="role-select" onchange="changeRole(${m.id}, this.value)">${roleOptions}</select></td>
+      <td><span class="mins-badge">${m.mins} min</span></td>
+      <td style="font-size:12px;color:var(--muted);font-family:var(--font-mono)">${m.matches}</td>
+      <td>${statusHtml}</td>
+      <td><button class="remove-btn" onclick="removeMember(${m.id})">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══ MEMBER ACTIONS ═══════════════════════════════════════════════════
+async function addMember() {
+  const name     = document.getElementById('new-name').value.trim();
+  const username = document.getElementById('new-username').value.trim();
+  const email    = document.getElementById('new-email').value.trim();
+  const password = document.getElementById('new-password').value.trim();
+  const role     = document.getElementById('new-role').value;
+  if (!name || !username) return;
+
+  const member = { name, username, email: email || '—', password: password || 'scout1234', role, mins: 0, matches: 0, status: 'active' };
+
+  if (window.api) {
+    await window.api.addUser(member);
+    const fresh = await window.api.getUsers();
+    appState.users = fresh;
+  } else {
+    member.id = appState.users.nextId++;
+    appState.users.members.push(member);
+  }
+
+  ['new-name','new-username','new-email','new-password'].forEach(id => document.getElementById(id).value = '');
+  renderMemberTable();
+  renderScoutList();
+}
+
+async function changeRole(id, role) {
+  if (window.api) {
+    await window.api.updateUser(id, { role });
+    const fresh = await window.api.getUsers();
+    appState.users = fresh;
+  } else {
+    appState.users.members = appState.users.members.map(m => m.id === id ? { ...m, role } : m);
+  }
+  renderScoutList();
+}
+
+async function removeMember(id) {
+  if (window.api) {
+    await window.api.removeUser(id);
+    const fresh = await window.api.getUsers();
+    appState.users = fresh;
+  } else {
+    appState.users.members = appState.users.members.filter(m => m.id !== id);
+  }
+  renderMemberTable();
+  renderScoutList();
+}
+
+// ═══ GAME ACTIONS ═════════════════════════════════════════════════════
+async function setActiveGame(id) {
+  if (window.api) {
+    await window.api.setActiveGame(id);
+    const fresh = await window.api.getData();
+    appState.data = fresh;
+  } else {
+    appState.data.games = appState.data.games.map(g => ({
+      ...g, status: g.id === id ? 'active' : (g.status === 'active' ? 'archived' : g.status)
+    }));
+  }
+  renderGamesFull();
+  renderGamesPanelBody();
+}
+
+// ═══ NEW GAME MODAL ════════════════════════════════════════════════════
+function openModal()  { document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+async function createGame() {
+  const name  = document.getElementById('modal-game-name').value.trim();
+  const year  = document.getElementById('modal-game-year').value.trim();
+  const event = document.getElementById('modal-game-event').value.trim();
+  const date  = document.getElementById('modal-game-date').value;
+  if (!name) return;
+
+  const game = {
+    name,
+    year:    parseInt(year) || new Date().getFullYear(),
+    event:   event || '',
+    created: date || new Date().toISOString().slice(0, 10),
+    matches: 0,
+    scouts:  0,
+    status:  'draft',
+  };
+
+  if (window.api) {
+    await window.api.addGame(game);
+    const fresh = await window.api.getData();
+    appState.data = fresh;
+  } else {
+    game.id = appState.data.nextGameId++;
+    appState.data.games.push(game);
+  }
+
+  ['modal-game-name','modal-game-year','modal-game-event','modal-game-date'].forEach(id => document.getElementById(id).value = '');
+  closeModal();
+  renderGamesFull();
+  renderGamesPanelBody();
+}
+
+// ═══ SETTINGS ═════════════════════════════════════════════════════════
+function loadSettingsUI() {
+  const s = appState.settings;
+  document.getElementById('s-team-number').value = s.teamNumber || '';
+  document.getElementById('s-team-name').value   = s.teamName   || '';
+
+  // Admin role checkboxes
+  const adminRoles = s.adminRoles || [];
+  ['coach','lead','assistant','scouter'].forEach(r => {
+    const el  = document.querySelector(`#chk-${r} input`);
+    const lbl = document.getElementById('chk-' + r);
+    if (el) {
+      el.checked = adminRoles.includes(r);
+      lbl.classList.toggle('checked', el.checked);
+    }
+  });
+
+  // Per-user toggle
+  const toggle = document.getElementById('s-per-user');
+  if (toggle) toggle.checked = !!s.perUserDashboard;
+}
+
+function syncCheckPill(input) {
+  const label = input.closest('.check-pill');
+  if (label) label.classList.toggle('checked', input.checked);
+}
+
+function syncToggle(input) {
+  // nothing extra needed; state read on save
+}
+
+async function saveSettings() {
+  const teamNumber = document.getElementById('s-team-number').value.trim();
+  const teamName   = document.getElementById('s-team-name').value.trim();
+  const perUser    = document.getElementById('s-per-user').checked;
+
+  const adminRoles = [];
+  ['coach','lead','assistant','scouter'].forEach(r => {
+    const el = document.querySelector(`#chk-${r} input`);
+    if (el && el.checked) adminRoles.push(r);
+  });
+
+  const newSettings = { teamNumber, teamName, adminRoles, perUserDashboard: perUser };
+
+  if (window.api) {
+    await window.api.saveSettings(newSettings);
+    const fresh = await window.api.getSettings();
+    appState.settings = fresh;
+  } else {
+    appState.settings = { ...appState.settings, ...newSettings };
+  }
+
+  // Update sidebar
+  document.getElementById('admin-badge-num').textContent  = teamNumber;
+  document.getElementById('admin-badge-name').textContent = 'Team ' + teamNumber;
+  document.getElementById('admin-badge-sub').textContent  = teamName;
+
+  // Show saved notice
+  const notice = document.getElementById('save-notice');
+  notice.classList.add('show');
+  setTimeout(() => notice.classList.remove('show'), 2500);
+}
+
+// ═══ LOGOUT ═══════════════════════════════════════════════════════════
+function logout() {
+  appState.currentUser = null;
+  // Reset gate UI
+  document.getElementById('gate-login-section').style.display = 'none';
+  document.getElementById('gate-next-btn').style.display = 'block';
+  document.getElementById('gate-username').value = '';
+  document.getElementById('gate-password').value = '';
+  document.getElementById('gate-error').classList.remove('show');
+  document.getElementById('scout-username').value = '';
+  document.getElementById('scout-password').value = '';
+  document.getElementById('scout-error').classList.remove('show');
+
+  if (appState.settings && appState.settings.perUserDashboard) {
+    showScreen('screen-scouter-login');
+  } else {
+    showScreen('screen-gate');
+  }
+}
+
+// ═══ BOOT ═════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
