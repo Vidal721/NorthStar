@@ -4,7 +4,7 @@
     "match": 1,
     "id": 1775609000313,
     "serverTime": "2026-04-08T00:43:20.313Z",
-    "new_field": 0
+    "pre_name": 0
   },
   {
     "match": 12,
@@ -12,7 +12,7 @@
     "alliance": "Blue",
     "notes": "No",
     "scouter_id": "Austin",
-    "new_field": 0
+    "pre_name": 0
   },
   {
     "match": 1,
@@ -20,7 +20,7 @@
     "alliance": "Red",
     "notes": "",
     "scouter_id": "Austin",
-    "new_field": 0
+    "pre_name": 0
   },
   {
     "match": 1,
@@ -28,6 +28,6 @@
     "alliance": "Red",
     "notes": "Observations",
     "scouter_id": "Austin",
-    "new_field": "f"
+    "pre_name": 0
   }
 ]

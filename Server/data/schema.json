@@ -1,16 +1,12 @@
 {
-  "version": 18,
+  "version": 21,
   "fields": [
     {
-      "id": "1776126796467",
-      "label": "Test Name",
-      "varName": "new_field",
+      "varName": "pre_name",
+      "label": "Name",
       "type": "text",
       "group": "Pre-game",
-      "min": 0,
-      "max": 10,
-      "step": 1,
-      "options": ""
+      "required": true
     }
   ]
 }
