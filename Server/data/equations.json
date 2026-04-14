@@ -1,0 +1,26 @@
+[
+  {
+    "id": "eq1",
+    "varName": "total_score",
+    "label": "Total Score",
+    "formula": "(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)"
+  },
+  {
+    "id": "eq2",
+    "varName": "climb_pts",
+    "label": "Climb Points",
+    "formula": "climb_level * 6"
+  },
+  {
+    "id": "eq3",
+    "varName": "climb_status",
+    "label": "Climb Status",
+    "formula": "if (climb_level === 0) return \"None\"; if (climb_level === 1) return \"Low\"; if (climb_level === 2) return \"Mid\"; return \"High\";"
+  },
+  {
+    "id": "eq1776126953344",
+    "varName": "new_metric",
+    "label": "Sample Metric",
+    "formula": "return 0;new_field + total_score"
+  }
+]

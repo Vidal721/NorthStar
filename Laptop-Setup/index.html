@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NorthStar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../UI/all.css">
+<!-- Reference the local path where you saved the files -->
+<link href="../UI/css/fontawesome.min.css" rel="stylesheet">
+<link href="../UI/css/brands.min.css" rel="stylesheet">
+<link href="../UI/css/solid.min.css" rel="stylesheet">
+
+  <style>
+  /* Runtime color/theme vars — injected by applyTheme() */
+  :root {
+    --logo-p: #0a84ff;
+    --logo-s: #bf5af2;
+    --logo-a: #ffd60a;
+    --dash-fs: 14px;
+    --dash-radius: 14px;
+  }
+
+  html, body { height: 100vh; overflow: hidden; font-size: var(--dash-fs); transition: font-size 0.3s; }
+
+  #screen-loading {
+    position: fixed; inset: 0; background: #060a18;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; z-index: 999; transition: opacity 0.4s ease;
+  }
+  #screen-loading.hide { opacity: 0; pointer-events: none; }
+  .loading-logo { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; background: linear-gradient(135deg,var(--logo-p),var(--logo-s)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; transition:background 0.4s; }
+  .loading-sub  { font-size: 12px; color: var(--text-3); }
+  .loading-pulse { width:8px; height:8px; border-radius:50%; background:var(--logo-p); animation:pulse 1.2s ease-in-out infinite; }
+
+  .screen { display:none; position:fixed; inset:0; align-items:center; justify-content:center; z-index:50; }
+  .screen.show { display:flex; animation:slideUp 0.28s var(--ease-out) both; }
+
+  .gate-wrap {
+    width:380px; background:var(--glass); border:0.5px solid var(--border);
+    border-radius:var(--r-xl); overflow:hidden; box-shadow:var(--sh-lg);
+    backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  }
+  .gate-accent { height:2px; background:linear-gradient(90deg,var(--logo-p),var(--logo-s)); transition:background 0.4s; }
+  .gate-inner { padding:26px 28px 22px; }
+  .gate-logo  { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .logo-badge-team {
+    width:34px; height:34px; border-radius:10px;
+    background:linear-gradient(135deg,var(--logo-p),var(--logo-s));
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; color:#fff; flex-shrink:0;
+    box-shadow:0 2px 10px rgba(0,0,0,0.3); transition:background 0.4s;
+  }
+  .gate-logo-name { font-size:15px; font-weight:700; color:var(--text); }
+  .gate-logo-sub  { font-size:11px; color:var(--text-3); margin-top:1px; }
+  .gate-title { font-size:20px; font-weight:700; letter-spacing:-0.4px; margin-bottom:5px; color:var(--text); }
+  .gate-sub   { font-size:13px; color:var(--text-2); line-height:1.65; margin-bottom:20px; }
+  .gate-sub strong { color:var(--text); font-weight:600; }
+  .form-group { margin-bottom:12px; }
+  .form-label { display:block; font-size:10.5px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+  .gate-divider { height:0.5px; background:var(--divider); margin:16px 0; }
+  .err-msg { font-size:12px; color:var(--red); background:rgba(255,69,58,0.09); border:0.5px solid rgba(255,69,58,0.24); border-radius:9px; padding:7px 12px; margin-top:10px; display:none; }
+  .err-msg.show { display:block; }
+
+  /* Admin shell */
+  #screen-admin { display:none; position:fixed; inset:0; flex-direction:row; align-items:stretch; animation:none; }
+  #screen-admin.show { display:flex; }
+
+  /* Sidebar */
+  .sidebar { width:220px; flex-shrink:0; background:var(--glass-bg-subtle); border-right:0.5px solid var(--glass-border); display:flex; flex-direction:column; backdrop-filter:var(--blur); }
+  .sidebar-top { padding:16px 12px 14px; border-bottom:0.5px solid var(--glass-border); }
+  .team-badge { display:flex; align-items:center; gap:10px; margin-bottom:13px; }
+  .badge-icon { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--logo-p),var(--logo-s)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; box-shadow:0 2px 10px rgba(0,0,0,0.28); transition:background 0.4s; }
+  .badge-name { font-size:13px; font-weight:700; letter-spacing:-0.2px; color:var(--text); }
+  .badge-sub  { font-size:10.5px; color:var(--text-3); }
+  .new-game-btn { display:flex; align-items:center; gap:7px; width:100%; padding:7px 11px; border-radius:var(--r-md); background:var(--glass-bg); border:0.5px solid var(--glass-border); color:var(--text-2); font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; transition:background 0.15s; box-shadow:var(--shadow-sm); }
+  .new-game-btn:hover { background:var(--glass-bg-hover); color:var(--text); }
+  .plus-dot { width:19px; height:19px; border-radius:50%; background:rgba(10,132,255,0.22); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .nav-section { padding:13px 14px 4px; font-size:9.5px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-3); }
+  .nav-item { display:flex; align-items:center; gap:8px; padding:8px 14px; margin:1px 8px; border-radius:var(--r-md); cursor:pointer; font-size:13px; color:var(--text-3); transition:all 0.14s; font-weight:500; }
+  .nav-item:hover { background:var(--glass-bg); color:var(--text-2); }
+  .nav-item.active { background:var(--glass-s); color:var(--text); border:0.5px solid var(--glass-border); box-shadow:var(--shadow-sm); }
+  .nav-icon { font-size:13px; width:17px; text-align:center; }
+  .sidebar-scroll { flex:1; overflow-y:auto; }
+  .sidebar-bottom { padding:12px; border-top:0.5px solid var(--glass-border); }
+  .user-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .user-av { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--logo-p),var(--logo-s)); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:0.5px solid rgba(255,255,255,0.18); transition:background 0.4s; }
+  .user-name { font-size:12px; font-weight:700; color:var(--text); }
+  .user-role { font-size:10.5px; color:var(--text-3); }
+  .logout-btn { font-size:11px; padding:5px 11px; border-radius:9px; border:0.5px solid var(--glass-border); background:var(--glass-bg); color:var(--text-3); cursor:pointer; font-family:inherit; font-weight:600; transition:all 0.15s; }
+  .logout-btn:hover { background:rgba(255,69,58,0.11); color:var(--red); border-color:rgba(255,69,58,0.28); }
+
+  /* Main */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  #topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 22px; border-bottom:0.5px solid var(--glass-border); background:var(--glass-bg-subtle); flex-shrink:0; backdrop-filter:var(--blur); box-shadow:var(--shadow-sm); }
+  .greeting { font-size:16px; font-weight:700; letter-spacing:-0.3px; color:var(--text); }
+  .greeting span { color:var(--text-2); font-weight:400; }
+  .topbar-right { display:flex; align-items:center; gap:8px; }
+
+  /* Pages */
+  .page { display:none; flex:1; flex-direction:column; overflow:hidden; }
+  .page.active { display:flex; }
+  .page-scroll { flex:1; overflow-y:auto; padding:20px 22px; }
+  .section-title { font-size:10px; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-3); margin-bottom:12px; }
+
+  /* Cards — styled from settings at runtime */
+  .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+  .metric-card { border-radius:var(--dash-radius); padding:14px 15px; backdrop-filter:var(--blur); transition:border-radius 0.3s,background 0.4s,border-color 0.4s; }
+  .metric-label { font-size:10.5px; color:var(--text-3); margin-bottom:7px; text-transform:uppercase; letter-spacing:0.05em; }
+  .metric-value { font-size:26px; font-weight:700; letter-spacing:-0.5px; color:var(--text); }
+  .metric-sub   { font-size:11px; color:var(--text-3); margin-top:4px; }
+  .metric-sub.up   { color:var(--green); }
+  .metric-sub.warn { color:var(--orange); }
+  .panel { border-radius:var(--dash-radius); overflow:hidden; margin-bottom:12px; backdrop-filter:var(--blur); transition:border-radius 0.3s,background 0.4s,border-color 0.4s; position:relative; }
+  .panel::before { content:''; position:absolute; top:0; left:0; right:0; height:40%; background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 100%); border-radius:var(--dash-radius) var(--dash-radius) 0 0; pointer-events:none; z-index:1; }
+  .panel-head { padding:11px 16px; border-bottom:0.5px solid var(--glass-border); display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; }
+  .panel-title  { font-size:13px; font-weight:700; color:var(--text); }
+  .panel-action { font-size:11.5px; color:var(--blue); cursor:pointer; font-weight:600; }
+  .panel-body   { padding:8px 16px; position:relative; z-index:2; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+
+  /* Scout rows */
+  .scout-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:0.5px solid rgba(255,255,255,0.055); }
+  .scout-row:last-child { border-bottom:none; }
+  .s-av { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--logo-p),var(--logo-s)); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:0.5px solid rgba(255,255,255,0.16); transition:background 0.4s; box-shadow:var(--shadow-sm); }
+  .s-name { font-size:12.5px; font-weight:600; color:var(--text); flex:1; }
+  .s-mins { font-size:11px; color:var(--text-3); margin-right:4px; }
+  .role-badge { font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:var(--r-pill); border:0.5px solid var(--glass-border); color:var(--text-3); background:var(--glass-bg); }
+  .role-badge.lead  { background:rgba(10,132,255,0.13); color:var(--blue);  border-color:rgba(10,132,255,0.26); }
+  .role-badge.coach { background:rgba(48,209,88,0.11);  color:var(--green); border-color:rgba(48,209,88,0.24); }
+
+  /* Game rows */
+  .game-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid rgba(255,255,255,0.055); }
+  .game-row:last-child { border-bottom:none; }
+  .game-icon { width:30px; height:30px; border-radius:9px; background:var(--glass-bg); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .game-name { font-size:12.5px; font-weight:700; color:var(--text); }
+  .game-meta { font-size:11px; color:var(--text-3); }
+  .game-status { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill); margin-left:auto; }
+  .game-status.active   { background:rgba(48,209,88,0.11);  color:var(--green); }
+  .game-status.archived { background:var(--glass-bg); color:var(--text-3); }
+
+  /* Activity */
+  .act-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:0.5px solid rgba(255,255,255,0.055); }
+  .act-row:last-child { border-bottom:none; }
+  .act-dot { width:6px; height:6px; border-radius:50%; background:var(--blue); flex-shrink:0; margin-top:5px; }
+  .act-text { font-size:12px; line-height:1.55; color:var(--text-2); }
+  .act-time { font-size:11px; color:var(--text-3); margin-top:2px; }
+
+  /* Account page */
+  .account-header { padding:16px 22px; border-bottom:0.5px solid var(--glass-border); flex-shrink:0; }
+  .account-header h2 { font-size:16px; font-weight:700; letter-spacing:-0.3px; color:var(--text); margin-bottom:2px; }
+  .account-header p  { font-size:12px; color:var(--text-3); }
+  .member-table-wrap { flex:1; overflow-y:auto; padding:16px 22px; }
+  .add-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .add-bar .input { flex:1; min-width:100px; padding:8px 11px; font-size:13px; }
+  .add-bar select.input { min-width:120px; flex:0; }
+  .member-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .member-table th { text-align:left; padding:8px 12px; font-size:9.5px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; border-bottom:0.5px solid var(--glass-border); }
+  .member-table td { padding:10px 12px; border-bottom:0.5px solid rgba(255,255,255,0.05); vertical-align:middle; color:var(--text-2); }
+  .member-table tr:last-child td { border-bottom:none; }
+  .member-table tbody tr:hover td { background:var(--glass-bg-subtle); }
+  .role-select { font-size:12px; padding:4px 8px; border-radius:8px; border:0.5px solid var(--glass-border); background:var(--glass-bg); color:var(--text); cursor:pointer; outline:none; font-family:inherit; }
+  .role-select option { background:#0d1225; }
+  .mins-badge { font-size:11px; font-weight:700; padding:2px 9px; border-radius:var(--r-pill); background:var(--glass-bg); color:var(--text-2); border:0.5px solid var(--glass-border); }
+  .status-active { color:var(--green); font-size:11px; font-weight:700; }
+  .status-idle   { color:var(--text-3); font-size:11px; }
+
+  /* Settings page */
+  .settings-wrap { flex:1; overflow-y:auto; padding:20px 22px; }
+  .settings-section { background:var(--glass-bg); border:0.5px solid var(--glass-border); border-radius:var(--dash-radius); overflow:hidden; margin-bottom:14px; box-shadow:var(--shadow-sm); transition:border-radius 0.3s; }
+  .settings-head { padding:12px 16px; border-bottom:0.5px solid var(--glass-border); }
+  .settings-head-title { font-size:13px; font-weight:700; color:var(--text); }
+  .settings-head-sub   { font-size:11.5px; color:var(--text-3); margin-top:2px; }
+  .settings-row { display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-bottom:0.5px solid rgba(255,255,255,0.045); gap:16px; }
+  .settings-row:last-child { border-bottom:none; }
+  .settings-row-title { font-size:13px; font-weight:600; color:var(--text); }
+  .settings-row-sub   { font-size:11.5px; color:var(--text-3); margin-top:2px; }
+  .settings-input { padding:7px 11px; font-size:12.5px; border-radius:9px; border:0.5px solid var(--glass-border); background:var(--glass-bg); color:var(--text); outline:none; font-family:inherit; min-width:150px; transition:border-color 0.2s; }
+  .settings-input:focus { border-color:rgba(10,132,255,0.55); }
+  .s-toggle { position:relative; width:36px; height:21px; flex-shrink:0; }
+  .s-toggle input { opacity:0; width:0; height:0; }
+  .s-toggle-track { position:absolute; inset:0; background:rgba(255,255,255,0.11); border-radius:var(--r-pill); cursor:pointer; transition:background 0.2s; border:0.5px solid var(--glass-border); }
+  .s-toggle input:checked + .s-toggle-track { background:var(--blue); border-color:transparent; }
+  .s-toggle-track::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:transform 0.2s var(--ease-spring); box-shadow:0 1px 4px rgba(0,0,0,0.3); }
+  .s-toggle input:checked + .s-toggle-track::after { transform:translateX(15px); }
+  .check-pills { display:flex; gap:7px; flex-wrap:wrap; }
+  .check-pill { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--r-pill); border:0.5px solid var(--glass-border); background:var(--glass-bg); cursor:pointer; font-size:12px; font-weight:600; color:var(--text-3); font-family:inherit; transition:all 0.14s; user-select:none; }
+  .check-pill input { display:none; }
+  .check-pill.on { background:rgba(10,132,255,0.14); color:var(--blue); border-color:rgba(10,132,255,0.28); }
+  .save-bar { padding:12px 22px; border-top:0.5px solid var(--glass-border); background:var(--glass-bg-subtle); display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .save-notice { font-size:12px; color:var(--green); display:none; font-weight:600; }
+  .save-notice.show { display:block; }
+
+  /* Scouter screen */
+  #screen-scouter { flex-direction:column; }
+  .scout-topbar { padding:12px 24px; border-bottom:0.5px solid var(--glass-border); background:var(--glass-bg-subtle); backdrop-filter:var(--blur); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .scout-topbar-left { display:flex; align-items:center; gap:11px; }
+  .topbar-wordmark { font-size:15px; font-weight:700; background:linear-gradient(135deg,var(--logo-p),var(--logo-s)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:-0.3px; transition:background 0.4s; }
+  .topbar-sep { width:0.5px; height:15px; background:var(--glass-border); }
+  .topbar-greet { font-size:13px; color:var(--text-2); }
+  .topbar-greet strong { color:var(--text); font-weight:700; }
+  .scout-body { flex:1; overflow-y:auto; padding:22px; }
+  .scout-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+
+  /* Empty state */
+  .empty-state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--text-3); }
+  .empty-state .icon { font-size:32px; opacity:0.4; }
+  .empty-state h3 { font-size:14px; font-weight:700; color:var(--text-2); }
+  .empty-state p  { font-size:12.5px; color:var(--text-3); text-align:center; max-width:260px; line-height:1.6; }
+
+  /* Modal */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.58); backdrop-filter:blur(12px); display:none; align-items:flex-start; justify-content:center; padding:48px 20px; z-index:500; overflow-y:auto; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:rgba(8,10,26,0.97); border:0.5px solid var(--glass-border-strong); border-radius:var(--r-xl); padding:24px; width:100%; max-width:440px; position:relative; box-shadow:var(--shadow-lg); }
+  .modal-close { position:absolute; top:14px; right:14px; width:25px; height:25px; border-radius:50%; background:var(--glass-bg); border:0.5px solid var(--glass-border); cursor:pointer; font-size:12px; color:var(--text-2); display:flex; align-items:center; justify-content:center; font-family:inherit; transition:all 0.15s; }
+  .modal-close:hover { background:rgba(255,69,58,0.16); color:var(--red); }
+  .modal-title { font-size:15px; font-weight:700; margin-bottom:3px; color:var(--text); }
+  .modal-sub   { font-size:12px; color:var(--text-3); margin-bottom:18px; }
+  .modal-divider { height:0.5px; background:var(--divider); margin:14px 0; }
+  .modal-sec-label { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:0.09em; margin-bottom:9px; }
+  .placeholder-box { background:rgba(255,255,255,0.03); border:0.5px dashed var(--glass-border); border-radius:10px; padding:13px; font-size:12px; color:var(--text-3); text-align:center; margin-bottom:7px; }
+  .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .btn-row    { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+
+<div id="screen-loading">
+  <div class="loading-logo" id="loading-logo">NorthStar</div>
+  <div class="loading-sub">Loading…</div>
+  <div class="loading-pulse"></div>
+</div>
+
+<div class="screen" id="screen-gate">
+  <div class="gate-wrap">
+    <div class="gate-accent"></div>
+    <div class="gate-inner">
+      <div class="gate-logo">
+        <div class="logo-badge-team" id="gate-badge"><img src="Images/Stylized compass star logo design.png" alt=""></div>
+        <div>
+          <div class="gate-logo-name" id="gate-app-name">NorthStar</div>
+          <div class="gate-logo-sub"  id="gate-team-label">Team ????</div>
+        </div>
+      </div>
+      <div class="gate-title">Admin access required</div>
+      <div class="gate-sub">The full dashboard is for <strong id="gate-role-hint">coaches &amp; lead scouts</strong>. Ask your admin to log in, or log in below.</div>
+      <button class="btn btn-glass" id="gate-admin-btn" onclick="showAdminLogin()" style="width:100%">I'm an admin — log in</button>
+      <div id="gate-login-form" style="display:none;margin-top:12px">
+        <div class="form-group"><label class="form-label">Username</label><input class="input" id="gate-user" placeholder="username" autocomplete="username"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="input" id="gate-pass" placeholder="••••••••" type="password" autocomplete="current-password"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="attemptAdminLogin()">Log in to dashboard</button>
+        <div class="err-msg" id="gate-err"></div>
+      </div>
+      <div class="gate-divider"></div>
+      <button class="btn btn-ghost" style="width:100%" onclick="showScreen('screen-scout-login')">Log in as scout →</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-scout-login">
+  <div class="gate-wrap">
+    <div class="gate-accent"></div>
+    <div class="gate-inner">
+      <div class="gate-logo">
+        <div class="logo-badge-team">🎯</div>
+        <div>
+          <div class="gate-logo-name">Scout Login</div>
+          <div class="gate-logo-sub" id="scout-login-team">Team ????</div>
+        </div>
+      </div>
+      <div class="gate-title">Welcome back</div>
+      <div class="gate-sub">Log in to view your scouting stats and recent activity.</div>
+      <div class="form-group"><label class="form-label">Username</label><input class="input" id="scout-user" placeholder="username" autocomplete="username"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="input" id="scout-pass" placeholder="••••••••" type="password" autocomplete="current-password"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="attemptScouterLogin()">Log in</button>
+      <div class="err-msg" id="scout-err"></div>
+      <div class="gate-divider"></div>
+      <button class="btn btn-ghost" style="width:100%" onclick="showScreen('screen-gate')">← Back</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-scouter">
+  <div class="scout-topbar">
+    <div class="scout-topbar-left">
+      <div class="topbar-wordmark">NorthStar</div>
+      <div class="topbar-sep"></div>
+      <div class="topbar-greet">Hello, <strong id="scouter-fname">—</strong></div>
+    </div>
+    <div class="topbar-right">
+      <span class="status-pill"><span class="dot"></span><span id="scouter-game-label">Active</span></span>
+      <span id="scouter-clock" style="font-size:11px;color:var(--text-3)">—</span>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+  <div class="scout-body">
+    <div class="scout-stats">
+      <div class="metric-card"><div class="metric-label">My scout mins</div><div class="metric-value" id="sc-mins">0</div><div class="metric-sub">this season</div></div>
+      <div class="metric-card"><div class="metric-label">Matches logged</div><div class="metric-value" id="sc-matches">0</div><div class="metric-sub up">keep it up</div></div>
+      <div class="metric-card"><div class="metric-label">Team rank</div><div class="metric-value" id="sc-rank">#—</div><div class="metric-sub">by scout minutes</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Recent activity</div></div>
+      <div class="panel-body" id="scouter-activity"></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-admin">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="team-badge">
+        <div class="badge-icon" id="admin-badge-icon">NS</div>
+        <div>
+          <div class="badge-name" id="admin-badge-name">NorthStar</div>
+          <div class="badge-sub"  id="admin-badge-sub">FRC Scouting</div>
+        </div>
+      </div>
+      <button class="new-game-btn" onclick="openModal()"><div class="plus-dot">+</div>New game setup</button>
+    </div>
+    <div class="sidebar-scroll">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="switchPage('dashboard',this)"><span class="nav-icon">⊞</span> Dashboard</div>
+      <div class="nav-item"        onclick="switchPage('games',this)">   <span class="nav-icon">◈</span> Games</div>
+      <div class="nav-item"        onclick="switchPage('account',this)"> <span class="nav-icon">⊙</span> Team &amp; Accounts</div>
+      <div class="nav-section">Scouting</div>
+      <div class="nav-item" onclick="switchPage('matchdata',this)"><span class="nav-icon">≡</span> Match Data</div>
+      <div class="nav-item" onclick="switchPage('analytics',this)"><span class="nav-icon">△</span> Analytics</div>
+      <div class="nav-item" onclick="switchPage('exports',this)">  <span class="nav-icon">↓</span> Exports</div>
+      <div class="nav-section">Config</div>
+      <div class="nav-item" onclick="switchPage('settings',this)"><span class="nav-icon">⚙</span> Settings</div>
+      <div class="nav-section">Apps</div>
+      <div class="nav-item" onclick="switchPage('appmanager',this)"><span class="nav-icon">⚙</span> App Manager</div>
+      <div class="nav-item" onclick="window.location.href='../Server/public/formbuilder.html'"><span class="nav-icon"><i class="fa-solid fa-hammer"></i></span> Form Builder</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-av" id="admin-av">—</div>
+        <div><div class="user-name" id="admin-uname">—</div><div class="user-role" id="admin-urole">—</div></div>
+      </div>
+      <button class="logout-btn" style="width:100%" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="topbar">
+      <div class="greeting">Hello, <span id="admin-greet">—</span> 👋</div>
+      <div class="topbar-right">
+        <span class="status-pill"><span class="dot"></span>Season active</span>
+        <span id="admin-clock" style="font-size:11px;color:var(--text-3)">—</span>
+      </div>
+    </div>
+
+    <div id="page-dashboard" class="page active">
+      <div class="page-scroll">
+        <div class="section-title">Overview</div>
+        <div class="metric-grid">
+          <div class="metric-card"><div class="metric-label">Total scout mins</div><div class="metric-value" id="m-mins">—</div><div class="metric-sub up">this season</div></div>
+          <div class="metric-card"><div class="metric-label">Active scouts</div><div class="metric-value" id="m-active">—</div><div class="metric-sub" id="m-active-sub">of — members</div></div>
+          <div class="metric-card"><div class="metric-label">Matches logged</div><div class="metric-value" id="m-matches">—</div><div class="metric-sub up">current game</div></div>
+          <div class="metric-card"><div class="metric-label">Flags pending</div><div class="metric-value">2</div><div class="metric-sub warn">Needs review</div></div>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Scout leaderboard</div><div class="panel-action" onclick="switchPage('account',document.querySelectorAll('.nav-item')[2])">View all</div></div>
+            <div class="panel-body" id="scout-list"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Recent games</div><div class="panel-action" onclick="openModal()">+ New</div></div>
+            <div class="panel-body" id="games-panel"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Recent activity</div></div>
+          <div class="panel-body" id="activity-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-games" class="page">
+      <div class="page-scroll">
+        <div class="section-title">All games</div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Game library</div><button class="btn btn-primary btn-sm" onclick="openModal()">+ New game</button></div>
+          <div class="panel-body" id="games-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-account" class="page">
+      <div class="account-header"><h2>Team &amp; Accounts</h2><p>Manage members, roles, and scouting minutes</p></div>
+      <div class="member-table-wrap">
+        <div class="add-bar">
+          <input class="input" id="n-name" placeholder="Name">
+          <input class="input" id="n-user" placeholder="Username">
+          <input class="input" id="n-email" placeholder="Email">
+          <input class="input" id="n-pass" placeholder="Password" type="password">
+          <select class="input" id="n-role">
+            <option value="scouter">Scouter</option>
+            <option value="assistant">Asst. Scout</option>
+            <option value="lead">Lead Scout</option>
+            <option value="coach">Coach</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addMember()">Add member</button>
+        </div>
+        <table class="member-table">
+          <thead><tr><th>Member</th><th>Username</th><th>Role</th><th>Scout mins</th><th>Matches</th><th>Status</th><th></th></tr></thead>
+          <tbody id="member-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="page-matchdata" class="page"><div class="empty-state"><div class="icon">≡</div><h3>Match Data</h3><p>Start logging matches to see data here.</p></div></div>
+    <div id="page-analytics" class="page"><div class="empty-state"><div class="icon">△</div><h3>Analytics</h3><p>Charts and performance breakdowns appear as data is collected.</p></div></div>
+    <div id="page-exports"   class="page"><div class="empty-state"><div class="icon">↓</div><h3>Exports</h3><p>Download match data as CSV or JSON to share with alliance partners.</p></div></div>
+
+    <div id="page-settings" class="page">
+      <div class="settings-wrap">
+        <div class="section-title">App settings</div>
+        <div class="settings-section">
+          <div class="settings-head"><div class="settings-head-title">Team info</div><div class="settings-head-sub">Core identity shown throughout NorthStar</div></div>
+          <div class="settings-row"><div><div class="settings-row-title">Team number</div><div class="settings-row-sub">Your FRC team number</div></div><input class="settings-input" id="s-num" placeholder="4028"></div>
+          <div class="settings-row"><div><div class="settings-row-title">Team name</div><div class="settings-row-sub">Shown in the sidebar</div></div><input class="settings-input" id="s-name" placeholder="Bravely Bold"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-head"><div class="settings-head-title">Access control</div><div class="settings-head-sub">Which roles can access the admin dashboard</div></div>
+          <div class="settings-row">
+            <div><div class="settings-row-title">Admin roles</div><div class="settings-row-sub">Users with these roles bypass the gate screen</div></div>
+            <div class="check-pills" id="role-pills">
+              <label class="check-pill" id="cp-coach"><input type="checkbox" value="coach" onchange="syncPill(this)"> Coach</label>
+              <label class="check-pill" id="cp-lead"><input type="checkbox" value="lead" onchange="syncPill(this)"> Lead Scout</label>
+              <label class="check-pill" id="cp-assistant"><input type="checkbox" value="assistant" onchange="syncPill(this)"> Asst. Scout</label>
+              <label class="check-pill" id="cp-scouter"><input type="checkbox" value="scouter" onchange="syncPill(this)"> Scouter</label>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-title">Per-user dashboards</div><div class="settings-row-sub">Everyone logs in to their personal view instead of seeing the gate</div></div>
+            <label class="s-toggle"><input type="checkbox" id="s-peruser"><div class="s-toggle-track"></div></label>
+          </div>
+        </div>
+      </div>
+      <div class="save-bar">
+        <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save settings</button>
+        <span class="save-notice" id="save-notice">✓ Saved</span>
+      </div>
+    </div>
+
+    <div id="page-appmanager" class="page">
+      <div class="settings-wrap">
+        <div class="section-title">Manage Apps</div>
+        <div class="settings-section">
+          <div class="settings-head">
+            <div class="settings-head-title">Admin Panel</div>
+            <div class="settings-head-sub">Core identity shown throughout NorthStar</div>
+          </div>
+
+          <div class="settings-row" onclick="window.open('http://localhost:3000', '_blank');">
+            <div>
+              <div class="settings-row-title">Open Admin Panel</div>
+              <div class="settings-row-sub">Your FRC team number</div>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </div>    
+          
+          <!--<div class="settings-row">
+            <div><div class="settings-row-title"></div><div class="settings-row-sub">Everyone logs in to their personal view instead of seeing the gate</div></div>
+            <label class="s-toggle"><input type="checkbox" id="s-peruser"><div class="s-toggle-track"></div></label>
+          </div> -->
+        
+        </div>
+        <div class="settings-section">
+          <div class="settings-head"><div class="settings-head-title">Team info</div><div class="settings-head-sub">Core identity shown throughout NorthStar</div></div>
+          <div class="settings-row"><div><div class="settings-row-title">Team number</div><div class="settings-row-sub">Your FRC team number</div></div><input class="settings-input" id="s-num" placeholder="4028"></div>
+          <div class="settings-row"><div><div class="settings-row-title">Team name</div><div class="settings-row-sub">Shown in the sidebar</div></div><input class="settings-input" id="s-name" placeholder="Bravely Bold"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-head"><div class="settings-head-title">Access control</div><div class="settings-head-sub">Which roles can access the admin dashboard</div></div>
+          <div class="settings-row">
+            <div><div class="settings-row-title">Scouter App</div><div class="settings-row-sub">Users with these roles bypass the gate screen</div></div>
+            <div class="check-pills" id="role-pills">
+              <label class="check-pill" id="cp-coach"><input type="checkbox" value="coach" onchange="syncPill(this)"> Coach</label>
+              <label class="check-pill" id="cp-lead"><input type="checkbox" value="lead" onchange="syncPill(this)"> Lead Scout</label>
+              <label class="check-pill" id="cp-assistant"><input type="checkbox" value="assistant" onchange="syncPill(this)"> Asst. Scout</label>
+              <label class="check-pill" id="cp-scouter"><input type="checkbox" value="scouter" onchange="syncPill(this)"> Scouter</label>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-row-title">Per-user dashboards</div><div class="settings-row-sub">Everyone logs in to their personal view instead of seeing the gate</div></div>
+            <label class="s-toggle"><input type="checkbox" id="s-peruser"><div class="s-toggle-track"></div></label>
+          </div>
+        </div>
+      </div>
+      <div class="save-bar">
+        <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save settings</button>
+        <span class="save-notice" id="save-notice">✓ Saved</span>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Set up a new game</div>
+    <div class="modal-sub">Basic details — custom fields can be added later</div>
+    <div class="form-row-2">
+      <div class="form-group"><label class="form-label">Game name</label><input class="input" id="m-gname" placeholder="Reefscape 2025"></div>
+      <div class="form-group"><label class="form-label">Season year</label><input class="input" id="m-gyear" type="number" placeholder="2025"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label class="form-label">Event</label><input class="input" id="m-gevent" placeholder="District Championship"></div>
+      <div class="form-group"><label class="form-label">Start date</label><input class="input" id="m-gdate" type="date"></div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sec-label">Scouting form fields</div>
+    <div class="placeholder-box">Custom counters, toggles, sliders — coming soon</div>
+    <div class="placeholder-box" style="margin-bottom:0">Scoring logic builder — coming soon</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="createGame()">Create game</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let APP={users:null,settings:null,data:null,currentUser:null};
+const ROLE_LABELS={coach:'Coach',lead:'Lead Scout',assistant:'Asst. Scout',scouter:'Scouter'};
+function initials(n){return(n||'').trim().split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()||'??';}
+
+/* ── Card style tables ─────────────────────────────────── */
+const CARD_CFG={
+  Glass:  {bg:'rgba(255,255,255,0.08)',bdr:'rgba(255,255,255,0.14)',blur:'blur(20px)'},
+  Solid:  {bg:'rgba(12,16,36,0.90)',  bdr:'rgba(255,255,255,0.12)',blur:'none'},
+  Outline:{bg:'transparent',          bdr:'rgba(255,255,255,0.28)',blur:'none'},
+  Flat:   {bg:'rgba(255,255,255,0.04)',bdr:'rgba(255,255,255,0.06)',blur:'none'},
+};
+const DENSITY_CFG={Compact:{r:'10px'},Default:{r:'14px'},Comfortable:{r:'20px'}};
+
+/* ── Apply everything from settings ───────────────────── */
+function applyTheme(S){
+  const root=document.documentElement;
+  const col=S.colors||{},dsp=S.display||{},thm=S.theme||{};
+  const p=col.primary||'#0a84ff',s=col.secondary||'#bf5af2';
+  root.style.setProperty('--logo-p',p);
+  root.style.setProperty('--logo-s',s);
+  root.style.setProperty('--logo-a',col.accent||'#ffd60a');
+
+  /* Background */
+  if(thm.css){
+    document.body.style.background=thm.css;
+    const bg=document.querySelector('.bg');
+    if(bg)bg.style.background=thm.css;
+  }
+
+  /* Logo gradient on loading text */
+  const ll=document.getElementById('loading-logo');
+  if(ll){ll.style.background=`linear-gradient(135deg,${p},${s})`;ll.style.webkitBackgroundClip='text';ll.style.webkitTextFillColor='transparent';ll.style.backgroundClip='text';}
+
+  /* Font size */
+  const px=dsp.fontSizePx||14;
+  root.style.setProperty('--dash-fs',px+'px');
+  document.body.style.fontSize=px+'px';
+
+  /* Card + density */
+  const cc=CARD_CFG[dsp.cardStyle]||CARD_CFG.Glass;
+  const dr=(DENSITY_CFG[dsp.density]||DENSITY_CFG.Default).r;
+  root.style.setProperty('--dash-radius',dr);
+  document.querySelectorAll('.metric-card,.panel,.settings-section').forEach(el=>{
+    el.style.background=cc.bg; el.style.border=`0.5px solid ${cc.bdr}`;
+    el.style.backdropFilter=cc.blur; el.style.webkitBackdropFilter=cc.blur;
+    el.style.borderRadius=dr;
+  });
+
+  /* Mode tint on blobs */
+  const mt={Dark:'',Midnight:'saturate(0.6) brightness(0.85)',Dim:'saturate(1.15) brightness(1.06)'};
+  const f=mt[dsp.mode]||'';
+  document.querySelectorAll('.blob').forEach(b=>b.style.filter=`blur(80px) ${f}`.trim());
+}
+
+function reapplyCards(){
+  if(!APP.settings)return;
+  const dsp=APP.settings.display||{};
+  const cc=CARD_CFG[dsp.cardStyle]||CARD_CFG.Glass;
+  const dr=(DENSITY_CFG[dsp.density]||DENSITY_CFG.Default).r;
+  document.querySelectorAll('.metric-card,.panel,.settings-section').forEach(el=>{
+    el.style.background=cc.bg; el.style.border=`0.5px solid ${cc.bdr}`;
+    el.style.backdropFilter=cc.blur; el.style.webkitBackdropFilter=cc.blur;
+    el.style.borderRadius=dr;
+  });
+}
+
+/* ── Clock ─────────────────────────────────────────────── */
+function tick(){
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  ['admin-clock','scouter-clock'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t;});
+}
+tick(); setInterval(tick,1000);
+
+/* ── Screen routing ────────────────────────────────────── */
+function showScreen(id){
+  ['screen-gate','screen-scout-login','screen-scouter'].forEach(s=>{const e=document.getElementById(s);if(e)e.classList.remove('show');});
+  const a=document.getElementById('screen-admin');if(a)a.classList.remove('show');
+  const t=document.getElementById(id);if(t)t.classList.add('show');
+}
+
+/* ── Init ──────────────────────────────────────────────── */
+async function init(){
+  let firstRun=false;
+  if(window.api){
+    const all=await window.api.loadAll();
+    APP.users=all.users; APP.settings=all.settings; APP.data=all.data; firstRun=all.firstRun;
+  } else {
+    APP.settings={teamNumber:'4028',teamName:'Bravely Bold',adminRoles:['coach','lead'],perUserDashboard:false,setupComplete:true,
+      colors:{primary:'#0a84ff',secondary:'#bf5af2',accent:'#ffd60a'},
+      display:{mode:'Dark',fontSize:'Medium',fontSizePx:14,cardStyle:'Glass',density:'Default'},
+      theme:{id:'bluepurple',css:'radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18'}};
+    APP.users={members:[
+      {id:1,name:'Jordan Davis', username:'jordan',password:'scout1234',role:'lead',     mins:312,matches:21,status:'active',email:'jordan@team4028.com'},
+      {id:2,name:'Alex Martinez',username:'alex',  password:'scout1234',role:'assistant',mins:224,matches:18,status:'active',email:'alex@team4028.com'},
+      {id:3,name:'Casey Rivera', username:'casey', password:'scout1234',role:'scouter',  mins:198,matches:15,status:'active',email:'casey@team4028.com'},
+      {id:4,name:'Morgan Chen',  username:'morgan',password:'coach1234',role:'coach',    mins:89, matches:0, status:'active',email:'morgan@team4028.com'},
+    ],nextId:5};
+    APP.data={games:[
+      {id:1,name:'Reefscape 2025',year:2025,matches:37, scouts:6,status:'active',  created:'2025-01-04'},
+      {id:2,name:'Crescendo 2024',year:2024,matches:112,scouts:8,status:'archived',created:'2024-01-06'},
+    ],matchLogs:[],activity:[
+      {text:'Alex M. logged 22 scouting minutes — Match 38 vs Team 1114',time:'12 min ago'},
+      {text:'Casey R. submitted form for Team 254 — Qualification round',time:'38 min ago'},
+      {text:'Jordan D. flagged Team 973 data for review',time:'1 hr ago'},
+    ],nextGameId:3};
+  }
+
+  applyTheme(APP.settings);
+  await new Promise(r=>setTimeout(r,500));
+  const loading=document.getElementById('screen-loading');
+  if(firstRun){loading.classList.add('hide');setTimeout(()=>window.location.href='setup.html',400);return;}
+
+  const S=APP.settings;
+  const tl=`Team ${S.teamNumber||'????'} · ${S.teamName||''}`.replace(/·\s*$/,'').trim();
+  const gb=document.getElementById('gate-badge');if(gb)gb.textContent=S.teamNumber||'NS';
+  const gn=document.getElementById('gate-app-name');if(gn)gn.textContent=S.teamName||'NorthStar';
+  document.getElementById('gate-team-label').textContent=tl;
+  document.getElementById('scout-login-team').textContent=tl;
+  const rn=(S.adminRoles||[]).map(r=>ROLE_LABELS[r]||r).join(' & ').toLowerCase();
+  document.getElementById('gate-role-hint').textContent=rn||'coaches & lead scouts';
+  document.getElementById('admin-badge-icon').textContent=S.teamNumber||'NS';
+  document.getElementById('admin-badge-name').textContent=`Team ${S.teamNumber||'????'}`;
+  document.getElementById('admin-badge-sub').textContent=S.teamName||'NorthStar';
+
+  loading.classList.add('hide');
+  setTimeout(()=>{
+    loading.style.display='none';
+    if(S.perUserDashboard)showScreen('screen-scout-login');
+    else showScreen('screen-gate');
+  },400);
+}
+
+/* ── Auth ──────────────────────────────────────────────── */
+function showAdminLogin(){
+  document.getElementById('gate-login-form').style.display='block';
+  document.getElementById('gate-admin-btn').style.display='none';
+  document.getElementById('gate-user').focus();
+}
+
+function devLogin(u,p){
+  const m=APP.users.members.find(x=>x.username===u&&x.password===p);
+  if(!m)return{ok:false,error:'Invalid username or password.'};
+  return{ok:true,member:m,isAdmin:(APP.settings.adminRoles||[]).includes(m.role)};
+}
+
+async function attemptAdminLogin(){
+  const u=document.getElementById('gate-user').value.trim();
+  const p=document.getElementById('gate-pass').value;
+  const e=document.getElementById('gate-err');e.classList.remove('show');
+  const r=window.api?await window.api.login({username:u,password:p}):devLogin(u,p);
+  if(!r.ok){e.textContent=r.error;e.classList.add('show');return;}
+  if(!r.isAdmin){e.textContent=`Your role (${ROLE_LABELS[r.member.role]}) doesn't have admin access.`;e.classList.add('show');return;}
+  APP.currentUser=r.member; enterAdmin();
+}
+
+async function attemptScouterLogin(){
+  const u=document.getElementById('scout-user').value.trim();
+  const p=document.getElementById('scout-pass').value;
+  const e=document.getElementById('scout-err');e.classList.remove('show');
+  const r=window.api?await window.api.login({username:u,password:p}):devLogin(u,p);
+  if(!r.ok){e.textContent=r.error;e.classList.add('show');return;}
+  APP.currentUser=r.member;
+  if(r.isAdmin&&!APP.settings.perUserDashboard)enterAdmin();else enterScouter();
+}
+
+/* ── Scouter ───────────────────────────────────────────── */
+function enterScouter(){
+  const m=APP.currentUser,u=APP.users.members;
+  document.getElementById('scouter-fname').textContent=m.name.split(' ')[0];
+  document.getElementById('sc-mins').textContent=m.mins;
+  document.getElementById('sc-matches').textContent=m.matches;
+  const ranked=[...u].filter(x=>x.role!=='coach').sort((a,b)=>b.mins-a.mins);
+  const rank=ranked.findIndex(x=>x.id===m.id)+1;
+  document.getElementById('sc-rank').textContent=rank>0?'#'+rank:'#—';
+  const ag=(APP.data.games||[]).find(g=>g.status==='active');
+  document.getElementById('scouter-game-label').textContent=ag?ag.name:'No active game';
+  document.getElementById('scouter-activity').innerHTML=(APP.data.activity||[]).slice(0,5).map(a=>
+    `<div class="act-row"><div class="act-dot"></div><div><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div></div>`
+  ).join('')||`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No recent activity.</div>`;
+  showScreen('screen-scouter'); setTimeout(reapplyCards,50);
+}
+
+/* ── Admin ─────────────────────────────────────────────── */
+function enterAdmin(){
+  const m=APP.currentUser,u=APP.users.members,d=APP.data;
+  document.getElementById('admin-greet').textContent=m.name.split(' ')[0];
+  document.getElementById('admin-av').textContent=initials(m.name);
+  document.getElementById('admin-uname').textContent=m.name;
+  document.getElementById('admin-urole').textContent=ROLE_LABELS[m.role]||m.role;
+  const tm=u.reduce((s,x)=>s+(x.mins||0),0),ac=u.filter(x=>x.status==='active').length;
+  const ag=(d.games||[]).find(g=>g.status==='active');
+  document.getElementById('m-mins').textContent=tm.toLocaleString();
+  document.getElementById('m-active').textContent=ac;
+  document.getElementById('m-active-sub').textContent=`of ${u.length} members`;
+  document.getElementById('m-matches').textContent=ag?ag.matches:0;
+  renderScoutList();renderGamesPanel();renderActivity();renderGamesFull();loadSettingsUI();
+  switchPage('dashboard',document.querySelector('#screen-admin .nav-item.active'));
+  ['screen-gate','screen-scout-login','screen-scouter'].forEach(s=>{const e=document.getElementById(s);if(e)e.classList.remove('show');});
+  document.getElementById('screen-admin').classList.add('show');
+  setTimeout(reapplyCards,50);
+}
+
+function switchPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('#screen-admin .nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(id==='account')renderMemberTable();
+  setTimeout(reapplyCards,50);
+}
+
+/* ── Renders ───────────────────────────────────────────── */
+function renderScoutList(){
+  const top=[...APP.users.members].filter(m=>m.role!=='coach').sort((a,b)=>b.mins-a.mins).slice(0,4);
+  document.getElementById('scout-list').innerHTML=top.map(m=>{
+    const cls=m.role==='lead'?'lead':m.role==='coach'?'coach':'';
+    return`<div class="scout-row"><div class="s-av">${initials(m.name)}</div><div class="s-name">${m.name}</div><div class="s-mins">${m.mins} min</div><span class="role-badge ${cls}">${ROLE_LABELS[m.role]||m.role}</span></div>`;
+  }).join('')||`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No scouts yet.</div>`;
+}
+function renderGamesPanel(){
+  document.getElementById('games-panel').innerHTML=(APP.data.games||[]).slice(0,3).map(g=>
+    `<div class="game-row"><div class="game-icon">${g.status==='active'?'🏆':'⚙️'}</div><div><div class="game-name">${g.name}</div><div class="game-meta">${g.matches} matches</div></div><div class="game-status ${g.status}">${g.status==='active'?'Active':'Archived'}</div></div>`
+  ).join('')||`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No games yet.</div>`;
+}
+function renderGamesFull(){
+  document.getElementById('games-full').innerHTML=(APP.data.games||[]).map(g=>
+    `<div class="game-row"><div class="game-icon">${g.status==='active'?'🏆':'⚙️'}</div><div><div class="game-name">${g.name}</div><div class="game-meta">${g.matches} matches · Created ${g.created}</div></div><div class="game-status ${g.status}">${g.status==='active'?'Active':'Archived'}</div>${g.status!=='active'?`<button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="setActiveGame(${g.id})">Set active</button>`:''}</div>`
+  ).join('')||`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No games yet.</div>`;
+}
+function renderActivity(){
+  document.getElementById('activity-panel').innerHTML=(APP.data.activity||[]).slice(0,5).map(a=>
+    `<div class="act-row"><div class="act-dot"></div><div><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div></div>`
+  ).join('')||`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No activity yet.</div>`;
+}
+function renderMemberTable(){
+  const sorted=[...APP.users.members].sort((a,b)=>b.mins-a.mins);
+  document.getElementById('member-tbody').innerHTML=sorted.map(m=>{
+    const opts=['coach','lead','assistant','scouter'].map(r=>`<option value="${r}"${m.role===r?' selected':''}>${ROLE_LABELS[r]}</option>`).join('');
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="s-av">${initials(m.name)}</div><div><div style="font-size:12.5px;font-weight:700;color:var(--text)">${m.name}</div><div style="font-size:11px;color:var(--text-3)">${m.email||'—'}</div></div></div></td>
+      <td style="font-size:11.5px;color:var(--text-3)">${m.username||'—'}</td>
+      <td><select class="role-select" onchange="changeRole(${m.id},this.value)">${opts}</select></td>
+      <td><span class="mins-badge">${m.mins} min</span></td>
+      <td style="font-size:12px;color:var(--text-2)">${m.matches}</td>
+      <td>${m.status==='active'?'<span class="status-active">● Active</span>':'<span class="status-idle">● Idle</span>'}</td>
+      <td><button class="btn btn-destructive btn-sm" onclick="removeMember(${m.id})">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Member actions ────────────────────────────────────── */
+async function addMember(){
+  const name=document.getElementById('n-name').value.trim(),username=document.getElementById('n-user').value.trim();
+  if(!name||!username)return;
+  const member={name,username,email:document.getElementById('n-email').value.trim()||'—',password:document.getElementById('n-pass').value.trim()||'scout1234',role:document.getElementById('n-role').value,mins:0,matches:0,status:'active'};
+  if(window.api){await window.api.addUser(member);APP.users=await window.api.getUsers();}
+  else{member.id=APP.users.nextId++;APP.users.members.push(member);}
+  ['n-name','n-user','n-email','n-pass'].forEach(id=>document.getElementById(id).value='');
+  renderMemberTable();renderScoutList();
+}
+async function changeRole(id,role){
+  if(window.api){await window.api.updateUser(id,{role});APP.users=await window.api.getUsers();}
+  else APP.users.members=APP.users.members.map(m=>m.id===id?{...m,role}:m);
+  renderScoutList();
+}
+async function removeMember(id){
+  if(window.api){await window.api.removeUser(id);APP.users=await window.api.getUsers();}
+  else APP.users.members=APP.users.members.filter(m=>m.id!==id);
+  renderMemberTable();renderScoutList();
+}
+
+/* ── Game actions ──────────────────────────────────────── */
+async function setActiveGame(id){
+  if(window.api){await window.api.setActiveGame(id);APP.data=await window.api.getData();}
+  else APP.data.games=APP.data.games.map(g=>({...g,status:g.id===id?'active':(g.status==='active'?'archived':g.status)}));
+  renderGamesFull();renderGamesPanel();
+}
+function openModal(){document.getElementById('modal-overlay').classList.add('open');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function overlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+async function createGame(){
+  const name=document.getElementById('m-gname').value.trim();if(!name)return;
+  const game={name,year:parseInt(document.getElementById('m-gyear').value)||new Date().getFullYear(),event:document.getElementById('m-gevent').value.trim()||'',created:document.getElementById('m-gdate').value||new Date().toISOString().slice(0,10),matches:0,scouts:0,status:'draft'};
+  if(window.api){await window.api.addGame(game);APP.data=await window.api.getData();}
+  else{game.id=APP.data.nextGameId++;APP.data.games.push(game);}
+  ['m-gname','m-gyear','m-gevent','m-gdate'].forEach(id=>document.getElementById(id).value='');
+  closeModal();renderGamesFull();renderGamesPanel();
+}
+
+/* ── Settings ──────────────────────────────────────────── */
+function loadSettingsUI(){
+  const S=APP.settings;
+  document.getElementById('s-num').value=S.teamNumber||'';
+  document.getElementById('s-name').value=S.teamName||'';
+  (S.adminRoles||[]).forEach(r=>{const e=document.querySelector(`#cp-${r} input`),l=document.getElementById('cp-'+r);if(e){e.checked=true;l.classList.add('on');}});
+  const t=document.getElementById('s-peruser');if(t)t.checked=!!S.perUserDashboard;
+}
+function syncPill(input){input.closest('.check-pill').classList.toggle('on',input.checked);}
+async function saveSettings(){
+  const teamNumber=document.getElementById('s-num').value.trim(),teamName=document.getElementById('s-name').value.trim();
+  const perUser=document.getElementById('s-peruser').checked;
+  const adminRoles=['coach','lead','assistant','scouter'].filter(r=>{const e=document.querySelector(`#cp-${r} input`);return e&&e.checked;});
+  const ns={teamNumber,teamName,adminRoles,perUserDashboard:perUser};
+  if(window.api){await window.api.saveSettings(ns);APP.settings=await window.api.getSettings();}
+  else APP.settings={...APP.settings,...ns};
+  document.getElementById('admin-badge-icon').textContent=teamNumber;
+  document.getElementById('admin-badge-name').textContent=`Team ${teamNumber}`;
+  document.getElementById('admin-badge-sub').textContent=teamName;
+  const n=document.getElementById('save-notice');n.classList.add('show');setTimeout(()=>n.classList.remove('show'),2500);
+}
+
+/* ── Logout ────────────────────────────────────────────── */
+function logout(){
+  APP.currentUser=null;
+  document.getElementById('gate-login-form').style.display='none';
+  document.getElementById('gate-admin-btn').style.display='block';
+  ['gate-user','gate-pass','scout-user','scout-pass'].forEach(id=>document.getElementById(id).value='');
+  ['gate-err','scout-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  document.getElementById('screen-admin').classList.remove('show');
+  if(APP.settings&&APP.settings.perUserDashboard)showScreen('screen-scout-login');
+  else showScreen('screen-gate');
+}
+
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

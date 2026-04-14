@@ -32,7 +32,18 @@
       "matches": 0,
       "status": "active",
       "id": 10
+    },
+    {
+      "name": "Austin",
+      "username": "austin",
+      "email": "—",
+      "password": "password",
+      "role": "lead",
+      "id": 11,
+      "mins": 0,
+      "matches": 0,
+      "status": "active"
     }
   ],
-  "nextId": 11
+  "nextId": 12
 }

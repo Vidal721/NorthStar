@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs   = require('fs');
-require('../../../Server/Server.js');
+require('../Server/Server.js');
 
 // ── Data directory ────────────────────────────────────────────────────────────
 const DATA_DIR = app.isPackaged
@@ -168,10 +168,11 @@ function createWindow() {
       nodeIntegration: false,
     },
     titleBarStyle: 'hiddenInset',
+    icon: path.join(__dirname, '../build/icon.png'),
     backgroundColor: '#060a18',
     show: false,
   });
-  win.loadFile('src/index.html');
+  win.loadFile('index.html');
   win.once('ready-to-show', () => win.show());
 }
 

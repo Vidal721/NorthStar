@@ -120,7 +120,69 @@
 
     <!-- SETTINGS -->
     <div class="tab-page" id="settings-page">
-      <div style="padding:40px;text-align:center;color:var(--text-3);font-size:13px">Settings coming soon.</div>
+      <div style="padding:32px;max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">🏟 Match Control</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label style="font-size:12px;color:var(--text-3)">Current Match #</label>
+            <input type="number" id="set-match-num" value="1" min="1" max="200"
+              style="width:80px;background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 10px;font-size:14px;font-weight:700;color:var(--text-1);outline:none;text-align:center">
+            <button onclick="setCurrentMatch()" style="padding:6px 16px;border-radius:8px;background:rgba(10,132,255,0.2);border:0.5px solid rgba(10,132,255,0.4);color:var(--blue);font-weight:600;font-size:12px;cursor:pointer">Set</button>
+            <span style="font-size:11px;color:var(--text-3)">Broadcasts to all scouter widgets</span>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">✦ Admin Fill — Push Fields to Scouters</div>
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Select a connected scouter and set field values remotely. The scouter's form will update automatically within a few seconds.</div>
+          <div id="adm-fill-scouter-list" style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;color:var(--text-3)">No scouters connected yet. They'll appear here once active.</div>
+          </div>
+          <button onclick="refreshAdminFillList()" style="margin-top:12px;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);color:var(--text-2);font-size:12px;cursor:pointer">↻ Refresh List</button>
+        </div>
+
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">💬 Chat Management</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button onclick="clearChat()" style="padding:6px 16px;border-radius:8px;background:rgba(255,69,58,0.15);border:0.5px solid rgba(255,69,58,0.35);color:var(--red);font-size:12px;cursor:pointer;font-weight:600">Clear All Chat History</button>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">📦 Data Export</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button onclick="exportTableCSV()" style="padding:6px 16px;border-radius:8px;background:rgba(48,209,88,0.15);border:0.5px solid rgba(48,209,88,0.3);color:var(--green);font-size:12px;cursor:pointer;font-weight:600">Export All Data (CSV)</button>
+            <button onclick="exportPL()" style="padding:6px 16px;border-radius:8px;background:rgba(10,132,255,0.15);border:0.5px solid rgba(10,132,255,0.3);color:var(--blue);font-size:12px;cursor:pointer;font-weight:600">Export Picklist (CSV)</button>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text-1)">⚙ Server Health</div>
+          <div id="health-info" style="font-size:12px;color:var(--text-3);font-family:'SF Mono',monospace">—</div>
+          <button onclick="loadHealth()" style="margin-top:10px;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);color:var(--text-2);font-size:12px;cursor:pointer">Check Health</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ADMIN FILL MODAL -->
+    <div id="admfill-modal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center">
+      <div onclick="closeAdminFill()" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px)"></div>
+      <div style="position:relative;z-index:1;background:#10152a;border:0.5px solid rgba(255,255,255,0.18);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,0.5);width:min(480px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08)">
+          <div>
+            <div style="font-weight:700;font-size:14px" id="admfill-title">Admin Fill</div>
+            <div style="font-size:11px;color:var(--text-3)" id="admfill-sub">Push field values to scouter</div>
+          </div>
+          <button onclick="closeAdminFill()" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;color:var(--text-2);font-size:14px">✕</button>
+        </div>
+        <div id="admfill-body" style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
+        <div style="padding:12px 20px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="closeAdminFill()" style="padding:8px 16px;border-radius:8px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);color:var(--text-2);font-size:12px;cursor:pointer">Cancel</button>
+          <button onclick="submitAdminFill()" style="padding:8px 20px;border-radius:8px;background:rgba(10,132,255,0.25);border:0.5px solid rgba(10,132,255,0.45);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer">✦ Push to Scouter</button>
+        </div>
+      </div>
     </div>
 
     <!-- EQUATION EDITOR MODAL -->
@@ -157,11 +219,22 @@
       // SERVER API LAYER
       // ═══════════════════════════════════════════════════════════
       const API = (() => {
-        const BASE = ''; // same origin — runs on Pi
-        async function req(method, path, body) {
+        const BASE = '';
+
+        // silent background GETs — never touch the sync indicator
+        async function poll(apiPath) {
+          try {
+            const res = await fetch(BASE + apiPath);
+            if (!res.ok) return null;
+            return await res.json();
+          } catch (e) { return null; }
+        }
+
+        // loud writes — user-initiated, shows syncing indicator
+        async function write(method, apiPath, body) {
           setSyncStatus('syncing');
           try {
-            const res = await fetch(BASE + path, {
+            const res = await fetch(BASE + apiPath, {
               method,
               headers: { 'Content-Type': 'application/json' },
               ...(body !== undefined ? { body: JSON.stringify(body) } : {})
@@ -175,14 +248,24 @@
             return null;
           }
         }
+
         return {
-          getSchema: () => req('GET', '/api/schema'),
-          putSchema: (s) => req('PUT', '/api/schema', s),
-          getEquations: () => req('GET', '/api/equations'),
-          putEquations: (e) => req('PUT', '/api/equations', e),
-          getData: () => req('GET', '/api/data'),
-          getPicklist: () => req('GET', '/api/picklist'),
-          getTeamHistory: (t) => req('GET', `/api/team/${t}/history`),
+          // silent reads
+          getSchema:        ()  => poll('/api/schema'),
+          getEquations:     ()  => poll('/api/equations'),
+          getData:          ()  => poll('/api/data'),
+          getPicklist:      ()  => poll('/api/picklist'),
+          getTeamHistory:   (t) => poll(`/api/team/${t}/history`),
+          getScoutProgress: ()  => poll('/api/scout-progress'),
+          getChat:          ()  => poll('/api/chat'),
+          getHealth:        ()  => poll('/api/health'),
+          // loud writes
+          putSchema:     (s)   => write('PUT',    '/api/schema',    s),
+          putEquations:  (e)   => write('PUT',    '/api/equations', e),
+          deleteData:    (id)  => write('DELETE', `/api/data/${id}`),
+          postAdminFill: (sid, fv) => write('POST', '/api/admin-fill', { scouter_id: sid, fieldValues: fv }),
+          postChat:      (msg) => write('POST',   '/api/chat',      msg),
+          deleteChat:    ()    => write('DELETE', '/api/chat'),
         };
       })();
 
@@ -213,22 +296,13 @@
       // STATE
       // ═══════════════════════════════════════════════════════════
       const TOTAL_MATCHES = 60;
-      let currentMatch = 14, matchesLogged = 0, teamsScouted = 0, flags = 0;
+      let currentMatch = 1, matchesLogged = 0, teamsScouted = 0, flags = 0;
 
-      const SCOUTERS = [
-        { id: 1, name: 'Alex', status: 'active', battery: 82, match: 14, team: 1678, alliance: 'Red', formPct: 78, formSection: 'Teleop', flag: null },
-        { id: 2, name: 'Jordan', status: 'flagged', battery: 74, match: 14, team: 1678, alliance: 'Red', formPct: 100, formSection: 'Done', flag: 'Impossible value: 99 pieces' },
-        { id: 3, name: 'Sam', status: 'active', battery: 63, match: 14, team: 254, alliance: 'Blue', formPct: 45, formSection: 'Auto', flag: null },
-        { id: 4, name: 'Taylor', status: 'idle', battery: 91, match: 13, team: 971, alliance: 'Blue', formPct: 100, formSection: 'Done', flag: null },
-        { id: 5, name: 'Morgan', status: 'active', battery: 18, match: 14, team: 118, alliance: 'Red', formPct: 20, formSection: 'Pre-match', flag: null },
-        { id: 6, name: 'Casey', status: 'offline', battery: 0, match: null, team: null, formPct: 0, formSection: null, flag: null },
-      ];
+      // Live scouter data — fetched from /api/scout-progress every 3 s
+      let liveScouters = [];   // [{ scouter_id, match, team, alliance, pct, fieldValues, lastSeen }]
 
-      let chatMessages = [
-        { role: 'scouter', from: 'S3 · Sam', text: 'Team 254 scored 11 auto — right?', time: '10:42' },
-        { role: 'admin', from: 'Admin', text: 'Yes confirmed on stream.', time: '10:42' },
-        { role: 'broadcast', from: 'BROADCAST', text: '📢 Match 15 assignments sent', time: '10:45' },
-      ];
+      // Live chat — fetched from /api/chat every 3 s
+      let chatMessages = [];
 
       // Schema & equations — loaded from server on init, fallback to defaults
       let schemaFields = [];
@@ -250,6 +324,7 @@
         if (schema && schema.fields) {
           schemaFields = schema.fields;
           document.getElementById('sv').textContent = schema.version || 1;
+          recordSchemaVersion(schema.fields, schema.version || 1);
         } else {
           schemaFields = [
             { varName: 'auto_high', label: 'Auto High Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
@@ -281,11 +356,46 @@
           serverPicklist = picklist;
         }
 
-        flags = SCOUTERS.filter(s => s.flag).length;
+        flags = 0;
 
         // Refresh any open widgets
         Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
         setSyncStatus('idle');
+
+        // Start live polling for scout progress and chat
+        startLivePolling();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // LIVE POLLING — scout progress + chat from server
+      // ═══════════════════════════════════════════════════════════
+      function startLivePolling() {
+        pollLive();
+        setInterval(pollLive, 3000);
+      }
+
+      async function pollLive() {
+        // Poll scout progress
+        const progress = await API.getScoutProgress();
+        if (progress && Array.isArray(progress)) {
+          liveScouters = progress;
+          // Update active scouter count
+          Object.entries(widgets).forEach(([id, w]) => {
+            if (['scouter-status', 'battery-monitor', 'match-progress', 'active-scouters'].includes(w.type)) refreshWidget(id);
+          });
+        }
+
+        // Poll chat
+        const chat = await API.getChat();
+        if (chat && Array.isArray(chat)) {
+          const prevLen = chatMessages.length;
+          chatMessages = chat;
+          if (chatMessages.length !== prevLen) {
+            Object.entries(widgets).forEach(([id, w]) => {
+              if (w.type === 'live-chat') refreshWidget(id);
+            });
+          }
+        }
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -305,6 +415,7 @@
         if (pg) pg.classList.add('active');
         if (tab === 'picklist') renderPicklist();
         if (tab === 'formbuilder') renderFormBuilder();
+        if (tab === 'settings') { setTimeout(() => { refreshAdminFillList(); loadHealth(); }, 50); }
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -335,12 +446,13 @@
       // ═══════════════════════════════════════════════════════════
       const CATALOG = [
         { id: 'match-progress', name: 'Match Progress', icon: '🏟', desc: 'Current match, completion bar, stats', w: 320, h: 220 },
-        { id: 'scouter-status', name: 'Scouter Status', icon: '👥', desc: 'All scouters, form progress', w: 290, h: 380 },
-        { id: 'battery-monitor', name: 'Battery Monitor', icon: '🔋', desc: 'Live battery % for all tablets', w: 280, h: 230 },
+        { id: 'scouter-status', name: 'Scouter Status', icon: '👥', desc: 'All scouters, form progress + admin fill', w: 290, h: 380 },
+        { id: 'battery-monitor', name: 'Form Progress', icon: '📊', desc: 'Live form completion for all scouters', w: 280, h: 230 },
         { id: 'live-chat', name: 'Live Chat', icon: '💬', desc: 'Chat with scouters & broadcasts', w: 300, h: 360 },
         { id: 'data-flags', name: 'Data Flags', icon: '🚩', desc: 'Review & dismiss flagged entries', w: 300, h: 240 },
         { id: 'eq-builder', name: 'Logic Engine', icon: '⚡', desc: 'Custom scoring equations with scripts', w: 340, h: 230 },
         { id: 'team-chart', name: 'Team Chart', icon: '📈', desc: 'Per-team metric timeline from real data', w: 380, h: 280 },
+        { id: 'data-table', name: 'Data Table', icon: '🗃', desc: 'All scouted rows with computed columns', w: 520, h: 320 },
         { id: 'matches-logged', name: 'Matches Logged', icon: '📋', desc: 'Matches scouted vs total', w: 200, h: 160 },
         { id: 'teams-scouted', name: 'Teams Scouted', icon: '🤖', desc: 'Total unique teams scouted', w: 200, h: 160 },
         { id: 'active-scouters', name: 'Active Scouters', icon: '✅', desc: 'Live scouter count', w: 200, h: 160 },
@@ -362,9 +474,10 @@
           case 'data-flags': return flagsBody(uid);
           case 'eq-builder': return eqBuilderBody(uid);
           case 'team-chart': return teamChartBody(uid);
+          case 'data-table': return dataTableBody(uid);
           case 'matches-logged': return statBody('📋', matchesLogged, TOTAL_MATCHES, 'Matches Logged', 'var(--green)');
           case 'teams-scouted': return statBody('🤖', teamsScouted, null, 'Teams Scouted', 'var(--blue)');
-          case 'active-scouters': return statBody('✅', SCOUTERS.filter(s => s.status === 'active').length, 6, 'Active Scouters', 'var(--purple)');
+          case 'active-scouters': return statBody('✅', liveScouters.length, null, 'Active Scouters', 'var(--purple)');
           default: return '';
         }
       }
@@ -380,90 +493,101 @@
     </div>
     <div class="match-stats">
       <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--green)">${matchesLogged}</div><div class="ms-lbl">Logged</div></div>
-      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--red)">${flags}</div><div class="ms-lbl">Flags</div></div>
+      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--purple)">${liveScouters.length}</div><div class="ms-lbl">Scouters</div></div>
       <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--blue)">${teamsScouted}</div><div class="ms-lbl">Teams</div></div>
     </div>
   </div>`;
       }
 
       function scouterBody(uid) {
-        return '<div class="sc-list">' + SCOUTERS.map(s => {
-          const fp = s.status === 'offline' ? 0 : s.formPct;
-          const progressRow = (s.status !== 'offline' && s.status !== 'idle') ? `
-      <div class="form-prog-wrap">
-        <span class="form-prog-label">${s.formSection || ''}</span>
-        <div class="form-prog-track"><div class="form-prog-fill" style="width:${fp}%"></div></div>
-        <span class="form-prog-pct">${fp}%</span>
-      </div>` : '';
+        if (!liveScouters.length) {
+          return `<div style="text-align:center;padding:30px;color:var(--text-3);font-size:12px">
+            No scouters connected yet.<br><span style="opacity:.6">They appear here once they open scout.html.</span>
+          </div>`;
+        }
+        return '<div class="sc-list">' + liveScouters.map(s => {
+          const pct = s.pct || 0;
+          const name = s.display_name || s.scouter_id;
+          const allianceColor = s.alliance === 'Red' ? 'var(--red)' : s.alliance === 'Blue' ? 'var(--blue)' : 'var(--text-3)';
+          const statusClass = pct >= 100 ? 'idle' : pct > 0 ? 'active' : 'idle';
+          const statusLabel = pct >= 100 ? 'Done' : pct > 0 ? 'Scouting' : 'Waiting';
           return `<div class="glass-card sc-item">
       <div class="sc-top-row">
-        <div class="sc-dot ${s.status}"></div>
-        <span class="sc-nm">S${s.id} · ${s.name}</span>
-        <span class="sc-pill ${s.status}">${s.status.charAt(0).toUpperCase() + s.status.slice(1)}</span>
+        <div class="sc-dot ${statusClass}"></div>
+        <span class="sc-nm">${name}</span>
+        <span class="sc-pill ${statusClass}">${statusLabel}</span>
+        <button class="sc-fill-btn" onclick="openAdminFill('${s.scouter_id}',${s.team||0},${s.match||0})" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(10,132,255,0.18);border:0.5px solid rgba(10,132,255,0.4);color:var(--blue);cursor:pointer">Fill ✦</button>
       </div>
-      <div class="sc-det">${s.match ? `Match ${s.match} · Team ${s.team} (${s.alliance})` : 'Not connected'}${s.flag ? ` · ⚠ ${s.flag}` : ''}</div>
-      ${progressRow}
+      <div class="sc-det" style="color:${allianceColor}">${s.match ? `Match ${s.match}` : 'No match'}${s.team ? ` · Team ${s.team}` : ''}${s.alliance ? ` · ${s.alliance}` : ''}</div>
+      <div class="form-prog-wrap">
+        <div class="form-prog-track"><div class="form-prog-fill" style="width:${pct}%"></div></div>
+        <span class="form-prog-pct">${pct}%</span>
+      </div>
     </div>`;
         }).join('') + '</div>';
       }
 
       function battBody() {
-        return '<div class="batt-grid">' + SCOUTERS.map(s => {
-          const bc = s.battery > 50 ? 'batt-hi' : s.battery > 20 ? 'batt-mid' : 'batt-lo';
-          const bs = s.status === 'offline' ? 'bst-offline' : s.battery <= 20 ? 'bst-warn' : s.status === 'active' ? 'bst-active' : 'bst-idle';
-          const bl = s.status === 'offline' ? 'Offline' : s.battery <= 20 ? 'Low!' : s.status === 'active' ? 'Active' : 'Idle';
+        if (!liveScouters.length) {
+          return `<div style="text-align:center;padding:24px;color:var(--text-3);font-size:12px">No scouters connected</div>`;
+        }
+        return '<div class="batt-grid">' + liveScouters.map(s => {
+          // pct-based battery proxy (server doesn't track battery, but we can show form progress as a proxy)
+          const pct = s.pct || 0;
+          const bc = pct > 50 ? 'batt-hi' : pct > 20 ? 'batt-mid' : 'batt-lo';
+          const bs = pct >= 100 ? 'bst-idle' : pct > 0 ? 'bst-active' : 'bst-offline';
+          const bl = pct >= 100 ? 'Done' : pct > 0 ? 'Active' : 'Waiting';
           return `<div class="batt-row">
-      <span class="batt-name">S${s.id} ${s.name}</span>
-      <div class="batt-track"><div class="batt-fill ${bc}" style="width:${s.battery}%"></div></div>
-      <span class="batt-pct" style="color:${s.battery <= 20 && s.status !== 'offline' ? 'var(--red)' : 'var(--text-2)'}">${s.battery}%</span>
+      <span class="batt-name">${s.display_name || s.scouter_id}</span>
+      <div class="batt-track"><div class="batt-fill ${bc}" style="width:${pct}%"></div></div>
+      <span class="batt-pct">${pct}%</span>
       <span class="batt-status ${bs}">${bl}</span>
     </div>`;
         }).join('') + '</div>';
       }
 
       function chatBody(uid) {
-        return `<div class="chat-msgs" id="cm-${uid}" style="height:calc(100% - 52px)">
-    ${chatMessages.map(m => `<div class="cm ${m.role}">
-      <span class="cm-from">${m.from} · ${m.time}</span>
-      <div class="cm-bubble">${m.text}</div>
-    </div>`).join('')}
+        const msgs = chatMessages.map(m => {
+          const isAdmin = m.role === 'admin';
+          const isBroadcast = m.role === 'broadcast';
+          const roleColor = isAdmin ? 'var(--blue)' : isBroadcast ? 'var(--orange)' : 'var(--text-3)';
+          const bubbleBg = isAdmin ? 'rgba(10,132,255,0.12)' : isBroadcast ? 'rgba(255,159,10,0.10)' : 'rgba(255,255,255,0.06)';
+          const borderColor = isAdmin ? 'rgba(10,132,255,0.25)' : isBroadcast ? 'rgba(255,159,10,0.25)' : 'rgba(255,255,255,0.08)';
+          return `<div class="cm ${m.role}" style="margin-bottom:8px">
+            <span class="cm-from" style="color:${roleColor};font-size:10px;font-weight:600">${m.from || 'Unknown'} · ${m.time || ''}</span>
+            <div class="cm-bubble" style="background:${bubbleBg};border:0.5px solid ${borderColor};border-radius:10px;padding:6px 10px;margin-top:3px;font-size:12px">${m.text}</div>
+          </div>`;
+        }).join('');
+
+        return `<div class="chat-msgs" id="cm-${uid}" style="height:calc(100% - 52px);overflow-y:auto;padding:8px">
+    ${msgs || '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No messages yet</div>'}
   </div>
   <div class="chat-input-row">
     <select class="chat-type" id="ct-${uid}"><option value="direct">Direct</option><option value="broadcast">Broadcast</option></select>
-    <input class="chat-in" id="cin-${uid}" type="text" placeholder="Message…" maxlength="160">
+    <input class="chat-in" id="cin-${uid}" type="text" placeholder="Message to scouters…" maxlength="160">
     <button class="chat-send" onclick="sendChat('${uid}')">↑</button>
   </div>`;
       }
-      function sendChat(uid) {
+      async function sendChat(uid) {
         const inp = document.getElementById('cin-' + uid);
         const t = document.getElementById('ct-' + uid)?.value;
         if (!inp?.value.trim()) return;
         const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-        chatMessages.push(t === 'broadcast'
+        const msg = t === 'broadcast'
           ? { role: 'broadcast', from: 'BROADCAST', text: '📢 ' + inp.value.trim(), time: now }
-          : { role: 'admin', from: 'Admin', text: inp.value.trim(), time: now });
+          : { role: 'admin', from: 'Admin 👑', text: inp.value.trim(), time: now };
         inp.value = '';
+        chatMessages.push(msg);
+        // POST to server so scouters receive it
+        try { await API.postChat(msg); } catch (e) {}
+        // Refresh chat widget immediately
         Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
       }
 
       function flagsBody(uid) {
-        const fl = SCOUTERS.filter(s => s.flag);
-        if (!fl.length) return '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No flags 🎉</div>';
-        return '<div class="flags-list">' + fl.map(s => `
-    <div class="flag-item">
-      <div class="flag-top"><span class="flag-team">Team ${s.team}</span><span class="flag-scouter">S${s.id} · ${s.name}</span></div>
-      <div class="flag-reason">${s.flag}</div>
-      <div class="flag-actions">
-        <button class="flag-btn flag-dismiss" onclick="dismissFlag(${s.id})">Dismiss</button>
-        <button class="flag-btn flag-review">Mark for review</button>
-      </div>
-    </div>`).join('') + '</div>';
+        return `<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No flags 🎉<br><span style="opacity:.5">Data validation flags will appear here.</span></div>`;
       }
-      function dismissFlag(id) {
-        const s = SCOUTERS.find(x => x.id === id);
-        if (s) { delete s.flag; s.status = 'active'; flags = Math.max(0, flags - 1); }
-        Object.entries(widgets).forEach(([id, w]) => { if (['data-flags', 'match-progress', 'scouter-status'].includes(w.type)) refreshWidget(id); });
-      }
+      function dismissFlag(id) { /* reserved */ }
 
       // ── Logic Engine Widget (compact, opens modal for editing)
       function eqBuilderBody(uid) {
@@ -631,6 +755,120 @@
         if (tip) tip.style.display = 'none';
       }
 
+      // Track schema versions seen this session
+      let knownSchemaVersions = [];
+      function recordSchemaVersion(fields, version) {
+        if (!version) return;
+        if (!knownSchemaVersions.find(v => v.version === version)) {
+          knownSchemaVersions.push({ version, fields: fields.map(f => ({...f})), label: 'v' + version });
+        }
+      }
+
+      // ── Data Table Widget
+      function dataTableBody(uid) {
+        if (!serverData.length) return `<div style="text-align:center;padding:24px;color:var(--text-3);font-size:12px">No scouting data yet</div>`;
+
+        const stKey = 'dt_state_' + uid;
+        if (!window[stKey]) window[stKey] = { sortCol: 'match', sortDir: 1, filter: '', activeVersion: null };
+        const st = window[stKey];
+
+        const curVer = parseInt(document.getElementById('sv')?.textContent) || 1;
+        recordSchemaVersion(schemaFields, curVer);
+        if (!st.activeVersion || !knownSchemaVersions.find(v => v.version === st.activeVersion)) {
+          st.activeVersion = curVer;
+        }
+
+        const activeSchema = knownSchemaVersions.find(v => v.version === st.activeVersion);
+        const activeFields = activeSchema ? activeSchema.fields : schemaFields;
+
+        const coreCols = [
+          { key: 'match', label: 'Match' },
+          { key: 'team', label: 'Team' },
+          { key: 'alliance', label: 'Alliance' },
+          { key: 'scouter_id', label: 'Scouter' },
+        ];
+        const schemaCols = activeFields.map(f => ({ key: f.varName, label: f.label }));
+        const eqCols = equations.map(e => ({ key: e.varName, label: e.label || e.varName, isEq: true }));
+        const allCols = [...coreCols, ...schemaCols, ...eqCols];
+
+        let rows = serverData.map(r => applyEquations(r));
+
+        if (knownSchemaVersions.length > 1 && activeFields.length) {
+          rows = rows.filter(r => activeFields.some(f => r[f.varName] !== undefined && r[f.varName] !== null));
+        }
+
+        if (st.filter) {
+          const q = st.filter.toLowerCase();
+          rows = rows.filter(r => String(r.team).includes(q) || String(r.match).includes(q) || String(r.scouter_id||'').toLowerCase().includes(q));
+        }
+
+        rows.sort((a, b) => {
+          const av = a[st.sortCol], bv = b[st.sortCol];
+          if (av == null) return 1; if (bv == null) return -1;
+          return st.sortDir * (av > bv ? 1 : av < bv ? -1 : 0);
+        });
+
+        const thStyle = 'style="cursor:pointer;padding:4px 8px;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,0.08);user-select:none"';
+        const allianceColor = (v) => v === 'Red' ? 'color:var(--red)' : v === 'Blue' ? 'color:var(--blue)' : '';
+
+        const headers = allCols.map(c => {
+          const arrow = st.sortCol === c.key ? (st.sortDir === 1 ? ' ↑' : ' ↓') : '';
+          return `<th ${thStyle} onclick="dtSort('${uid}','${c.key}')">${c.label}${c.isEq ? ' ⚡' : ''}${arrow}</th>`;
+        }).join('');
+
+        const bodyRows = rows.slice(0, 200).map((r, ri) => {
+          const cells = allCols.map(c => {
+            let v = r[c.key];
+            if (v === null || v === undefined) v = '—';
+            else if (typeof v === 'number') v = Number.isInteger(v) ? v : v.toFixed(2);
+            const extra = c.key === 'alliance' ? allianceColor(String(v)) : '';
+            return `<td style="${extra};padding:4px 8px;font-size:11px;${c.isEq ? 'color:var(--blue);font-weight:600' : ''};white-space:nowrap;border-bottom:1px solid rgba(255,255,255,0.05)">${v}</td>`;
+          }).join('');
+          return `<tr style="background:${ri%2===0?'rgba(255,255,255,0.02)':'transparent'}">${cells}</tr>`;
+        }).join('');
+
+        const tabsHtml = knownSchemaVersions.length > 1
+          ? '<div class="dt-version-tabs">' +
+            [...knownSchemaVersions].sort((a,b)=>a.version-b.version).map(v =>
+              `<button class="dt-vtab${st.activeVersion===v.version?' active':''}" onclick="window['dt_state_${uid}'].activeVersion=${v.version};refreshWidget('${uid}')">${v.label}</button>`
+            ).join('') + '</div>'
+          : '';
+
+        return `<div style="display:flex;flex-direction:column;height:100%;gap:0">
+          ${tabsHtml}
+          <div style="display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0">
+            <input type="text" placeholder="Filter team / match / scouter…" value="${st.filter}"
+              oninput="window['dt_state_${uid}'].filter=this.value;refreshWidget('${uid}')"
+              style="flex:1;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--text-1);outline:none">
+            <span style="font-size:10px;color:var(--text-3);align-self:center">${rows.length} rows</span>
+            <button onclick="exportTableCSV()" style="font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(48,209,88,0.15);border:0.5px solid rgba(48,209,88,0.3);color:var(--green);cursor:pointer">CSV</button>
+          </div>
+          <div style="overflow:auto;flex:1">
+            <table style="border-collapse:collapse;width:100%;min-width:max-content">
+              <thead><tr>${headers}</tr></thead>
+              <tbody>${bodyRows || '<tr><td colspan="99" style="text-align:center;padding:16px;color:var(--text-3)">No results</td></tr>'}</tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+      function dtSort(uid, col) {
+        const st = window[`dt_state_${uid}`];
+        if (!st) return;
+        if (st.sortCol === col) st.sortDir *= -1;
+        else { st.sortCol = col; st.sortDir = 1; }
+        refreshWidget(uid);
+      }
+
+      function exportTableCSV() {
+        if (!serverData.length) return;
+        const rows = serverData.map(r => applyEquations(r));
+        const keys = Object.keys(rows[0]);
+        const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'scouting_data.csv'; a.click();
+      }
+
       function statBody(icon, val, total, label, color) {
         const pct = total ? Math.round((val / total) * 100) : null;
         return `<div class="stat-inner">
@@ -683,30 +921,26 @@
       }
 
       function renderEqModal() {
-        const vars = getAllVarNames();
+        const vars = getSchemaVarNames();
         const body = document.getElementById('eq-modal-body');
         body.innerHTML = equations.map((eq, i) => `
     <div class="eq-card" id="eqcard-${i}">
       <div class="eq-card-head">
         <input class="eq-card-name-input" value="${eq.label || eq.varName}" placeholder="Equation Name"
-          onchange="equations[${i}].label = this.value; renderEqModal()">
+          onchange="equations[${i}].label = this.value">
         <div class="eq-card-var-wrap">
           <span class="eq-card-var-lbl">Output ID:</span>
           <input class="eq-card-var-input" value="${eq.varName}" placeholder="var_name"
-            onchange="equations[${i}].varName = this.value.toLowerCase().replace(/[^a-z0-9_]/g,''); renderEqModal()">
+            onchange="equations[${i}].varName = this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')">
         </div>
-        <button class="eq-card-del" onclick="equations.splice(${i},1); renderEqModal()">✕</button>
+        <button class="eq-card-del" onclick="equations.splice(${i},1); renderEqModal()">\u2715</button>
       </div>
       <div class="script-editor-wrap" id="sew-${i}">
-        <div class="script-highlight" id="seh-${i}">${syntaxHighlight(eq.formula)}&ZeroWidthSpace;</div>
         <textarea class="script-textarea" id="set-${i}" spellcheck="false"
           oninput="onScriptInput(${i}, this)"
           onkeydown="onScriptKeydown(event, ${i})"
           onblur="hideAC(${i})"
         >${eq.formula}</textarea>
-        <div class="ac-dropdown" id="ac-${i}">
-          <div class="ac-header">⚡ Variables</div>
-        </div>
       </div>
       <div class="eq-vars-hint">
         Available: ${vars.map(v => `<code>${v}</code>`).join(' ')}
@@ -714,50 +948,106 @@
       </div>
     </div>`).join('');
 
-        // Sync highlight divs height to textareas
         equations.forEach((_, i) => {
           const ta = document.getElementById('set-' + i);
-          const hl = document.getElementById('seh-' + i);
-          if (ta && hl) {
-            ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
-          }
+          if (ta) ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
         });
       }
 
-      let acSelectedIdx = {};
-      function onScriptInput(idx, ta) {
-        equations[idx].formula = ta.value;
-        const hl = document.getElementById('seh-' + idx);
-        if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
-        ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
-        // Autocomplete
+            let acSelectedIdx = {};
+      let acActiveIdx = null;
+
+      function getACDropdown() {
+        let dd = document.getElementById('__ac_global');
+        if (!dd) {
+          dd = document.createElement('div');
+          dd.id = '__ac_global';
+          dd.className = 'ac-dropdown';
+          dd.addEventListener('mousedown', e => e.preventDefault());
+          document.body.appendChild(dd);
+        }
+        return dd;
+      }
+
+      function hideACGlobal() {
+        const dd = document.getElementById('__ac_global');
+        if (dd) dd.classList.remove('show');
+        acActiveIdx = null;
+      }
+
+      function getCaretCoords(ta) {
+        let helper = document.getElementById('__ac_caret_helper');
+        if (!helper) {
+          helper = document.createElement('div');
+          helper.id = '__ac_caret_helper';
+          helper.style.cssText = 'position:fixed;visibility:hidden;white-space:pre-wrap;word-break:break-all;pointer-events:none;z-index:-1;top:0;left:0;';
+          document.body.appendChild(helper);
+        }
+        const s = window.getComputedStyle(ta);
+        ['fontFamily','fontSize','lineHeight','letterSpacing',
+         'paddingLeft','paddingRight','paddingTop','paddingBottom',
+         'borderLeftWidth','borderRightWidth','borderTopWidth','borderBottomWidth',
+         'boxSizing'].forEach(p => { helper.style[p] = s[p]; });
+        const taRect = ta.getBoundingClientRect();
+        helper.style.width = taRect.width + 'px';
+        helper.style.left = taRect.left + 'px';
+        helper.style.top = taRect.top + 'px';
         const pos = ta.selectionStart;
         const before = ta.value.slice(0, pos);
-        const word = before.match(/[A-Za-z_]\w*$/) ? before.match(/[A-Za-z_]\w*$/)[0] : '';
-        const dd = document.getElementById('ac-' + idx);
-        if (!word || word.length < 1) { dd.classList.remove('show'); return; }
-        const vars = getAllVarNames();
-        const kws = ['if', 'else', 'return', 'let', 'const'];
-        const matches = [...kws, ...vars].filter(v => v.toLowerCase().startsWith(word.toLowerCase()) && v !== word);
-        if (!matches.length) { dd.classList.remove('show'); return; }
+        helper.textContent = '';
+        helper.appendChild(document.createTextNode(before));
+        const span = document.createElement('span');
+        span.textContent = '​';
+        helper.appendChild(span);
+        const r = span.getBoundingClientRect();
+        return { x: r.left, y: r.bottom + 4 };
+      }
+
+      function onScriptInput(idx, ta) {
+        equations[idx].formula = ta.value;
+        ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
+
+        const pos = ta.selectionStart;
+        const before = ta.value.slice(0, pos);
+        const wordMatch = before.match(/[A-Za-z_]\w*$/);
+        const word = wordMatch ? wordMatch[0] : '';
+        const dd = getACDropdown();
+
+        if (!word) { hideACGlobal(); return; }
+
+        const schemaVars = getSchemaVarNames();
+        const matches = schemaVars.filter(v => v.toLowerCase().startsWith(word.toLowerCase()) && v !== word);
+        if (!matches.length) { hideACGlobal(); return; }
+
+        acActiveIdx = idx;
         acSelectedIdx[idx] = 0;
-        dd.innerHTML = '<div class="ac-header">⚡ Suggestions</div>' + matches.map((m, i) => {
-          const type = vars.includes(m) ? 'var' : 'keyword';
+
+        dd.innerHTML = '<div class="ac-header">Variables from Form</div>' + matches.map((m, i) => {
+          const field = schemaFields.find(f => f.varName === m);
+          const typeLabel = field ? field.type : 'var';
           const prefix = m.slice(0, word.length);
           const rest = m.slice(word.length);
-          return `<div class="ac-item${i === 0 ? ' selected' : ''}" data-var="${m}" data-idx="${i}"
-      onmousedown="applyAC(event,${idx})"
-      onmouseover="acHover(${i},${idx})">
-      <span><span class="ac-match">${prefix}</span>${rest}</span>
-      <span class="ac-item-type">${type}</span>
-    </div>`;
+          return `<div class="ac-item${i === 0 ? ' selected' : ''}" data-var="${m}"
+            onmousedown="applyAC(event,${idx})"
+            onmouseover="acHover(${i},${idx})">
+            <span><span class="ac-match">${prefix}</span>${rest}</span>
+            <span class="ac-item-type">${typeLabel}</span>
+          </div>`;
         }).join('');
+
+        try {
+          const coords = getCaretCoords(ta);
+          const dropH = Math.min(220, 28 + matches.length * 30);
+          const top = (coords.y + dropH > window.innerHeight - 8) ? (coords.y - dropH - 28) : coords.y;
+          dd.style.left = Math.min(coords.x, window.innerWidth - 260) + 'px';
+          dd.style.top = Math.max(4, top) + 'px';
+        } catch(e) {}
         dd.classList.add('show');
       }
 
       function acHover(itemIdx, eqIdx) {
         acSelectedIdx[eqIdx] = itemIdx;
-        document.querySelectorAll(`#ac-${eqIdx} .ac-item`).forEach((el, i) => el.classList.toggle('selected', i === itemIdx));
+        document.querySelectorAll('#__ac_global .ac-item').forEach((el, i) => el.classList.toggle('selected', i === itemIdx));
       }
 
       function applyAC(e, idx) {
@@ -771,31 +1061,26 @@
         ta.value = ta.value.slice(0, start) + varName + ta.value.slice(pos);
         ta.selectionStart = ta.selectionEnd = start + varName.length;
         equations[idx].formula = ta.value;
-        const hl = document.getElementById('seh-' + idx);
-        if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
-        document.getElementById('ac-' + idx).classList.remove('show');
+        hideACGlobal();
         ta.focus();
       }
 
       function hideAC(idx) {
-        setTimeout(() => { document.getElementById('ac-' + idx)?.classList.remove('show'); }, 200);
+        setTimeout(() => hideACGlobal(), 150);
       }
 
       function onScriptKeydown(e, idx) {
-        const dd = document.getElementById('ac-' + idx);
-        const items = dd?.querySelectorAll('.ac-item') || [];
-        const showing = dd?.classList.contains('show');
-
-        // Auto-close parens/braces
+        const dd = document.getElementById('__ac_global');
+        const items = dd ? Array.from(dd.querySelectorAll('.ac-item')) : [];
+        const showing = dd && dd.classList.contains('show') && acActiveIdx === idx;
         const ta = document.getElementById('set-' + idx);
+
         if (e.key === '(') {
           e.preventDefault();
           const pos = ta.selectionStart;
           ta.value = ta.value.slice(0, pos) + '()' + ta.value.slice(pos);
           ta.selectionStart = ta.selectionEnd = pos + 1;
           equations[idx].formula = ta.value;
-          const hl = document.getElementById('seh-' + idx);
-          if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
           return;
         }
         if (e.key === '{') {
@@ -808,13 +1093,22 @@
         }
 
         if (!showing || !items.length) return;
-        if (e.key === 'ArrowDown') { e.preventDefault(); acSelectedIdx[idx] = Math.min((acSelectedIdx[idx] || 0) + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx])); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); acSelectedIdx[idx] = Math.max((acSelectedIdx[idx] || 0) - 1, 0); items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx])); }
-        else if (e.key === 'Tab' || e.key === 'Enter') {
-          const sel = acSelectedIdx[idx] >= 0 ? items[acSelectedIdx[idx]] : null;
-          if (sel) { e.preventDefault(); applyAC({ preventDefault: () => { }, currentTarget: sel }, idx); }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          acSelectedIdx[idx] = Math.min((acSelectedIdx[idx] || 0) + 1, items.length - 1);
+          items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx]));
+          items[acSelectedIdx[idx]]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          acSelectedIdx[idx] = Math.max((acSelectedIdx[idx] || 0) - 1, 0);
+          items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx]));
+          items[acSelectedIdx[idx]]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Tab' || e.key === 'Enter') {
+          const sel = items[acSelectedIdx[idx] || 0];
+          if (sel) { e.preventDefault(); applyAC({ preventDefault: () => {}, currentTarget: sel }, idx); }
+        } else if (e.key === 'Escape') {
+          hideACGlobal();
         }
-        else if (e.key === 'Escape') { dd.classList.remove('show'); }
       }
 
       function addEquation() {
@@ -864,6 +1158,7 @@
         if (type === 'live-chat') {
           const inp = document.getElementById('cin-' + uid);
           if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
+          setTimeout(() => { const cm = document.getElementById('cm-' + uid); if (cm) cm.scrollTop = cm.scrollHeight; }, 50);
         }
         updateCatalog();
         saveLayout();
@@ -879,7 +1174,7 @@
           const inp = document.getElementById('cin-' + uid);
           if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
           const cm = document.getElementById('cm-' + uid);
-          if (cm) cm.scrollTop = cm.scrollHeight;
+          if (cm) setTimeout(() => { cm.scrollTop = cm.scrollHeight; }, 10);
         }
       }
 
@@ -1156,6 +1451,7 @@
           document.getElementById('sv').textContent = result.version;
           schemaFields = [...formFields];
           originalSchemaFields = [...formFields];
+          recordSchemaVersion(formFields, result.version);
           // Reload data since migration happened
           const [data, picklist] = await Promise.all([API.getData(), API.getPicklist()]);
           if (data) { serverData = data; matchesLogged = data.length; teamsScouted = new Set(data.map(d => d.team)).size; }
@@ -1196,29 +1492,193 @@
         navigator.clipboard?.writeText(el.innerText);
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // LIVE SIMULATION (scouters only — data comes from server)
-      // ═══════════════════════════════════════════════════════════
-      setInterval(() => {
-        SCOUTERS.forEach(s => {
-          if (s.status !== 'offline' && s.battery > 2) s.battery = Math.max(2, s.battery - (Math.random() < .2 ? 1 : 0));
-          if (s.status === 'active' && s.formPct < 100) s.formPct = Math.min(100, s.formPct + (Math.random() < .3 ? Math.floor(Math.random() * 8 + 1) : 0));
-          const sections = ['Pre-match', 'Auto', 'Teleop', 'Endgame', 'Done'];
-          if (s.status === 'active') s.formSection = sections[Math.min(4, Math.floor(s.formPct / 25))];
-        });
+      // Refresh data every 30s
+      setInterval(async () => {
+        const [data, picklist] = await Promise.all([API.getData(), API.getPicklist()]);
+        if (data) { serverData = data; matchesLogged = data.length; teamsScouted = new Set(data.map(d => d.team)).size; }
+        if (picklist) serverPicklist = picklist;
         Object.entries(widgets).forEach(([id, w]) => {
-          if (['battery-monitor', 'scouter-status', 'match-progress', 'active-scouters'].includes(w.type)) refreshWidget(id);
+          if (['matches-logged', 'teams-scouted', 'match-progress', 'team-chart', 'data-table'].includes(w.type)) refreshWidget(id);
         });
-      }, 9000);
+      }, 30000);
 
-      const inMsgs = ['Team 4451 looks different today', '971 climbed — level 3?', 'Log defense separately?', 'Team 118 auto failed again', 'M15 red looks strong'];
-      setInterval(() => {
-        const s = SCOUTERS[Math.floor(Math.random() * 5)];
+      // ═══════════════════════════════════════════════════════════
+      // ADMIN FILL MODAL
+      // ═══════════════════════════════════════════════════════════
+      let admFillTarget = null;
+      let admFillValues = {};
+
+      function openAdminFill(scouterId, team, match) {
+        admFillTarget = scouterId;
+        admFillValues = {};
+
+        // Find this scouter's current field values from live progress
+        const scouter = liveScouters.find(s => s.scouter_id === scouterId);
+        const currentVals = scouter?.fieldValues || {};
+
+        document.getElementById('admfill-title').textContent = `Admin Fill — ${scouter?.display_name || scouterId}`;
+        document.getElementById('admfill-sub').textContent = `Match ${match || '?'} · Team ${team || '?'} · Pushed within ~3 s`;
+        const body = document.getElementById('admfill-body');
+
+        // Render fields exactly like scout.html does, pre-filled with scouter's current values
+        const groups = {};
+        schemaFields.forEach(f => {
+          const g = f.group || 'General';
+          if (!groups[g]) groups[g] = [];
+          groups[g].push(f);
+        });
+
+        const groupOrder = ['Autonomous', 'Teleop', 'Endgame', 'General'];
+        const sorted = Object.keys(groups).sort((a, b) => {
+          const ai = groupOrder.indexOf(a), bi = groupOrder.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1; if (bi === -1) return -1;
+          return ai - bi;
+        });
+
+        let html = '';
+        sorted.forEach(group => {
+          html += `<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:10px 0 6px">${group}</div>`;
+          groups[group].forEach(f => {
+            const v = currentVals[f.varName] ?? (f.type === 'toggle' ? false : f.type === 'text' || f.type === 'dropdown' ? '' : (f.min ?? 0));
+            html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <label style="flex:1;font-size:12px;color:var(--text-1);font-weight:500">${f.label}</label>`;
+
+            if (f.type === 'counter') {
+              html += `<div style="display:flex;align-items:center;gap:0;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden">
+                <button onmousedown="admStepCounter('${f.varName}',-1,${f.min??0},${f.max??99})"
+                  style="width:34px;height:34px;background:none;border:none;color:var(--text-1);font-size:18px;cursor:pointer;font-weight:300">−</button>
+                <div id="adm-cv-${f.varName}" style="min-width:32px;text-align:center;font-size:16px;font-weight:700;color:var(--text-1)">${v}</div>
+                <button onmousedown="admStepCounter('${f.varName}',1,${f.min??0},${f.max??99})"
+                  style="width:34px;height:34px;background:none;border:none;color:var(--text-1);font-size:18px;cursor:pointer;font-weight:300">+</button>
+              </div>`;
+            } else if (f.type === 'slider') {
+              html += `<div style="display:flex;align-items:center;gap:8px">
+                <input type="range" id="adm-sl-${f.varName}" min="${f.min??0}" max="${f.max??10}" value="${v}" step="1"
+                  oninput="admFillValues['${f.varName}']=+this.value;document.getElementById('adm-slv-${f.varName}').textContent=this.value"
+                  style="width:100px;accent-color:var(--blue)">
+                <span id="adm-slv-${f.varName}" style="font-size:13px;font-weight:700;color:var(--blue);min-width:20px">${v}</span>
+              </div>`;
+              admFillValues[f.varName] = +v;
+            } else if (f.type === 'toggle') {
+              html += `<div id="adm-tgl-${f.varName}" onclick="admToggle('${f.varName}')"
+                style="width:46px;height:26px;border-radius:13px;background:${v ? 'var(--blue)' : 'rgba(255,255,255,0.15)'};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+                <div style="position:absolute;top:3px;left:${v ? '23px' : '3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s" id="adm-tgl-thumb-${f.varName}"></div>
+              </div>`;
+              admFillValues[f.varName] = !!v;
+            } else if (f.type === 'dropdown') {
+              const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options||[])).map(o=>o.trim()).filter(Boolean);
+              html += `<select id="adm-dd-${f.varName}" onchange="admFillValues['${f.varName}']=this.value"
+                style="background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text-1);outline:none">
+                <option value="">— select —</option>
+                ${opts.map(o=>`<option value="${o}"${v===o?' selected':''}>${o}</option>`).join('')}
+              </select>`;
+            } else {
+              html += `<input type="text" id="adm-txt-${f.varName}" value="${v}"
+                oninput="admFillValues['${f.varName}']=this.value"
+                style="width:140px;background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text-1);outline:none">`;
+            }
+            html += `</div>`;
+          });
+        });
+
+        if (!schemaFields.length) html = '<div style="color:var(--text-3);font-size:12px">No schema fields defined. Use the Form Builder tab to add fields.</div>';
+        body.innerHTML = html;
+
+        // Init counter values into admFillValues
+        schemaFields.filter(f => f.type === 'counter').forEach(f => {
+          const v = currentVals[f.varName] ?? (f.min ?? 0);
+          admFillValues[f.varName] = +v;
+        });
+
+        document.getElementById('admfill-modal').style.display = 'flex';
+      }
+
+      function admStepCounter(varName, delta, min, max) {
+        admFillValues[varName] = Math.max(min, Math.min(max, (admFillValues[varName] ?? 0) + delta));
+        const el = document.getElementById('adm-cv-' + varName);
+        if (el) { el.textContent = admFillValues[varName]; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 100); }
+      }
+
+      function admToggle(varName) {
+        admFillValues[varName] = !admFillValues[varName];
+        const track = document.getElementById('adm-tgl-' + varName);
+        const thumb = document.getElementById('adm-tgl-thumb-' + varName);
+        if (track) track.style.background = admFillValues[varName] ? 'var(--blue)' : 'rgba(255,255,255,0.15)';
+        if (thumb) thumb.style.left = admFillValues[varName] ? '23px' : '3px';
+      }
+
+      function closeAdminFill() {
+        document.getElementById('admfill-modal').style.display = 'none';
+        admFillTarget = null;
+        admFillValues = {};
+      }
+
+      async function submitAdminFill() {
+        if (!admFillTarget) return;
+        if (!Object.keys(admFillValues).length) { closeAdminFill(); return; }
+        const result = await API.postAdminFill(admFillTarget, admFillValues);
+        if (result?.ok) {
+          closeAdminFill();
+          const toast = document.createElement('div');
+          toast.textContent = `✓ Pushed ${Object.keys(admFillValues).length} field(s) to ${admFillTarget}`;
+          toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(48,209,88,0.25);border:0.5px solid rgba(48,209,88,0.5);color:var(--green);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // SETTINGS FUNCTIONS
+      // ═══════════════════════════════════════════════════════════
+      function setCurrentMatch() {
+        const val = parseInt(document.getElementById('set-match-num')?.value);
+        if (!val || isNaN(val)) return;
+        currentMatch = val;
+        // Refresh match progress widgets
+        Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'match-progress') refreshWidget(id); });
+        // Send broadcast to chat
         const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-        chatMessages.push({ role: 'scouter', from: `S${s.id} · ${s.name}`, text: inMsgs[Math.floor(Math.random() * inMsgs.length)], time: now });
-        if (chatMessages.length > 60) chatMessages.shift();
+        const msg = { role: 'broadcast', from: 'BROADCAST', text: `📢 Current match set to Match ${val}`, time: now };
+        chatMessages.push(msg);
+        API.postChat(msg).catch(() => {});
         Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
-      }, 22000);
+      }
+
+      async function clearChat() {
+        if (!confirm('Clear all chat history? This cannot be undone.')) return;
+        await API.deleteChat();
+        chatMessages = [];
+        Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
+      }
+
+      async function loadHealth() {
+        const h = await API.getHealth();
+        const el = document.getElementById('health-info');
+        if (!el) return;
+        if (!h) { el.textContent = '✕ Server unreachable'; el.style.color = 'var(--red)'; return; }
+        el.style.color = 'var(--green)';
+        el.innerHTML = `✓ Online · Uptime: ${Math.floor(h.uptime)}s · Submissions: ${h.submissions} · Active scouters: ${h.activeScouters} · Chat msgs: ${h.chatMessages}`;
+      }
+
+      function refreshAdminFillList() {
+        const el = document.getElementById('adm-fill-scouter-list');
+        if (!el) return;
+        if (!liveScouters.length) {
+          el.innerHTML = '<div style="font-size:12px;color:var(--text-3)">No scouters connected yet.</div>';
+          return;
+        }
+        el.innerHTML = liveScouters.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:10px;border:0.5px solid rgba(255,255,255,0.08)">
+            <div class="sc-dot active" style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600">${s.scouter_id}</div>
+              <div style="font-size:10px;color:var(--text-3)">Match ${s.match||'?'} · Team ${s.team||'?'} · ${s.pct||0}%</div>
+            </div>
+            <button onclick="openAdminFill('${s.scouter_id}',${s.team||0},${s.match||0})"
+              style="padding:5px 12px;border-radius:8px;background:rgba(10,132,255,0.18);border:0.5px solid rgba(10,132,255,0.4);color:var(--blue);font-size:11px;font-weight:600;cursor:pointer">Fill ✦</button>
+          </div>`).join('');
+      }
 
       // ═══════════════════════════════════════════════════════════
       // BOOT
