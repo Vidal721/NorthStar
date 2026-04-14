@@ -11,3 +11,5 @@ Here is the [Live page](https://vidal721.github.io/Scouting-App/UI/index.html) t
 
 
 Here is our [website](https://northstars.netlify.app)
+
+Here is our [website](https://google.com)
