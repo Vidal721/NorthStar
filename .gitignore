@@ -1,0 +1,19 @@
+# Node.js
+node_modules/
+
+# Executables
+*.exe
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
