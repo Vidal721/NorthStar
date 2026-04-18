@@ -3,10 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: '100mb' }));
 app.use(express.static(path.join(__dirname)));        // files next to Server.js
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '../UI')));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Named convenience routes — /admin and /scout always work
 function sendFirst(res, ...candidates) {
@@ -22,6 +23,7 @@ app.get('/scout', (req, res) => sendFirst(res, ...dirs.map(d => path.join(d, 'sc
 const DATA_FILE      = path.join(__dirname, 'data/scouting_database.json');
 const SCHEMA_FILE    = path.join(__dirname, 'data/schema.json');
 const EQUATIONS_FILE = path.join(__dirname, 'data/equations.json');
+const FIELD_SCHEMA_FILE = path.join(__dirname, 'data/field_schema.json');
 
 // ── In-Memory Real-Time State ────────────────────────────
 const scouterProgress = {};  // scouter_id → { match, team, alliance, pct, fieldValues, lastSeen }
@@ -65,6 +67,17 @@ function applyEquations(row, equations) {
   }
   return result;
 }
+
+// ── Field Schema API ─────────────────────────────────────
+app.get('/api/field-schema', (req, res) => {
+  res.json(readJSON(FIELD_SCHEMA_FILE, { zones: [], buttons: [], imageDataUrl: null, imageW: 0, imageH: 0 }));
+});
+
+app.put('/api/field-schema', (req, res) => {
+  writeJSON(FIELD_SCHEMA_FILE, req.body);
+  console.log(`[FIELD-SCHEMA] Saved: ${(req.body.zones||[]).length} zones, ${(req.body.buttons||[]).length} buttons`);
+  res.json({ ok: true });
+});
 
 // ── Schema API ───────────────────────────────────────────
 

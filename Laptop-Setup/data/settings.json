@@ -1,38 +1,37 @@
 {
   "setupComplete": true,
   "teamNumber": "935",
-  "teamName": "RaileRoboticss",
+  "teamName": "NorthStar",
   "school": "Newton High School",
   "city": "Newton",
   "state": "KS",
-  "yearsInFirst": 25,
+  "yearsInFirst": 22,
   "theme": {
-    "id": "green",
-    "label": "Teal",
-    "css": "radial-gradient(ellipse 70% 70% at 15% 85%,rgba(48,209,88,0.18),transparent),radial-gradient(ellipse 50% 50% at 85% 15%,rgba(90,200,250,0.18),transparent),#040e10"
+    "id": "bluepurple",
+    "label": "Blue/Purple",
+    "css": "radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18"
   },
   "colors": {
-    "primary": "#000000",
-    "secondary": "#ffd60a",
-    "accent": "#ffffff"
+    "primary": "#0a84ff",
+    "secondary": "#bf5af2",
+    "accent": "#ffd60a"
   },
   "display": {
-    "mode": "Dark",
-    "fontSize": "XL",
-    "fontSizePx": 18,
-    "cardStyle": "Glass",
+    "mode": "Dim",
+    "fontSize": "Large",
+    "fontSizePx": 16,
+    "cardStyle": "Flat",
     "density": "Default"
   },
   "scouting": {
-    "system": "1 scout per robot (6-person)",
-    "priority": "Auto scoring",
+    "system": "",
+    "priority": "",
     "events": "",
-    "device": "Tablet"
+    "device": "Phone"
   },
   "adminRoles": [
     "coach",
-    "lead",
-    "assistant"
+    "lead"
   ],
   "perUserDashboard": false,
   "activeGame": ""

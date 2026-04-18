@@ -883,6 +883,15 @@
       // EQUATION EDITOR MODAL
       // ═══════════════════════════════════════════════════════════
       function openEqModal() {
+        // If equations haven't loaded yet (server still initializing or offline),
+        // fall back to the built-in defaults so the modal is never blank.
+        if (!equations.length) {
+          equations = [
+            { id: 'eq1', varName: 'total_score', label: 'Total Score', formula: '(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)' },
+            { id: 'eq2', varName: 'climb_pts',   label: 'Climb Points', formula: 'climb_level * 6' },
+            { id: 'eq3', varName: 'climb_status', label: 'Climb Status', formula: "if (climb_level === 0) return 'None'; if (climb_level === 1) return 'Low'; if (climb_level === 2) return 'Mid'; return 'High';" },
+          ];
+        }
         document.getElementById('eq-modal').classList.add('open');
         renderEqModal();
       }
@@ -1122,14 +1131,16 @@
       }
 
       async function saveEquations() {
+        // Always close the modal and refresh widgets locally — the Pi sync is best-effort.
+        closeEqModal();
+        Object.entries(widgets).forEach(([id, w]) => {
+          if (['eq-builder', 'team-chart', 'matches-logged', 'teams-scouted'].includes(w.type)) refreshWidget(id);
+        });
+        await refreshPicklist();
+        // Attempt to sync to server in the background.
         const result = await API.putEquations(equations);
         if (result?.ok) {
-          closeEqModal();
-          // Refresh picklist and chart widgets since equations changed
-          Object.entries(widgets).forEach(([id, w]) => {
-            if (['eq-builder', 'team-chart', 'matches-logged', 'teams-scouted'].includes(w.type)) refreshWidget(id);
-          });
-          await refreshPicklist();
+          setSyncStatus('ok');
         }
       }
 

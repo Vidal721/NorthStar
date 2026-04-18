@@ -34,16 +34,27 @@
       "id": 10
     },
     {
-      "name": "Austin",
+      "name": "austin rich",
       "username": "austin",
       "email": "—",
-      "password": "password",
+      "password": "scouting",
       "role": "lead",
-      "id": 11,
+      "id": 12,
+      "mins": 0,
+      "matches": 0,
+      "status": "active"
+    },
+    {
+      "name": "RaileRobotics",
+      "username": "Railer",
+      "email": "—",
+      "password": "Railer",
+      "role": "lead",
+      "id": 13,
       "mins": 0,
       "matches": 0,
       "status": "active"
     }
   ],
-  "nextId": 12
+  "nextId": 14
 }

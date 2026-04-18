@@ -172,7 +172,7 @@ function createWindow() {
     backgroundColor: '#060a18',
     show: false,
   });
-  win.loadFile('index.html');
+  win.loadFile('Laptop-Setup/index.html');
   win.once('ready-to-show', () => win.show());
 }
 

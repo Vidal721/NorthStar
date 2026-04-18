@@ -14,8 +14,8 @@ body {
   font-family: 'Inter', -apple-system, sans-serif;
   color: rgba(255,255,255,0.95);
   background: #060a18;
-  min-height: 100vh;
-  overflow: auto;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -108,7 +108,7 @@ body {
 }
 
 /* ── MAIN LAYOUT ── */
-.main { display: flex; flex: 1; position: relative; z-index: 1; }
+.main { display: flex; flex: 1; position: relative; z-index: 1; flex-direction: column; overflow: hidden; }
 
 /* ── LEFT PANEL — Field Type Palette ── */
 .left-panel {
@@ -407,6 +407,192 @@ body {
 /* ── ANIMATIONS ── */
 @keyframes fadeSlideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 .field-item { animation: fadeSlideIn 200ms var(--ease-o) both; }
+
+/* ── TAB NAV ── */
+.tab-nav { display: flex; gap: 2px; align-items: center; margin-left: 12px; }
+.tab-btn {
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  padding: 5px 13px; border-radius: var(--r-pill); border: 0.5px solid transparent;
+  background: none; color: var(--t3); cursor: pointer; transition: all 150ms;
+}
+.tab-btn:hover { color: var(--t1); background: var(--glass); }
+.tab-btn.active { background: rgba(10,132,255,.18); border-color: rgba(10,132,255,.35); color: var(--blue); }
+.tab-panel { display: none; flex: 1; min-height: 0; }
+.tab-panel.active { display: flex; flex: 1; }
+
+/* ── FIELD SCOUTING EDITOR ── */
+.fs-editor { display: flex; flex: 1; min-height: 0; position: relative; }
+.fs-left {
+  width: 260px; flex-shrink: 0;
+  background: rgba(6,10,24,0.85); backdrop-filter: blur(20px);
+  border-right: 0.5px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.fs-canvas-wrap {
+  flex: 1; overflow: hidden; position: relative;
+  background: repeating-conic-gradient(rgba(255,255,255,.04) 0% 25%, transparent 0% 50%) 0 0 / 24px 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.fs-canvas-inner {
+  position: relative; display: inline-block;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.15), 0 20px 60px rgba(0,0,0,.5);
+}
+#fs-field-img {
+  display: block; max-width: 100%; max-height: 100%;
+  user-select: none; pointer-events: none;
+}
+.fs-overlay { position: absolute; inset: 0; }
+
+/* Zone rect */
+.fs-zone {
+  position: absolute; border: 2px solid rgba(255,255,255,.4);
+  border-radius: 8px; cursor: move;
+  transition: border-color 200ms, background 200ms;
+  box-sizing: border-box;
+}
+.fs-zone:hover { border-color: rgba(255,255,255,.75); }
+.fs-zone.selected { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+.fs-zone-label {
+  position: absolute; top: 4px; left: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: .03em;
+  color: rgba(255,255,255,.9); text-shadow: 0 1px 3px rgba(0,0,0,.7);
+  pointer-events: none; white-space: nowrap; overflow: hidden; max-width: calc(100% - 30px);
+}
+.fs-zone-resize {
+  position: absolute; bottom: 0; right: 0;
+  width: 14px; height: 14px; cursor: se-resize;
+  background: rgba(255,255,255,.3); border-radius: 4px 0 8px 0;
+}
+.fs-zone-del {
+  position: absolute; top: 2px; right: 4px;
+  font-size: 13px; color: rgba(255,69,58,.8); cursor: pointer;
+  line-height: 1; padding: 1px 3px; border-radius: 4px;
+  background: rgba(0,0,0,.3);
+}
+.fs-zone-del:hover { color: var(--red); background: rgba(255,69,58,.2); }
+
+/* Map button */
+.fs-map-btn {
+  position: absolute; transform: translate(-50%,-50%);
+  background: rgba(10,132,255,.85); border: 2px solid rgba(255,255,255,.3);
+  border-radius: 8px; color: white; font-size: 11px; font-weight: 700;
+  padding: 5px 9px; cursor: move; white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,.4);
+  user-select: none;
+  transition: box-shadow 150ms;
+}
+.fs-map-btn:hover { box-shadow: 0 4px 16px rgba(10,132,255,.5); }
+.fs-map-btn.selected { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow); }
+
+/* FS Left panel parts */
+.fs-section { padding: 12px 14px; border-bottom: 0.5px solid var(--divider); }
+.fs-section-title { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin-bottom: 10px; }
+.fs-upload-area {
+  border: 1.5px dashed rgba(255,255,255,.18); border-radius: var(--r-md);
+  padding: 14px 10px; text-align: center; cursor: pointer;
+  transition: all 200ms; color: var(--t3); font-size: 12px;
+}
+.fs-upload-area:hover { border-color: var(--blue); color: var(--blue); background: rgba(10,132,255,.06); }
+#fs-img-input { display: none; }
+
+.fs-zone-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
+.fs-zone-list::-webkit-scrollbar { width: 3px; }
+.fs-zone-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.fs-zone-item {
+  padding: 8px 10px; border-radius: var(--r-md);
+  background: var(--glass); border: 0.5px solid var(--border);
+  cursor: pointer; transition: all 150ms;
+}
+.fs-zone-item:hover { background: var(--glass-h); }
+.fs-zone-item.selected { border-color: var(--blue); background: rgba(10,132,255,.1); }
+.fs-zone-item-name { font-size: 13px; font-weight: 600; color: var(--t1); }
+.fs-zone-item-meta { font-size: 10px; color: var(--t3); margin-top: 1px; }
+
+.fs-right {
+  width: 300px; flex-shrink: 0;
+  background: rgba(6,10,24,0.85); backdrop-filter: blur(20px);
+  border-left: 0.5px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.fs-inspector-scroll { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.fs-inspector-scroll::-webkit-scrollbar { width: 3px; }
+.fs-inspector-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.fs-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--t3); text-align: center; font-size: 12px; gap: 8px; padding: 20px; }
+
+/* btn list in zone inspector */
+.fs-btn-list { display: flex; flex-direction: column; gap: 6px; }
+.fs-btn-item {
+  padding: 8px 10px; border-radius: var(--r-md);
+  background: var(--glass); border: 0.5px solid var(--border);
+  cursor: pointer; transition: all 150ms;
+  display: flex; align-items: center; gap: 8px;
+}
+.fs-btn-item:hover { background: var(--glass-h); }
+.fs-btn-item.selected { border-color: var(--yellow); background: rgba(255,214,10,.08); }
+.fs-btn-item-label { font-size: 12px; font-weight: 600; flex: 1; }
+.fs-btn-item-type { font-size: 10px; color: var(--t3); }
+
+/* color dot */
+.color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* action type select pills */
+.action-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.action-pill {
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: var(--r-pill);
+  border: 0.5px solid var(--border); background: var(--glass); color: var(--t2);
+  cursor: pointer; transition: all 150ms;
+}
+.action-pill.selected { background: rgba(10,132,255,.2); border-color: rgba(10,132,255,.4); color: var(--blue); }
+
+/* ── SNAP GUIDES ── */
+.fs-snap-guide {
+  position: absolute; pointer-events: none; z-index: 200;
+  background: rgba(255, 59, 48, 0.9);
+  box-shadow: 0 0 6px rgba(255,59,48,.7);
+}
+.fs-snap-guide.h { left: 0; right: 0; height: 1.5px; }
+.fs-snap-guide.v { top: 0; bottom: 0; width: 1.5px; }
+
+/* ── ICON PICKER ── */
+.icon-picker-wrap { position: relative; }
+.icon-current-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 10px; border-radius: var(--r-md);
+  background: var(--glass); border: 0.5px solid var(--border);
+  color: var(--t1); font-family: inherit; font-size: 13px; cursor: pointer;
+  transition: all 150ms; text-align: left;
+}
+.icon-current-btn:hover { background: var(--glass-h); border-color: var(--border-s); }
+.icon-current-preview { font-size: 20px; line-height: 1; }
+.icon-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 500;
+  background: rgba(14,18,38,.98); border: 0.5px solid var(--border);
+  border-radius: var(--r-lg); box-shadow: var(--sh-lg);
+  padding: 10px; display: none;
+  max-height: 240px; overflow-y: auto;
+}
+.icon-dropdown.open { display: block; animation: fadeSlideIn 150ms var(--ease-o); }
+.icon-dropdown::-webkit-scrollbar { width: 3px; }
+.icon-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.icon-category { font-size: 9px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--t3); margin: 8px 2px 4px; }
+.icon-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+.icon-opt {
+  width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+  background: var(--glass); border: 0.5px solid transparent;
+  transition: all 100ms;
+}
+.icon-opt:hover { background: var(--glass-h); border-color: var(--border-s); transform: scale(1.18); }
+.icon-opt.selected { background: rgba(10,132,255,.2); border-color: rgba(10,132,255,.5); }
+
+.zone-select-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.zone-select-item {
+  padding: 6px 10px; border-radius: var(--r-md); font-size: 12px; font-weight: 500;
+  background: var(--glass); border: 0.5px solid var(--border); cursor: pointer; color: var(--t2);
+  transition: all 150ms;
+}
+.zone-select-item:hover { background: var(--glass-h); color: var(--t1); }
+.zone-select-item.selected { background: rgba(48,209,88,.15); border-color: rgba(48,209,88,.35); color: var(--green); }
 </style>
 </head>
 <body>
@@ -420,18 +606,27 @@ body {
     <div class="topbar-sep"></div>
     <div class="topbar-title">Form Builder</div>
   </div>
-  <div class="sv-badge">Schema v<span id="sv-num">1</span></div>
-  <div class="topbar-actions">
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tab-form-btn" onclick="switchTab('form')">📋 Form Fields</button>
+    <button class="tab-btn" id="tab-field-btn" onclick="switchTab('field')">🗺 Field Scouting</button>
+  </div>
+  <div class="sv-badge" id="form-tab-badge" style="margin-left:8px">Schema v<span id="sv-num">1</span></div>
+  <div class="topbar-actions" id="form-tab-actions">
     <button class="tbtn" onclick="toggleJSON()">{ } JSON</button>
     <button class="tbtn purple" onclick="openPreview()">▶ Preview</button>
     <button class="tbtn danger" onclick="resetAll()">↺ Reset</button>
     <button class="tbtn green" onclick="syncToServer()">↑ Sync to Pi</button>
   </div>
+  <div class="topbar-actions" id="field-tab-actions" style="display:none">
+    <button class="tbtn" onclick="addZone()">＋ Add Zone</button>
+    <button class="tbtn green" onclick="syncFieldSchema()">↑ Sync Field Map</button>
+  </div>
 </div>
 
 <!-- MAIN -->
-<div class="main">
+<div class="main" id="maindiv" style="flex-direction:column">
 
+<div class="tab-panel active" id="tab-form" style="flex:1;min-height:0">
   <!-- LEFT PANEL — Field Type Palette -->
   <div class="left-panel">
     <div class="panel-head">
@@ -502,6 +697,54 @@ body {
   </div>
 
 </div>
+</div><!-- /tab-form -->
+
+<!-- FIELD SCOUTING TAB -->
+<div class="tab-panel" id="tab-field" style="flex:1;min-height:0">
+  <div class="fs-editor">
+    <!-- LEFT: zones list + upload -->
+    <div class="fs-left">
+      <div class="fs-section">
+        <div class="fs-section-title">Field Image</div>
+        <div class="fs-upload-area" onclick="document.getElementById('fs-img-input').click()" id="fs-upload-area">
+          📷 Click to upload field image
+        </div>
+        <input type="file" id="fs-img-input" accept="image/*" onchange="handleFieldImage(event)">
+      </div>
+      <div class="fs-section" style="border-bottom:none;padding-bottom:6px">
+        <div class="fs-section-title">Zones</div>
+        <div style="display:flex;gap:6px">
+          <button class="tbtn" style="flex:1;justify-content:center" onclick="addZone()">＋ Zone</button>
+          <button class="tbtn" style="flex:1;justify-content:center" onclick="addMapButton()">＋ Button</button>
+        </div>
+      </div>
+      <div class="fs-zone-list" id="fs-zone-list">
+        <div style="text-align:center;color:var(--t3);font-size:12px;padding:16px">Upload a field image,<br>then add zones.</div>
+      </div>
+    </div>
+
+    <!-- CENTER: Canvas -->
+    <div class="fs-canvas-wrap" id="fs-canvas-wrap">
+      <div class="fs-canvas-inner" id="fs-canvas-inner">
+        <img id="fs-field-img" src="" alt="" style="display:none;min-width:600px;min-height:350px;object-fit:contain">
+        <div class="fs-overlay" id="fs-overlay"></div>
+        <div id="fs-placeholder" style="display:flex;align-items:center;justify-content:center;width:700px;height:420px;color:rgba(255,255,255,.15);font-size:15px;font-weight:500">Upload a field image to begin</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Inspector -->
+    <div class="fs-right">
+      <div class="panel-head">
+        <div class="panel-head-title" id="fs-insp-title">Inspector</div>
+      </div>
+      <div class="fs-empty" id="fs-insp-empty">
+        <div style="font-size:36px;opacity:.3">🗺</div>
+        <div>Select a zone or button<br>to edit its properties</div>
+      </div>
+      <div class="fs-inspector-scroll" id="fs-insp-content" style="display:none"></div>
+    </div>
+  </div>
+</div><!-- /tab-field -->
 
 <!-- JSON PANE -->
 <div class="json-pane" id="json-pane">
@@ -1300,17 +1543,698 @@ document.addEventListener('keydown', e => {
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 's') {
     e.preventDefault();
-    syncToServer();
+    if (currentTab === 'form') syncToServer(); else syncFieldSchema();
   }
   if (e.key === 'Delete' && selectedFieldId && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
     deleteSelected();
   }
 });
 
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+let currentTab = 'form';
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab + '-btn').classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('form-tab-badge').style.display = tab === 'form' ? '' : 'none';
+  document.getElementById('form-tab-actions').style.display = tab === 'form' ? '' : 'none';
+  document.getElementById('field-tab-actions').style.display = tab === 'field' ? '' : 'none';
+  document.getElementById('maindiv').style.display = tab === 'field' ? 'none' : '';
+  if (tab === 'field') { renderFSZoneList(); renderFSOverlay(); }
+}
+
+// ═══════════════════════════════════════════════════════
+// FIELD SCOUTING STATE
+// ═══════════════════════════════════════════════════════
+// fieldSchema = { imageDataUrl, imageW, imageH, zones: [{id,name,x,y,w,h,color,order}], buttons: [{id,zoneId,label,color,action,logLabel,nextZoneId,x,y}] }
+let fieldSchema = { imageDataUrl: null, imageW: 0, imageH: 0, zones: [], buttons: [] };
+let fsSelectedZoneId = null;
+let fsSelectedBtnId  = null;
+let fsDragState = null; // { type:'zone-move'|'zone-resize'|'btn-move', id, startX, startY, origX, origY, origW, origH }
+
+const FS_COLORS = ['blue','green','purple','pink','orange','teal','red','yellow'];
+const FS_COLOR_HEX = { blue:'#0A84FF', green:'#30D158', purple:'#BF5AF2', pink:'#FF375F', orange:'#FF9F0A', teal:'#5AC8FA', red:'#FF453A', yellow:'#FFD60A' };
+
+const FS_ICONS = {
+  'Arrows': ['⬆','⬇','⬅','➡','↗','↘','↙','↖','↑','↓','←','→','⟳','⟲','↺','↻'],
+  'Game': ['🎯','🏆','⭐','💥','🔥','⚡','✅','❌','🚀','🎮','🏅','🎖','⚽','🏀','🏈','🎱'],
+  'Shapes': ['●','◆','▲','■','★','♦','♠','♣','♥','⬟','⬠','⬡','▶','◀','▼','△'],
+  'Field': ['🤖','🔧','🔩','⚙','🛠','📡','🔋','💡','🔌','🏗','🏭','🔲','📍','🗺','🧲','📏'],
+  'Status': ['✓','✗','!','?','1','2','3','A','B','C','→','⊕','⊖','⊗','⊘','⊙'],
+};
+
+let _iconPickerOpenId = null;
+function toggleIconPicker(btnId) {
+  const dropdown = document.getElementById('icon-dd-' + btnId);
+  if (!dropdown) return;
+  const isOpen = dropdown.classList.contains('open');
+  // Close any other open ones
+  document.querySelectorAll('.icon-dropdown.open').forEach(d => d.classList.remove('open'));
+  _iconPickerOpenId = null;
+  if (!isOpen) {
+    dropdown.classList.add('open');
+    _iconPickerOpenId = btnId;
+  }
+}
+
+// Close picker on outside click
+document.addEventListener('click', e => {
+  if (_iconPickerOpenId && !e.target.closest('.icon-picker-wrap')) {
+    document.querySelectorAll('.icon-dropdown.open').forEach(d => d.classList.remove('open'));
+    _iconPickerOpenId = null;
+  }
+});
+
+function buildIconPicker(btn) {
+  const currentIcon = btn.icon || '';
+  let html = `<div class="icon-picker-wrap">
+    <button class="icon-current-btn" onclick="event.stopPropagation();toggleIconPicker('${btn.id}')">
+      <span class="icon-current-preview">${currentIcon || '🔘'}</span>
+      <span style="flex:1;color:var(--t2)">${currentIcon ? currentIcon + '  ' + btn.label : 'No icon'}</span>
+      <span style="color:var(--t3);font-size:11px">▾</span>
+    </button>
+    <div class="icon-dropdown" id="icon-dd-${btn.id}">`;
+
+  // "None" option
+  html += `<div class="icon-category">None</div>
+    <div class="icon-grid">
+      <div class="icon-opt${!currentIcon?' selected':''}" onclick="fsSetIcon('${btn.id}','')">∅</div>
+    </div>`;
+
+  Object.entries(FS_ICONS).forEach(([cat, icons]) => {
+    html += `<div class="icon-category">${cat}</div><div class="icon-grid">`;
+    icons.forEach(ic => {
+      html += `<div class="icon-opt${currentIcon===ic?' selected':''}"
+        onclick="fsSetIcon('${btn.id}','${ic}')">${ic}</div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `</div></div>`;
+  return html;
+}
+
+function fsSetIcon(btnId, icon) {
+  const btn = fieldSchema.buttons.find(b => b.id === btnId);
+  if (btn) btn.icon = icon;
+  // Close picker
+  document.querySelectorAll('.icon-dropdown.open').forEach(d => d.classList.remove('open'));
+  _iconPickerOpenId = null;
+  renderFSOverlay();
+  renderFSInspector();
+}
+
+function fsUID() { return 'fs' + Math.random().toString(36).slice(2,8); }
+
+// ── Load from server ──
+async function loadFieldSchema() {
+  try {
+    const res = await fetch('/api/field-schema');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.zones) {
+      fieldSchema = data;
+      if (data.imageDataUrl) {
+        showFieldImage(data.imageDataUrl);
+      }
+      renderFSZoneList();
+      renderFSOverlay();
+    }
+  } catch {}
+}
+
+async function syncFieldSchema() {
+  // Make absolutely sure the image is in the object
+  const payload = { ...fieldSchema };
+  const byteSize = JSON.stringify(payload).length;
+  const mb = (byteSize / 1048576).toFixed(1);
+
+  try {
+    const res = await fetch('/api/field-schema', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast(`Field map synced ✓  (${mb} MB)`, 'success', 4000);
+  } catch (e) {
+    localStorage.setItem('ns_field_schema', JSON.stringify(payload));
+    toast(`Saved locally (${mb} MB) — ${e.message}`, 'info', 5000);
+  }
+}
+
+// ── Image upload ──
+function handleFieldImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    // Set on fieldSchema FIRST before anything triggers a save
+    fieldSchema.imageDataUrl = dataUrl;
+
+    const tempImg = new Image();
+    tempImg.onload = () => {
+      fieldSchema.imageW = tempImg.naturalWidth;
+      fieldSchema.imageH = tempImg.naturalHeight;
+      showFieldImage(dataUrl);
+      // Immediately persist to localStorage
+      localStorage.setItem('ns_field_schema', JSON.stringify(fieldSchema));
+    };
+    tempImg.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showFieldImage(dataUrl) {
+  const img = document.getElementById('fs-field-img');
+  const placeholder = document.getElementById('fs-placeholder');
+  img.src = dataUrl;
+  img.style.display = 'block';
+  img.style.minWidth = '';
+  img.style.minHeight = '';
+  placeholder.style.display = 'none';
+  document.getElementById('fs-upload-area').innerHTML = '📷 Change field image';
+  // Overlay renders once img fires load
+}
+
+// ── Get canvas scale (image display size vs natural size) ──
+function getFSScale() {
+  const img = document.getElementById('fs-field-img');
+  if (!img || !img.naturalWidth) return { sx: 1, sy: 1 };
+  return { sx: img.clientWidth / img.naturalWidth, sy: img.clientHeight / img.naturalHeight };
+}
+
+// ── Add zone ──
+function addZone() {
+  const id = fsUID();
+  const order = fieldSchema.zones.length;
+  fieldSchema.zones.push({
+    id, name: 'Zone ' + (order + 1),
+    x: 0.1 + order * 0.05, y: 0.1 + order * 0.04,
+    w: 0.3, h: 0.3,
+    color: FS_COLORS[order % FS_COLORS.length],
+    order,
+  });
+  fsSelectedZoneId = id;
+  fsSelectedBtnId = null;
+  renderFSZoneList();
+  renderFSOverlay();
+  renderFSInspector();
+}
+
+// ── Add button ──
+function addMapButton() {
+  if (!fieldSchema.zones.length) { toast('Add at least one zone first', 'error'); return; }
+  const id = fsUID();
+  const zoneId = fsSelectedZoneId || fieldSchema.zones[0].id;
+  const zone = fieldSchema.zones.find(z => z.id === zoneId);
+  fieldSchema.buttons.push({
+    id, zoneId,
+    label: 'Button',
+    color: 'blue',
+    action: 'log', // 'log' | 'score' | 'advance'
+    logLabel: 'Event logged',
+    nextZoneId: null,
+    x: (zone ? zone.x + zone.w / 2 : 0.5),
+    y: (zone ? zone.y + zone.h / 2 : 0.5),
+  });
+  fsSelectedBtnId = id;
+  fsSelectedZoneId = null;
+  renderFSZoneList();
+  renderFSOverlay();
+  renderFSInspector();
+}
+
+// ── Delete zone ──
+function deleteZone(id) {
+  fieldSchema.zones = fieldSchema.zones.filter(z => z.id !== id);
+  fieldSchema.buttons = fieldSchema.buttons.filter(b => b.zoneId !== id);
+  if (fsSelectedZoneId === id) { fsSelectedZoneId = null; fsSelectedBtnId = null; }
+  renderFSZoneList(); renderFSOverlay(); renderFSInspector();
+}
+
+// ── Delete button ──
+function deleteMapButton(id) {
+  fieldSchema.buttons = fieldSchema.buttons.filter(b => b.id !== id);
+  if (fsSelectedBtnId === id) fsSelectedBtnId = null;
+  renderFSZoneList(); renderFSOverlay(); renderFSInspector();
+}
+
+// ── Select zone ──
+function selectZone(id) {
+  fsSelectedZoneId = id;
+  fsSelectedBtnId = null;
+  renderFSZoneList(); renderFSOverlay(); renderFSInspector();
+}
+
+// ── Select button ──
+function selectMapButton(id) {
+  fsSelectedBtnId = id;
+  fsSelectedZoneId = null;
+  renderFSZoneList(); renderFSOverlay(); renderFSInspector();
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ZONE LIST (left panel)
+// ═══════════════════════════════════════════════════════
+function renderFSZoneList() {
+  const el = document.getElementById('fs-zone-list');
+  if (!fieldSchema.zones.length && !fieldSchema.buttons.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--t3);font-size:12px;padding:16px">Upload a field image,<br>then add zones and buttons.</div>`;
+    return;
+  }
+  let html = '';
+  // Zones
+  if (fieldSchema.zones.length) {
+    html += `<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding:4px 4px 6px">Zones</div>`;
+    fieldSchema.zones.forEach(z => {
+      const c = FS_COLOR_HEX[z.color] || '#0A84FF';
+      html += `<div class="fs-zone-item${fsSelectedZoneId === z.id ? ' selected' : ''}" onclick="selectZone('${z.id}')">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="color-dot" style="background:${c}"></div>
+          <div class="fs-zone-item-name">${esc(z.name)}</div>
+        </div>
+        <div class="fs-zone-item-meta">${fieldSchema.buttons.filter(b=>b.zoneId===z.id).length} buttons</div>
+      </div>`;
+    });
+  }
+  // Buttons
+  if (fieldSchema.buttons.length) {
+    html += `<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding:8px 4px 6px">Buttons</div>`;
+    fieldSchema.buttons.forEach(b => {
+      const c = FS_COLOR_HEX[b.color] || '#0A84FF';
+      const zone = fieldSchema.zones.find(z => z.id === b.zoneId);
+      const actionLabel = {log:'Log Event', score:'Score UI', advance:'Advance Zone'}[b.action] || b.action;
+      html += `<div class="fs-zone-item${fsSelectedBtnId === b.id ? ' selected' : ''}" onclick="selectMapButton('${b.id}')">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="color-dot" style="background:${c}"></div>
+          <div class="fs-zone-item-name">${esc(b.label)}</div>
+        </div>
+        <div class="fs-zone-item-meta">${actionLabel}${zone ? ' · ' + zone.name : ''}</div>
+      </div>`;
+    });
+  }
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER CANVAS OVERLAY
+// ═══════════════════════════════════════════════════════
+function renderFSOverlay() {
+  const overlay = document.getElementById('fs-overlay');
+  const img = document.getElementById('fs-field-img');
+  if (!img || img.style.display === 'none') { overlay.innerHTML = ''; return; }
+
+  let html = '';
+
+  // Zones
+  fieldSchema.zones.forEach(z => {
+    const c = FS_COLOR_HEX[z.color] || '#0A84FF';
+    const sel = fsSelectedZoneId === z.id;
+    const bg = sel
+      ? `${c}22`
+      : z.color === 'blue' ? 'rgba(10,132,255,0.08)' : `${c}11`;
+    html += `<div class="fs-zone${sel ? ' selected' : ''}"
+      id="fsz-${z.id}"
+      style="left:${z.x*100}%;top:${z.y*100}%;width:${z.w*100}%;height:${z.h*100}%;border-color:${c}${sel?'':' '};background:${bg}"
+      onmousedown="fzMouseDown(event,'${z.id}')"
+      onclick="selectZone('${z.id}')">
+      <div class="fs-zone-label">${esc(z.name)}</div>
+      <div class="fs-zone-del" onclick="event.stopPropagation();deleteZone('${z.id}')">✕</div>
+      <div class="fs-zone-resize" onmousedown="event.stopPropagation();fzResizeDown(event,'${z.id}')"></div>
+    </div>`;
+  });
+
+  // Buttons (positioned absolutely by x/y fraction)
+  fieldSchema.buttons.forEach(b => {
+    const c = FS_COLOR_HEX[b.color] || '#0A84FF';
+    const sel = fsSelectedBtnId === b.id;
+    const iconHtml = b.icon ? `<span style="margin-right:4px;font-style:normal">${b.icon}</span>` : '';
+    html += `<div class="fs-map-btn${sel ? ' selected' : ''}"
+      id="fsb-${b.id}"
+      style="left:${b.x*100}%;top:${b.y*100}%;background:${c}cc;border-color:${sel?'var(--yellow)':'rgba(255,255,255,.3)'}"
+      onmousedown="fbMouseDown(event,'${b.id}')"
+      onclick="event.stopPropagation();selectMapButton('${b.id}')">
+      ${iconHtml}${esc(b.label)}
+    </div>`;
+  });
+
+  overlay.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// SNAP GRID
+// ═══════════════════════════════════════════════════════
+const SNAP_THRESHOLD = 0.012; // fraction of image dimension
+let activeGuides = []; // [{type:'h'|'v', pos}]
+
+function getSnapCandidates(excludeId) {
+  // Returns {xs, ys} — all x/y anchor points from other buttons
+  const xs = [], ys = [];
+  fieldSchema.buttons.forEach(b => {
+    if (b.id === excludeId) return;
+    xs.push(b.x);
+    ys.push(b.y);
+  });
+  return { xs, ys };
+}
+
+function snapValue(val, candidates, threshold) {
+  for (const c of candidates) {
+    if (Math.abs(val - c) < threshold) return { snapped: c, guide: c };
+  }
+  return { snapped: val, guide: null };
+}
+
+function renderSnapGuides() {
+  // Remove old guides
+  document.querySelectorAll('.fs-snap-guide').forEach(g => g.remove());
+  const overlay = document.getElementById('fs-overlay');
+  activeGuides.forEach(g => {
+    const el = document.createElement('div');
+    el.className = `fs-snap-guide ${g.type}`;
+    if (g.type === 'h') el.style.top = (g.pos * 100) + '%';
+    else el.style.left = (g.pos * 100) + '%';
+    overlay.appendChild(el);
+  });
+}
+
+function clearSnapGuides() {
+  document.querySelectorAll('.fs-snap-guide').forEach(g => g.remove());
+  activeGuides = [];
+}
+
+// ═══════════════════════════════════════════════════════
+// DRAG — Zones (move)
+// ═══════════════════════════════════════════════════════
+function fzMouseDown(e, id) {
+  if (e.target.classList.contains('fs-zone-del') || e.target.classList.contains('fs-zone-resize')) return;
+  e.preventDefault();
+  selectZone(id);
+  const zone = fieldSchema.zones.find(z => z.id === id);
+  const img = document.getElementById('fs-field-img');
+  const rect = img.getBoundingClientRect();
+  fsDragState = {
+    type: 'zone-move', id,
+    startX: e.clientX, startY: e.clientY,
+    origX: zone.x, origY: zone.y,
+    iw: rect.width, ih: rect.height,
+  };
+  document.addEventListener('mousemove', fsDragMove);
+  document.addEventListener('mouseup', fsDragEnd);
+}
+
+function fzResizeDown(e, id) {
+  e.preventDefault();
+  selectZone(id);
+  const zone = fieldSchema.zones.find(z => z.id === id);
+  const img = document.getElementById('fs-field-img');
+  const rect = img.getBoundingClientRect();
+  fsDragState = {
+    type: 'zone-resize', id,
+    startX: e.clientX, startY: e.clientY,
+    origW: zone.w, origH: zone.h,
+    origX: zone.x, origY: zone.y,
+    iw: rect.width, ih: rect.height,
+  };
+  document.addEventListener('mousemove', fsDragMove);
+  document.addEventListener('mouseup', fsDragEnd);
+}
+
+// ── Drag — Buttons ──
+function fbMouseDown(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  selectMapButton(id);
+  const btn = fieldSchema.buttons.find(b => b.id === id);
+  const img = document.getElementById('fs-field-img');
+  const rect = img.getBoundingClientRect();
+  fsDragState = {
+    type: 'btn-move', id,
+    startX: e.clientX, startY: e.clientY,
+    origX: btn.x, origY: btn.y,
+    iw: rect.width, ih: rect.height,
+  };
+  document.addEventListener('mousemove', fsDragMove);
+  document.addEventListener('mouseup', fsDragEnd);
+}
+
+function fsDragMove(e) {
+  if (!fsDragState) return;
+  const { type, id, startX, startY, iw, ih } = fsDragState;
+  const dx = (e.clientX - startX) / iw;
+  const dy = (e.clientY - startY) / ih;
+
+  if (type === 'zone-move') {
+    const zone = fieldSchema.zones.find(z => z.id === id);
+    zone.x = Math.max(0, Math.min(1 - zone.w, fsDragState.origX + dx));
+    zone.y = Math.max(0, Math.min(1 - zone.h, fsDragState.origY + dy));
+    const el = document.getElementById('fsz-' + id);
+    if (el) { el.style.left = zone.x * 100 + '%'; el.style.top = zone.y * 100 + '%'; }
+
+  } else if (type === 'zone-resize') {
+    const zone = fieldSchema.zones.find(z => z.id === id);
+    zone.w = Math.max(0.05, Math.min(1 - zone.x, fsDragState.origW + dx));
+    zone.h = Math.max(0.05, Math.min(1 - zone.y, fsDragState.origH + dy));
+    const el = document.getElementById('fsz-' + id);
+    if (el) { el.style.width = zone.w * 100 + '%'; el.style.height = zone.h * 100 + '%'; }
+
+  } else if (type === 'btn-move') {
+    const btn = fieldSchema.buttons.find(b => b.id === id);
+    let rawX = Math.max(0, Math.min(1, fsDragState.origX + dx));
+    let rawY = Math.max(0, Math.min(1, fsDragState.origY + dy));
+
+    // Snap logic
+    const { xs, ys } = getSnapCandidates(id);
+    const snapX = snapValue(rawX, xs, SNAP_THRESHOLD);
+    const snapY = snapValue(rawY, ys, SNAP_THRESHOLD);
+
+    btn.x = snapX.snapped;
+    btn.y = snapY.snapped;
+
+    // Build guides
+    activeGuides = [];
+    if (snapX.guide !== null) activeGuides.push({ type: 'v', pos: snapX.guide });
+    if (snapY.guide !== null) activeGuides.push({ type: 'h', pos: snapY.guide });
+    renderSnapGuides();
+
+    const el = document.getElementById('fsb-' + id);
+    if (el) { el.style.left = btn.x * 100 + '%'; el.style.top = btn.y * 100 + '%'; }
+  }
+}
+
+function fsDragEnd() {
+  fsDragState = null;
+  clearSnapGuides();
+  document.removeEventListener('mousemove', fsDragMove);
+  document.removeEventListener('mouseup', fsDragEnd);
+  renderFSZoneList();
+}
+
+// ═══════════════════════════════════════════════════════
+// INSPECTOR — Zone / Button
+// ═══════════════════════════════════════════════════════
+function renderFSInspector() {
+  const empty = document.getElementById('fs-insp-empty');
+  const content = document.getElementById('fs-insp-content');
+  const title = document.getElementById('fs-insp-title');
+
+  if (fsSelectedZoneId) {
+    const zone = fieldSchema.zones.find(z => z.id === fsSelectedZoneId);
+    if (!zone) return;
+    title.textContent = 'Zone Properties';
+    empty.style.display = 'none';
+    content.style.display = 'flex';
+    content.innerHTML = `
+      <div class="ins-group">
+        <div class="ins-group-label">Identity</div>
+        <div class="ins-field">
+          <label>Zone Name</label>
+          <input class="ins-input" value="${esc(zone.name)}" oninput="fsPatch('zone','${zone.id}','name',this.value)" placeholder="Zone name">
+        </div>
+        <div class="ins-field">
+          <label>Display Order</label>
+          <input class="ins-input" type="number" value="${zone.order ?? 0}" min="0"
+            oninput="fsPatch('zone','${zone.id}','order',+this.value)">
+        </div>
+      </div>
+      <div class="ins-group">
+        <div class="ins-group-label">Color</div>
+        <div class="color-row">${FS_COLORS.map(c => `
+          <div class="color-swatch${zone.color===c?' selected':''}"
+            style="background:${FS_COLOR_HEX[c]}"
+            onclick="fsPatch('zone','${zone.id}','color','${c}');renderFSInspector();renderFSOverlay()"></div>`).join('')}
+        </div>
+      </div>
+      <div class="ins-group">
+        <div class="ins-group-label">Buttons in this Zone</div>
+        <div class="fs-btn-list" id="fs-insp-btnlist">
+          ${fieldSchema.buttons.filter(b=>b.zoneId===zone.id).map(b => `
+            <div class="fs-btn-item${fsSelectedBtnId===b.id?' selected':''}" onclick="selectMapButton('${b.id}')">
+              <div class="color-dot" style="background:${FS_COLOR_HEX[b.color]||'#0A84FF'}"></div>
+              <div class="fs-btn-item-label">${esc(b.label)}</div>
+              <div class="fs-btn-item-type">${b.action}</div>
+            </div>`).join('') || '<div style="font-size:11px;color:var(--t3)">No buttons yet</div>'}
+        </div>
+        <button class="opt-add-btn" style="margin-top:8px" onclick="addMapButtonToZone('${zone.id}')">＋ Add Button</button>
+      </div>
+      <div class="ins-divider"></div>
+      <button class="del-field-btn" onclick="deleteZone('${zone.id}')">🗑 Delete Zone</button>
+    `;
+  } else if (fsSelectedBtnId) {
+    const btn = fieldSchema.buttons.find(b => b.id === fsSelectedBtnId);
+    if (!btn) return;
+    title.textContent = 'Button Properties';
+    empty.style.display = 'none';
+    content.style.display = 'flex';
+
+    const zoneOpts = fieldSchema.zones.map(z =>
+      `<div class="zone-select-item${btn.nextZoneId===z.id?' selected':''}"
+        onclick="fsPatch('btn','${btn.id}','nextZoneId','${z.id}');renderFSInspector()">${esc(z.name)}</div>`
+    ).join('');
+
+    const zoneAssignOpts = fieldSchema.zones.map(z =>
+      `<option value="${z.id}"${btn.zoneId===z.id?' selected':''}>${esc(z.name)}</option>`
+    ).join('');
+
+    content.innerHTML = `
+      <div class="ins-group">
+        <div class="ins-group-label">Label & Icon</div>
+        <div class="ins-field">
+          <label>Button Label</label>
+          <input class="ins-input" value="${esc(btn.label)}" oninput="fsPatch('btn','${btn.id}','label',this.value);renderFSOverlay()" placeholder="Label">
+        </div>
+        <div class="ins-field">
+          <label>Icon</label>
+          ${buildIconPicker(btn)}
+        </div>
+        <div class="ins-field">
+          <label>Belongs to Zone</label>
+          <select class="ins-select" onchange="fsPatch('btn','${btn.id}','zoneId',this.value);renderFSZoneList()">
+            ${zoneAssignOpts}
+          </select>
+        </div>
+      </div>
+      <div class="ins-group">
+        <div class="ins-group-label">Color</div>
+        <div class="color-row">${FS_COLORS.map(c => `
+          <div class="color-swatch${btn.color===c?' selected':''}"
+            style="background:${FS_COLOR_HEX[c]}"
+            onclick="fsPatch('btn','${btn.id}','color','${c}');renderFSInspector();renderFSOverlay()"></div>`).join('')}
+        </div>
+      </div>
+      <div class="ins-group">
+        <div class="ins-group-label">Action when tapped</div>
+        <div class="action-pills">
+          <div class="action-pill${btn.action==='log'?' selected':''}" onclick="fsPatch('btn','${btn.id}','action','log');renderFSInspector()">📝 Log Event</div>
+          <div class="action-pill${btn.action==='score'?' selected':''}" onclick="fsPatch('btn','${btn.id}','action','score');renderFSInspector()">🎯 Score UI</div>
+          <div class="action-pill${btn.action==='advance'?' selected':''}" onclick="fsPatch('btn','${btn.id}','action','advance');renderFSInspector()">➡ Advance Zone</div>
+        </div>
+        ${btn.action === 'log' ? `
+          <div class="ins-field" style="margin-top:8px">
+            <label>Event label (logged to data)</label>
+            <input class="ins-input" value="${esc(btn.logLabel||btn.label)}" oninput="fsPatch('btn','${btn.id}','logLabel',this.value)" placeholder="e.g. scored_high">
+          </div>` : ''}
+        ${btn.action === 'score' ? `
+          <div class="ins-field" style="margin-top:8px">
+            <label>Score field (varName to increment)</label>
+            <input class="ins-input ins-mono" value="${esc(btn.scoreField||'')}" oninput="fsPatch('btn','${btn.id}','scoreField',this.value)" placeholder="e.g. auto_high">
+          </div>` : ''}
+        ${btn.action === 'advance' || btn.action === 'log' ? `
+          <div class="ins-field" style="margin-top:8px">
+            <label>Move to next zone (optional)</label>
+            <div class="zone-select-list">${zoneOpts}</div>
+            ${btn.nextZoneId ? `<div class="opt-add-btn" style="margin-top:4px" onclick="fsPatch('btn','${btn.id}','nextZoneId',null);renderFSInspector()">✕ Clear next zone</div>` : ''}
+          </div>` : ''}
+      </div>
+      <div class="ins-divider"></div>
+      <button class="del-field-btn" onclick="deleteMapButton('${btn.id}')">🗑 Delete Button</button>
+    `;
+  } else {
+    title.textContent = 'Inspector';
+    empty.style.display = 'flex';
+    content.style.display = 'none';
+  }
+}
+
+function addMapButtonToZone(zoneId) {
+  fsSelectedZoneId = null;
+  const zone = fieldSchema.zones.find(z => z.id === zoneId);
+  const id = fsUID();
+  fieldSchema.buttons.push({
+    id, zoneId,
+    label: 'Button',
+    color: 'blue',
+    action: 'log',
+    logLabel: 'Event logged',
+    nextZoneId: null,
+    x: (zone ? zone.x + zone.w / 2 : 0.5),
+    y: (zone ? zone.y + zone.h / 2 : 0.5),
+  });
+  fsSelectedBtnId = id;
+  renderFSZoneList(); renderFSOverlay(); renderFSInspector();
+}
+
+function fsPatch(type, id, key, value) {
+  if (type === 'zone') {
+    const z = fieldSchema.zones.find(z => z.id === id);
+    if (z) z[key] = value;
+  } else {
+    const b = fieldSchema.buttons.find(b => b.id === id);
+    if (b) b[key] = value;
+  }
+  renderFSZoneList();
+  renderFSOverlay();
+}
+
+// Ensure image re-renders overlay when loaded
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('fs-field-img').addEventListener('load', () => {
+    renderFSOverlay();
+    renderFSZoneList();
+  });
+});
+
+// Load persisted field schema from localStorage on boot
+(function() {
+  const saved = localStorage.getItem('ns_field_schema');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data && data.zones) {
+        fieldSchema = data;
+        if (data.imageDataUrl) {
+          const img = document.getElementById('fs-field-img');
+          img.src = data.imageDataUrl; // load event fires → renderFSOverlay
+          img.style.display = 'block';
+          const ph = document.getElementById('fs-placeholder');
+          if (ph) ph.style.display = 'none';
+          const ua = document.getElementById('fs-upload-area');
+          if (ua) ua.innerHTML = '📷 Change field image';
+        }
+        // Render zone list immediately (doesn't need image)
+        // renderFSOverlay will be called by img.onload above
+        renderFSZoneList();
+      }
+    } catch (err) { console.warn('Failed to restore field schema:', err); }
+  }
+})();
+
+// Auto-save to localStorage whenever fieldSchema changes (includes imageDataUrl)
+setInterval(() => {
+  localStorage.setItem('ns_field_schema', JSON.stringify(fieldSchema));
+}, 4000);
+
 // ── BOOT ──
 defaultState();
 render();
 loadFromServer();
+loadFieldSchema();
 </script>
 </body>
 </html>

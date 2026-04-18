@@ -90,24 +90,10 @@
     /* ── LAYOUT ── */
     .wrap { position: relative; z-index: 1; padding: 0 16px 80px; max-width: 680px; margin: 0 auto; }
 
-    /* ── IDENTITY BAR ── */
-    .id-bar {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-      margin: 20px 0 24px;
-    }
-    .id-field { display: flex; flex-direction: column; gap: 5px; }
-    .id-field label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--t3); }
-    .id-input {
-      font-family: inherit; font-size: 15px; font-weight: 600; color: var(--t1);
-      background: var(--glass); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
-      border: 0.5px solid var(--border); border-radius: var(--r-md);
-      padding: 10px 13px; width: 100%; outline: none;
-      transition: background 200ms, border-color 200ms, box-shadow 200ms;
-      box-shadow: var(--sh-sm); -webkit-appearance: none; appearance: none;
-    }
-    .id-input::placeholder { color: var(--t3); }
-    .id-input:focus { background: var(--glass-h); border-color: var(--blue); box-shadow: 0 0 0 3px rgba(10,132,255,.22), var(--sh-sm); }
-    .alliance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+    /* ── PROGRESS BAR ── */
+    .progress-bar-wrap { margin-bottom: 24px; }
+
+    /* ── Alliance buttons (rendered dynamically when schema has an alliance field) ── */
     .alliance-btn {
       padding: 10px; border-radius: var(--r-md); border: 1.5px solid transparent;
       font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
@@ -117,8 +103,12 @@
     .alliance-btn.blue.selected { background: rgba(10,132,255,0.25); border-color: var(--blue); color: var(--blue); box-shadow: 0 0 20px rgba(10,132,255,0.2); }
     .alliance-btn:not(.selected):hover { background: var(--glass-h); color: var(--t1); }
 
-    /* ── PROGRESS BAR ── */
-    .progress-bar-wrap { margin-bottom: 24px; }
+    /* ── Stars / Checkboxes (rendered dynamically) ── */
+    .pv-star { font-size: 28px; cursor: pointer; transition: transform 150ms var(--ease-s); color: rgba(255,255,255,.2); }
+    .pv-star.lit { color: var(--yellow); }
+    .pv-star:hover { transform: scale(1.2); }
+    .pv-check-btn { padding: 7px 14px; border-radius: var(--r-pill); border: 0.5px solid var(--border); background: var(--glass); font-family: inherit; font-size: 12px; font-weight: 600; color: var(--t2); cursor: pointer; transition: all 150ms; }
+    .pv-check-btn.checked { background: rgba(48,209,88,.18); border-color: rgba(48,209,88,.4); color: var(--green); }
     .prog-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
     .prog-label span { font-size: 12px; font-weight: 600; color: var(--t2); }
     .prog-label .pct { color: var(--blue); }
@@ -219,6 +209,99 @@
     .notes-field { margin-bottom: 20px; }
     .notes-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--t3); margin-bottom: 8px; }
     textarea.text-input { min-height: 90px; }
+
+    /* ── FIELD MAP ── */
+    .field-map-wrap {
+      margin-bottom: 24px; border-radius: var(--r-lg);
+      overflow: hidden; position: relative;
+      border: 0.5px solid var(--border);
+      box-shadow: var(--sh);
+      background: #0a0e20;
+    }
+    .field-map-inner { position: relative; display: block; width: 100%; }
+    .field-map-inner img { display: block; width: 100%; height: auto; user-select: none; pointer-events: none; }
+    .field-map-overlay { position: absolute; inset: 0; }
+    /* Zone highlight */
+    .fmap-zone {
+      position: absolute; border-radius: 8px; pointer-events: none;
+      transition: background 400ms, border-color 400ms, opacity 400ms;
+    }
+    .fmap-zone.active {
+      background: rgba(255,255,255,.08);
+      border: 2px solid rgba(255,255,255,.6);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.2);
+    }
+    .fmap-zone.inactive {
+      background: rgba(0,0,0,.45);
+      border: 2px solid rgba(255,255,255,.1);
+    }
+    .fmap-zone-label {
+      position: absolute; top: 5px; left: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: .04em;
+      pointer-events: none; text-shadow: 0 1px 4px rgba(0,0,0,.8);
+    }
+    /* Map buttons */
+    .fmap-btn {
+      position: absolute; transform: translate(-50%,-50%);
+      border-radius: 10px; color: white;
+      font-family: inherit; font-size: 13px; font-weight: 700;
+      padding: 10px 16px; border: 2px solid rgba(255,255,255,.3);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,.4);
+      transition: transform 120ms var(--ease-s), box-shadow 120ms;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fmap-btn:active { transform: translate(-50%,-50%) scale(0.9); }
+    .fmap-btn.hidden { display: none; }
+
+    /* ── SCORING MODAL ── */
+    .score-modal-backdrop {
+      position: fixed; inset: 0; z-index: 800;
+      background: rgba(5,8,22,.85); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 250ms;
+    }
+    .score-modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .score-modal {
+      width: calc(100% - 40px); max-width: 420px;
+      background: rgba(18,22,42,.98);
+      border: 0.5px solid rgba(255,255,255,.18);
+      border-radius: var(--r-xl);
+      box-shadow: 0 24px 80px rgba(0,0,0,.6);
+      padding: 24px;
+      transform: scale(0.92) translateY(20px);
+      transition: transform 280ms var(--ease-s);
+    }
+    .score-modal-backdrop.open .score-modal { transform: scale(1) translateY(0); }
+    .score-modal-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .score-modal-sub { font-size: 12px; color: var(--t3); margin-bottom: 20px; }
+    .score-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .score-action-btn {
+      padding: 16px 10px; border-radius: var(--r-md); border: 1.5px solid transparent;
+      font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 200ms var(--ease-s); text-align: center;
+      background: var(--glass); color: var(--t1);
+    }
+    .score-action-btn:hover { background: var(--glass-h); }
+    .score-action-btn:active { transform: scale(0.95); }
+    .score-action-btn.scored { background: rgba(48,209,88,.2); border-color: rgba(48,209,88,.5); color: var(--green); }
+    .score-action-btn.missed { background: rgba(255,69,58,.15); border-color: rgba(255,69,58,.35); color: var(--red); }
+    .score-modal-close {
+      width: 100%; padding: 12px; border-radius: var(--r-md); border: 0.5px solid var(--border);
+      background: var(--glass); color: var(--t2); font-family: inherit; font-size: 13px;
+      font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 150ms;
+    }
+    .score-modal-close:hover { background: var(--glass-h); color: var(--t1); }
+
+    /* ── EVENT LOG CHIP ── */
+    .event-log-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .event-chip {
+      font-size: 11px; font-weight: 600; padding: 3px 9px;
+      border-radius: var(--r-pill); background: rgba(255,255,255,.08);
+      border: 0.5px solid rgba(255,255,255,.14); color: var(--t2);
+      animation: popIn 200ms var(--ease-s);
+    }
+    @keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
 
     /* ── SUBMIT ── */
     .submit-btn {
@@ -370,28 +453,8 @@
 
 <div class="wrap">
 
-  <!-- IDENTITY -->
-  <div class="id-bar" style="margin-top:20px">
-    <div class="id-field">
-      <label>Match #</label>
-      <input class="id-input" id="f-match" type="number" min="1" placeholder="14" inputmode="numeric">
-    </div>
-    <div class="id-field">
-      <label>Team #</label>
-      <input class="id-input" id="f-team" type="number" min="1" placeholder="935" inputmode="numeric">
-    </div>
-    <div class="id-field">
-      <label>Scouter</label>
-      <input class="id-input" id="f-scouter" type="text" placeholder="Name / ID">
-    </div>
-  </div>
-  <div class="alliance-row">
-    <button class="alliance-btn red" onclick="setAlliance('Red',this)">🔴 Red Alliance</button>
-    <button class="alliance-btn blue" onclick="setAlliance('Blue',this)">🔵 Blue Alliance</button>
-  </div>
-
   <!-- PROGRESS -->
-  <div class="progress-bar-wrap">
+  <div class="progress-bar-wrap" style="margin-top:20px">
     <div class="prog-label">
       <span>Form Progress</span>
       <span class="pct" id="pct-label">0%</span>
@@ -404,6 +467,21 @@
     ⚠ Server unreachable — form is in offline mode. Data will be queued.
   </div>
 
+  <!-- FIELD MAP (shown if field schema has zones) -->
+  <div id="field-map-container" style="display:none">
+    <div class="section-head" style="margin-bottom:10px">
+      <div class="section-label">Field Map</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="field-map-wrap">
+      <div class="field-map-inner" id="field-map-inner">
+        <img id="fmap-img" src="" alt="" style="display:none">
+        <div class="field-map-overlay" id="fmap-overlay"></div>
+      </div>
+    </div>
+    <div id="event-log-wrap" class="event-log-wrap"></div>
+  </div>
+
   <!-- DYNAMIC FORM -->
   <div id="form-container">
     <div class="loading-state">
@@ -411,17 +489,21 @@
     </div>
   </div>
 
-  <!-- NOTES -->
-  <div class="notes-field" id="notes-field" style="display:none">
-    <div class="notes-label">Match Notes</div>
-    <textarea class="text-input" id="f-notes" placeholder="Any observations, defense activity, penalties…" oninput="updateProgress()"></textarea>
-  </div>
-
   <!-- SUBMIT -->
   <button class="submit-btn" id="submit-btn" onclick="submitForm()" style="display:none">
     Submit Scouting Data
   </button>
 
+</div>
+
+<!-- SCORING MODAL -->
+<div class="score-modal-backdrop" id="score-modal-backdrop">
+  <div class="score-modal">
+    <div class="score-modal-title" id="score-modal-title">Score</div>
+    <div class="score-modal-sub" id="score-modal-sub">Select an outcome</div>
+    <div class="score-modal-actions" id="score-modal-actions"></div>
+    <button class="score-modal-close" onclick="closeScoreModal()">Cancel</button>
+  </div>
 </div>
 
 <!-- CHAT FAB -->
@@ -449,9 +531,9 @@
 // ═══════════════════════════════════════
 const BASE = '';
 let schema = null;
+let fieldSchema = null; // field map schema
 let fieldValues = {};
 let adminFilledFields = new Set();
-let alliance = null;
 let chatOpen = false;
 let chatMessages = [];
 let unreadCount = 0;
@@ -459,12 +541,51 @@ let scouterName = localStorage.getItem('ns_scouter') || '';
 let offlineQueue = JSON.parse(localStorage.getItem('ns_queue') || '[]');
 let pollTimer = null;
 
+// Field map state
+let activeZoneId = null;   // currently active zone id
+let eventLog = [];         // [{time, label, zoneId}]
+
 // Stable anonymous ID so admin sees scouter even before they type their name
 const anonId = localStorage.getItem('ns_anon_id') || ('Scout-' + Math.random().toString(36).slice(2,6).toUpperCase());
 localStorage.setItem('ns_anon_id', anonId);
 
 function getScouterId() {
-  return document.getElementById('f-scouter')?.value?.trim() || scouterName || anonId;
+  // Try to find a scouter identity field in fieldValues
+  const idField = schema?.fields?.find(f => f.isScouterId || f.varName === 'scouter_name' || f.varName === 'scouter_id' || f.varName === 'scouter');
+  if (idField && fieldValues[idField.varName]) return String(fieldValues[idField.varName]);
+  return scouterName || anonId;
+}
+
+function getMatchNum() {
+  const f = schema?.fields?.find(f => f.varName === 'match' || f.varName === 'match_num' || f.varName === 'match_number');
+
+  if (!f) {
+    // Try to infer match number from scouter name if it contains a pattern like "Match12" or "M12"
+    const match = scouterName.match(/(?:match|m)(\d+)/i);
+    if (match) return parseInt(match[1]);
+  }
+  return f ? (parseInt(fieldValues[f.varName]) || 0) : 0;
+}
+
+function getTeamNum() {
+  const f = schema?.fields?.find(f => f.varName === 'team' || f.varName === 'team_num' || f.varName === 'team_number');
+
+  if (!f) {
+    // Try to infer team number from scouter name if it contains a pattern like "Team935" or "T935"
+    const match = scouterName.match(/(?:team|t)(\d+)/i);
+    if (match) return parseInt(match[1]);
+  }
+  return f ? (parseInt(fieldValues[f.varName]) || 0) : 0;
+}
+
+function getAlliance() {
+  const f = schema?.fields?.find(f => f.varName === 'alliance');
+  if (!f) {
+    // Try to infer alliance from scouter name if it contains "Red" or "Blue"
+    if (/red/i.test(scouterName)) return 'Red';
+    if (/blue/i.test(scouterName)) return 'Blue';
+  }
+  return f ? (fieldValues[f.varName] || null) : null;
 }
 
 // ═══════════════════════════════════════
@@ -478,37 +599,50 @@ function toast(msg, type = 'info', dur = 3000) {
   setTimeout(() => el.remove(), dur);
 }
 
-function setAlliance(val, btn) {
-  alliance = val;
-  document.querySelectorAll('.alliance-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  updateProgress();
-}
-
 function now() {
   return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ═══════════════════════════════════════
 // SCHEMA → FORM
 // ═══════════════════════════════════════
 async function loadSchema() {
-  // Start polling immediately — admin should see us as soon as page opens
   startPolling();
   pushProgress();
 
   try {
-    const res = await fetch(BASE + '/api/schema');
-    if (!res.ok) throw new Error('Schema fetch failed');
-    schema = await res.json();
+    const [schemaRes, fieldRes] = await Promise.all([
+      fetch(BASE + '/api/schema'),
+      fetch(BASE + '/api/field-schema').catch(() => null)
+    ]);
+
+    if (!schemaRes.ok) throw new Error('Schema fetch failed');
+    schema = await schemaRes.json();
+
+    if (fieldRes && fieldRes.ok) {
+      fieldSchema = await fieldRes.json();
+    } else {
+      // Try localStorage fallback
+      const saved = localStorage.getItem('ns_field_schema');
+      if (saved) try { fieldSchema = JSON.parse(saved); } catch {}
+    }
+
     buildForm();
+    buildFieldMap();
     setConnected(true);
   } catch (e) {
     setConnected(false);
     const cached = localStorage.getItem('ns_schema');
     if (cached) {
       schema = JSON.parse(cached);
+      const savedFS = localStorage.getItem('ns_field_schema');
+      if (savedFS) try { fieldSchema = JSON.parse(savedFS); } catch {}
       buildForm();
+      buildFieldMap();
       toast('Using cached form (offline mode)', 'error');
     } else {
       document.getElementById('form-container').innerHTML = `
@@ -520,6 +654,7 @@ async function loadSchema() {
     return;
   }
   localStorage.setItem('ns_schema', JSON.stringify(schema));
+  if (fieldSchema) localStorage.setItem('ns_field_schema', JSON.stringify(fieldSchema));
 }
 
 function buildForm() {
@@ -527,25 +662,29 @@ function buildForm() {
 
   // Group fields
   const groups = {};
+  const groupOrder = [];
   schema.fields.forEach(f => {
     const g = f.group || 'General';
-    if (!groups[g]) groups[g] = [];
+    if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
     groups[g].push(f);
-    // Init values
     if (fieldValues[f.varName] === undefined) {
-      fieldValues[f.varName] = f.type === 'toggle' ? false : f.type === 'text' ? '' : f.type === 'dropdown' ? '' : (f.min || 0);
+      fieldValues[f.varName] = f.type === 'toggle' ? false
+        : f.type === 'text' ? ''
+        : f.type === 'dropdown' ? ''
+        : (f.min || 0);
     }
   });
 
-  let html = '';
-  const groupOrder = ['Autonomous', 'Teleop', 'Endgame', 'General'];
-  const sorted = [...Object.keys(groups)].sort((a, b) => {
-    const ai = groupOrder.indexOf(a), bi = groupOrder.indexOf(b);
+  // Sort groups
+  const priority = ['Pre-Match', 'Autonomous', 'Teleop', 'Endgame', 'General'];
+  const sorted = [...groupOrder].sort((a, b) => {
+    const ai = priority.indexOf(a), bi = priority.indexOf(b);
     if (ai === -1 && bi === -1) return a.localeCompare(b);
     if (ai === -1) return 1; if (bi === -1) return -1;
     return ai - bi;
   });
 
+  let html = '';
   sorted.forEach(group => {
     html += `<div class="section">
       <div class="section-head">
@@ -557,11 +696,13 @@ function buildForm() {
   });
 
   document.getElementById('form-container').innerHTML = html;
-  document.getElementById('notes-field').style.display = 'block';
   document.getElementById('submit-btn').style.display = 'block';
 
-  // Restore scouter name
-  if (scouterName) document.getElementById('f-scouter').value = scouterName;
+  // Restore scouter name field if present
+  const snField = schema.fields.find(f => f.varName === 'scouter_name' || f.varName === 'scouter_id' || f.varName === 'scouter');
+  if (snField && scouterName && !fieldValues[snField.varName]) {
+    fieldValues[snField.varName] = scouterName;
+  }
 
   updateProgress();
 }
@@ -571,7 +712,7 @@ function buildFieldCard(f) {
   return `
     <div class="field-card${isAdminFilled ? ' admin-filled' : ''}" id="card-${f.varName}">
       <div class="field-card-top">
-        <div class="field-label">${f.label}</div>
+        <div class="field-label">${f.label}${f.required ? '<span style="color:var(--red);margin-left:3px">*</span>' : ''}</div>
         ${isAdminFilled ? '<span class="admin-badge">Admin filled</span>' : ''}
       </div>
       ${buildFieldControl(f)}
@@ -602,25 +743,61 @@ function buildFieldControl(f) {
           <div class="slider-ticks">${ticks.map(t => `<span class="slider-tick">${t}</span>`).join('')}</div>
         </div>`;
     }
+
     case 'toggle': return `
       <div class="toggle-row">
         <div class="toggle-track${v ? ' on' : ''}" id="tgl-${f.varName}" onclick="toggleChange('${f.varName}')">
           <div class="toggle-thumb"></div>
         </div>
-        <div class="toggle-status" id="tgls-${f.varName}">${v ? 'Yes' : 'No'}</div>
+        <div class="toggle-status" id="tgls-${f.varName}">${v ? (f.onLabel||'Yes') : (f.offLabel||'No')}</div>
       </div>`;
 
     case 'text': return `
-      <textarea class="text-input" id="txt-${f.varName}" placeholder="Enter text…"
+      <textarea class="text-input" id="txt-${f.varName}" placeholder="${escHtml(f.placeholder||'Enter text…')}"
         oninput="fieldValues['${f.varName}']=this.value;updateProgress()">${v}</textarea>`;
 
     case 'dropdown': {
       const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options || [])).map(o => o.trim()).filter(Boolean);
+      // Special case: alliance field
+      if (f.varName === 'alliance') {
+        return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="alliance-btn red${v==='Red'?' selected':''}" onclick="allianceSet('${f.varName}','Red',this)">🔴 Red Alliance</button>
+          <button class="alliance-btn blue${v==='Blue'?' selected':''}" onclick="allianceSet('${f.varName}','Blue',this)">🔵 Blue Alliance</button>
+        </div>`;
+      }
       return `<select class="dropdown" id="dd-${f.varName}" onchange="fieldValues['${f.varName}']=this.value;updateProgress()">
         <option value="">— Select —</option>
         ${opts.map(o => `<option value="${o}"${v===o?' selected':''}>${o}</option>`).join('')}
       </select>`;
     }
+
+    case 'rating': {
+      const max = f.max || 5;
+      const stars = Array.from({length: max}, (_,i) =>
+        `<span class="pv-star${(v||0) > i ? ' lit' : ''}"
+          onclick="ratingSet('${f.varName}',${i+1},${max})"
+          id="star-${f.varName}-${i+1}">★</span>`).join('');
+      return `<div style="display:flex;gap:6px;font-size:28px">${stars}</div>`;
+    }
+
+    case 'checkboxes': {
+      const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options || [])).map(o => o.trim()).filter(Boolean);
+      const sel = Array.isArray(v) ? v : [];
+      return `<div style="display:flex;flex-wrap:wrap;gap:8px">${opts.map(o =>
+        `<button class="pv-check-btn${sel.includes(o)?' checked':''}" onclick="checkboxToggle('${f.varName}','${o}',this)">${o}</button>`
+      ).join('')}</div>`;
+    }
+
+    case 'button': {
+      const btns = f.buttons || [];
+      return `<div style="display:flex;gap:8px;flex-wrap:wrap">${btns.map(b => {
+        const colorMap = { blue:'#0A84FF', green:'#30D158', purple:'#BF5AF2', pink:'#FF375F', orange:'#FF9F0A', teal:'#5AC8FA', red:'#FF453A', yellow:'#FFD60A' };
+        const hex = colorMap[b.color] || '#0A84FF';
+        return `<button class="score-action-btn" style="border-color:${hex}44;color:${hex};background:${hex}18"
+          onclick="buttonFieldTap('${f.varName}','${b.label}')">${b.label}</button>`;
+      }).join('')}</div>`;
+    }
+
     default: return '';
   }
 }
@@ -634,8 +811,7 @@ function counterStep(varName, delta, min, max) {
   fieldValues[varName] = nxt;
   const el = document.getElementById('cv-' + varName);
   if (el) { el.textContent = nxt; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 120); }
-  pushProgress();
-  updateProgress();
+  pushProgress(); updateProgress();
 }
 
 function sliderChange(varName, val) {
@@ -647,11 +823,197 @@ function sliderChange(varName, val) {
 
 function toggleChange(varName) {
   fieldValues[varName] = !fieldValues[varName];
+  const f = schema?.fields?.find(f => f.varName === varName);
   const track = document.getElementById('tgl-' + varName);
   const status = document.getElementById('tgls-' + varName);
   if (track) track.classList.toggle('on', fieldValues[varName]);
-  if (status) status.textContent = fieldValues[varName] ? 'Yes' : 'No';
+  if (status) status.textContent = fieldValues[varName] ? (f?.onLabel||'Yes') : (f?.offLabel||'No');
   updateProgress();
+}
+
+function allianceSet(varName, val, btn) {
+  fieldValues[varName] = val;
+  // Update sibling buttons
+  btn.closest('div').querySelectorAll('.alliance-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateProgress();
+}
+
+function ratingSet(varName, n, max) {
+  fieldValues[varName] = n;
+  for (let i = 1; i <= max; i++) {
+    const el = document.getElementById(`star-${varName}-${i}`);
+    if (el) el.classList.toggle('lit', i <= n);
+  }
+  updateProgress();
+}
+
+function checkboxToggle(varName, opt, btn) {
+  if (!Array.isArray(fieldValues[varName])) fieldValues[varName] = [];
+  const arr = fieldValues[varName];
+  const idx = arr.indexOf(opt);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(opt);
+  btn.classList.toggle('checked', arr.includes(opt));
+  updateProgress();
+}
+
+function buttonFieldTap(varName, label) {
+  if (!Array.isArray(fieldValues[varName])) fieldValues[varName] = [];
+  fieldValues[varName].push({ label, time: now() });
+  pushProgress(); updateProgress();
+  toast(`Logged: ${label}`, 'success', 1500);
+}
+
+// ═══════════════════════════════════════
+// FIELD MAP
+// ═══════════════════════════════════════
+function buildFieldMap() {
+  const container = document.getElementById('field-map-container');
+  if (!fieldSchema || !fieldSchema.zones || !fieldSchema.zones.length || !fieldSchema.imageDataUrl) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  const img = document.getElementById('fmap-img');
+  img.src = fieldSchema.imageDataUrl;
+  img.style.display = 'block';
+
+  // Sort zones by order
+  const zones = [...fieldSchema.zones].sort((a,b) => (a.order??0) - (b.order??0));
+  // Set first zone as active if none set
+  if (!activeZoneId && zones.length) activeZoneId = zones[0].id;
+
+  renderFieldMap();
+}
+
+function renderFieldMap() {
+  const overlay = document.getElementById('fmap-overlay');
+  if (!fieldSchema || !overlay) return;
+
+  const zones = [...fieldSchema.zones].sort((a,b) => (a.order??0) - (b.order??0));
+  const colorMap = { blue:'#0A84FF', green:'#30D158', purple:'#BF5AF2', pink:'#FF375F', orange:'#FF9F0A', teal:'#5AC8FA', red:'#FF453A', yellow:'#FFD60A' };
+
+  let html = '';
+
+  // Draw zones
+  zones.forEach(z => {
+    const isActive = z.id === activeZoneId;
+    const c = colorMap[z.color] || '#ffffff';
+    const labelColor = isActive ? c : 'rgba(255,255,255,.3)';
+    html += `<div class="fmap-zone ${isActive ? 'active' : 'inactive'}"
+      style="left:${z.x*100}%;top:${z.y*100}%;width:${z.w*100}%;height:${z.h*100}%;
+      border-color:${isActive ? c : 'rgba(255,255,255,.12)'};
+      background:${isActive ? c+'18' : 'rgba(0,0,0,.4)'}">
+      <div class="fmap-zone-label" style="color:${labelColor}">${z.name}</div>
+    </div>`;
+  });
+
+  // Draw buttons (only show buttons in active zone)
+  fieldSchema.buttons.forEach(b => {
+    const isVisible = b.zoneId === activeZoneId;
+    const c = colorMap[b.color] || '#0A84FF';
+    html += `<button class="fmap-btn${isVisible ? '' : ' hidden'}"
+      style="left:${b.x*100}%;top:${b.y*100}%;background:${c}dd"
+      onclick="mapButtonTap('${b.id}')">
+      ${b.icon ? `<span style="margin-right:4px">${b.icon}</span>` : ''}${b.label}
+    </button>`;
+  });
+
+  overlay.innerHTML = html;
+}
+
+function mapButtonTap(btnId) {
+  const btn = fieldSchema?.buttons?.find(b => b.id === btnId);
+  if (!btn) return;
+
+  const label = btn.logLabel || btn.label;
+
+  if (btn.action === 'score') {
+    openScoreModal(btn);
+    return;
+  }
+
+  // Log the event
+  logMapEvent(label, btn.zoneId);
+
+  // Increment score field if specified
+  if (btn.scoreField && fieldValues[btn.scoreField] !== undefined) {
+    const cur = fieldValues[btn.scoreField] ?? 0;
+    fieldValues[btn.scoreField] = cur + 1;
+    const el = document.getElementById('cv-' + btn.scoreField);
+    if (el) { el.textContent = fieldValues[btn.scoreField]; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 120); }
+  }
+
+  // Advance zone
+  if (btn.nextZoneId) {
+    activeZoneId = btn.nextZoneId;
+    toast(`→ ${fieldSchema.zones.find(z=>z.id===btn.nextZoneId)?.name || 'Next Zone'}`, 'info', 1200);
+    renderFieldMap();
+  }
+
+  pushProgress(); updateProgress();
+}
+
+function logMapEvent(label, zoneId) {
+  const zone = fieldSchema?.zones?.find(z => z.id === zoneId);
+  const entry = { label, zoneId, zoneName: zone?.name || '', time: now() };
+  eventLog.push(entry);
+
+  // Also store in fieldValues as event_log array
+  if (!Array.isArray(fieldValues['_field_events'])) fieldValues['_field_events'] = [];
+  fieldValues['_field_events'].push(entry);
+
+  // Update event chip display
+  const wrap = document.getElementById('event-log-wrap');
+  if (wrap) {
+    const chip = document.createElement('div');
+    chip.className = 'event-chip';
+    chip.textContent = label;
+    wrap.appendChild(chip);
+  }
+
+  toast(`✓ ${label}`, 'success', 1000);
+}
+
+// ── Scoring modal ──
+let _scoreModalBtn = null;
+function openScoreModal(btn) {
+  _scoreModalBtn = btn;
+  document.getElementById('score-modal-title').textContent = btn.label;
+  document.getElementById('score-modal-sub').textContent = 'Choose an outcome to log';
+  const actions = document.getElementById('score-modal-actions');
+  actions.innerHTML = `
+    <button class="score-action-btn scored" onclick="scoreModalAction('Scored')">✓ Scored</button>
+    <button class="score-action-btn missed" onclick="scoreModalAction('Missed')">✗ Missed</button>
+  `;
+  document.getElementById('score-modal-backdrop').classList.add('open');
+}
+
+function scoreModalAction(outcome) {
+  if (!_scoreModalBtn) return;
+  const btn = _scoreModalBtn;
+  const label = `${btn.label}: ${outcome}`;
+  logMapEvent(label, btn.zoneId);
+
+  if (outcome === 'Scored' && btn.scoreField) {
+    const cur = fieldValues[btn.scoreField] ?? 0;
+    fieldValues[btn.scoreField] = cur + 1;
+    const el = document.getElementById('cv-' + btn.scoreField);
+    if (el) { el.textContent = fieldValues[btn.scoreField]; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 120); }
+  }
+
+  if (btn.nextZoneId) {
+    activeZoneId = btn.nextZoneId;
+    renderFieldMap();
+  }
+
+  closeScoreModal();
+  pushProgress(); updateProgress();
+}
+
+function closeScoreModal() {
+  document.getElementById('score-modal-backdrop').classList.remove('open');
+  _scoreModalBtn = null;
 }
 
 // ═══════════════════════════════════════
@@ -660,19 +1022,17 @@ function toggleChange(varName) {
 function updateProgress() {
   if (!schema) return;
   let filled = 0;
-  const total = schema.fields.length + 3; // fields + match + team + alliance
+  const total = schema.fields.length;
 
   schema.fields.forEach(f => {
     const v = fieldValues[f.varName];
     if (f.type === 'toggle') filled++;
     else if (f.type === 'counter' || f.type === 'slider') { if (v !== (f.min ?? 0) || adminFilledFields.has(f.varName)) filled++; }
+    else if (f.type === 'checkboxes' || f.type === 'button') { if (Array.isArray(v) && v.length > 0) filled++; }
     else if (v && v !== '') filled++;
   });
-  if (document.getElementById('f-match').value) filled++;
-  if (document.getElementById('f-team').value) filled++;
-  if (alliance) filled++;
 
-  const pct = Math.round((filled / total) * 100);
+  const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
   document.getElementById('prog-fill').style.width = pct + '%';
   document.getElementById('pct-label').textContent = pct + '%';
 
@@ -683,17 +1043,15 @@ function updateProgress() {
 // SUBMIT
 // ═══════════════════════════════════════
 async function submitForm() {
-  const match = parseInt(document.getElementById('f-match').value);
-  const team = parseInt(document.getElementById('f-team').value);
+  const match = getMatchNum();
+  const team = getTeamNum();
   const scouter = getScouterId();
-  const notes = document.getElementById('f-notes').value.trim();
-  
-  if (!match || !team) { toast('Enter Match # and Team #', 'error'); return; }
-  if (!alliance) { toast('Select an alliance color', 'error'); return; }
+
+  if (!match || !team) { toast('Make sure Match # and Team # are filled in', 'error'); return; }
 
   localStorage.setItem('ns_scouter', scouter);
 
-  const payload = { match, team, alliance, notes, scouter_id: scouter, ...fieldValues };
+  const payload = { match, team, alliance: getAlliance(), scouter_id: scouter, ...fieldValues };
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
@@ -709,10 +1067,9 @@ async function submitForm() {
     btn.classList.add('success');
     btn.textContent = '✓ Submitted!';
     toast('Data submitted successfully!', 'success');
-    pushProgress(100); // signal complete to admin
+    pushProgress(100);
     setTimeout(() => resetForm(), 2200);
   } catch (e) {
-    // Queue offline
     offlineQueue.push(payload);
     localStorage.setItem('ns_queue', JSON.stringify(offlineQueue));
     toast('Offline — saved locally. Will retry when connected.', 'error', 5000);
@@ -722,27 +1079,36 @@ async function submitForm() {
 }
 
 function resetForm() {
-  // Remember match + team + alliance to carry forward
-  const prevMatch = parseInt(document.getElementById('f-match').value) || 0;
-  const prevTeam = document.getElementById('f-team').value;
-
   fieldValues = {};
   adminFilledFields.clear();
-  alliance = null;
+  eventLog = [];
   lastPushPct = -1;
-
-  // Auto-advance match number
-  if (prevMatch) document.getElementById('f-match').value = prevMatch + 1;
-  // Keep team number pre-filled (scouter usually scouts same team all match)
-  // Clear team so scouter sets next team
-  document.getElementById('f-team').value = '';
-  document.getElementById('f-notes').value = '';
-  document.querySelectorAll('.alliance-btn').forEach(b => b.classList.remove('selected'));
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = false; btn.classList.remove('success'); btn.textContent = 'Submit Scouting Data';
+
+  // Reset event log chips
+  const wrap = document.getElementById('event-log-wrap');
+  if (wrap) wrap.innerHTML = '';
+
+  // Reset field map to first zone
+  if (fieldSchema?.zones?.length) {
+    const sorted = [...fieldSchema.zones].sort((a,b) => (a.order??0)-(b.order??0));
+    activeZoneId = sorted[0].id;
+    renderFieldMap();
+  }
+
   buildForm();
-  pushProgress(); // update admin with new blank state + incremented match
+  // Auto-advance match
+  const matchField = schema?.fields?.find(f => f.varName === 'match' || f.varName === 'match_num');
+  if (matchField) {
+    const prev = parseInt(fieldValues[matchField.varName]) || 0;
+    if (prev) {
+      fieldValues[matchField.varName] = prev + 1;
+    }
+  }
+  buildForm();
+  pushProgress();
 }
 
 // ═══════════════════════════════════════
@@ -758,25 +1124,21 @@ async function retryQueue() {
 }
 
 // ═══════════════════════════════════════
-// PROGRESS PUSH (admin can see)
+// PROGRESS PUSH
 // ═══════════════════════════════════════
 let lastPushPct = -1;
 async function pushProgress(forcePct) {
-  const match = parseInt(document.getElementById('f-match')?.value) || 0;
-  const team = parseInt(document.getElementById('f-team')?.value) || 0;
+  const match = getMatchNum();
+  const team = getTeamNum();
   const scouterId = getScouterId();
-  const typedName = document.getElementById('f-scouter')?.value?.trim() || '';
 
   let filled = 0;
-  const total = (schema?.fields?.length ?? 0) + 3;
+  const total = (schema?.fields?.length ?? 0);
   if (schema) schema.fields.forEach(f => {
     const v = fieldValues[f.varName];
     if (f.type === 'toggle') filled++;
     else if (v !== undefined && v !== '' && v !== (f.min ?? 0)) filled++;
   });
-  if (match) filled++;
-  if (team) filled++;
-  if (alliance) filled++;
   const pct = forcePct ?? Math.round((total > 0 ? filled / total : 0) * 100);
   if (pct === lastPushPct && forcePct === undefined) return;
   lastPushPct = pct;
@@ -787,8 +1149,8 @@ async function pushProgress(forcePct) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scouter_id: scouterId,
-        display_name: typedName || scouterId,
-        match, team, alliance, pct, fieldValues
+        display_name: scouterId,
+        match, team, alliance: getAlliance(), pct, fieldValues
       })
     });
   } catch {}
@@ -798,11 +1160,10 @@ async function pushProgress(forcePct) {
 // ADMIN FILL POLLING
 // ═══════════════════════════════════════
 function startPolling() {
-  if (pollTimer) return; // already running
+  if (pollTimer) return;
   pollTimer = setInterval(pollForUpdates, 3000);
   pollForUpdates();
   setInterval(retryQueue, 30000);
-  // Also push a heartbeat every 5s so admin sees live progress
   setInterval(() => pushProgress(), 5000);
 }
 
@@ -813,7 +1174,6 @@ async function pollForUpdates() {
     if (!res.ok) return;
     const data = await res.json();
 
-    // Admin-filled fields
     if (data.fillFields && Object.keys(data.fillFields).length) {
       let any = false;
       Object.entries(data.fillFields).forEach(([varName, val]) => {
@@ -823,19 +1183,14 @@ async function pollForUpdates() {
           any = true;
         }
       });
-      if (any) {
-        toast('Admin filled some fields for you', 'info', 4000);
-        buildForm(); // re-render with admin badges
-      }
+      if (any) { toast('Admin filled some fields for you', 'info', 4000); buildForm(); }
     }
 
-    // Chat messages
     if (data.messages && Array.isArray(data.messages)) {
       const prevLen = chatMessages.length;
       chatMessages = data.messages;
       if (chatMessages.length > prevLen && !chatOpen) {
-        const diff = chatMessages.length - prevLen;
-        unreadCount += diff;
+        unreadCount += chatMessages.length - prevLen;
         showUnread();
       }
       if (chatOpen) renderChat();
@@ -875,7 +1230,7 @@ function renderChat() {
     const isMine = m.from === myId || m.role === 'self';
     const isAdmin = m.role === 'admin';
     return `<div class="msg ${isMine ? 'mine' : isAdmin ? 'admin' : 'theirs'}">
-      <div class="msg-from ${isAdmin ? 'admin-from' : ''}">${m.from}${isAdmin ? '' : ''}</div>
+      <div class="msg-from ${isAdmin ? 'admin-from' : ''}">${m.from}</div>
       <div class="msg-bubble">${escHtml(m.text)}</div>
       <div class="msg-time">${m.time || ''}</div>
     </div>`;
@@ -889,22 +1244,12 @@ async function sendChat() {
   if (!text) return;
   const myId = getScouterId();
   input.value = '';
-
   const msg = { role: 'scouter', from: myId, text, time: now() };
   chatMessages.push(msg);
   renderChat();
-
   try {
-    await fetch(BASE + '/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(msg)
-    });
+    await fetch(BASE + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
   } catch {}
-}
-
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ═══════════════════════════════════════
@@ -921,23 +1266,12 @@ function setConnected(ok) {
   banner.style.display = ok ? 'none' : 'flex';
 }
 
-// ═══════════════════════════════════════
-// PROGRESS INPUT LISTENERS
-// ═══════════════════════════════════════
-['f-match','f-team'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', updateProgress);
-});
-// Name: save immediately on every keystroke so admin sees updated name fast
-document.getElementById('f-scouter')?.addEventListener('input', () => {
-  const name = document.getElementById('f-scouter').value.trim();
-  if (name) { scouterName = name; localStorage.setItem('ns_scouter', name); }
-  lastPushPct = -1; // force push so admin sees new name right away
-  pushProgress();
+// Close score modal on backdrop click
+document.getElementById('score-modal-backdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeScoreModal();
 });
 
-// ═══════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════
+// ── BOOT ──
 loadSchema();
 </script>
 </body>
