@@ -1,0 +1,134 @@
+{
+  "attribution_dist": 120,
+  "ball_hsv": {
+    "lower": [
+      24,
+      100,
+      100
+    ],
+    "upper": [
+      35,
+      255,
+      255
+    ]
+  },
+  "ball_max_area": 3000,
+  "ball_min_area": 30,
+  "ball_min_circularity": 0.35,
+  "blue_hsv": [
+    {
+      "lower": [
+        100,
+        100,
+        80
+      ],
+      "upper": [
+        130,
+        255,
+        255
+      ]
+    }
+  ],
+  "red_hsv": [
+    {
+      "lower": [
+        0,
+        100,
+        80
+      ],
+      "upper": [
+        10,
+        255,
+        255
+      ]
+    },
+    {
+      "lower": [
+        160,
+        100,
+        80
+      ],
+      "upper": [
+        180,
+        255,
+        255
+      ]
+    }
+  ],
+  "robot_max_area": 15000,
+  "robot_merge_dist": 80,
+  "robot_min_area": 500,
+  "scoring_zones": [
+    {
+      "name": "hub_blue",
+      "polygon": [
+        [
+          168,
+          118
+        ],
+        [
+          213,
+          123
+        ],
+        [
+          192,
+          132
+        ],
+        [
+          166,
+          130
+        ]
+      ],
+      "team": "blue"
+    },
+    {
+      "name": "hub_blue",
+      "polygon": [
+        [
+          211,
+          273
+        ],
+        [
+          258,
+          280
+        ],
+        [
+          239,
+          287
+        ],
+        [
+          211,
+          290
+        ]
+      ],
+      "team": "blue"
+    },
+    {
+      "name": "hub_red",
+      "team": "red",
+      "polygon": [
+        [
+          421,
+          125
+        ],
+        [
+          436,
+          125
+        ],
+        [
+          441,
+          128
+        ],
+        [
+          426,
+          135
+        ],
+        [
+          413,
+          130
+        ]
+      ]
+    }
+  ],
+  "trajectory_lookback": 25
+}

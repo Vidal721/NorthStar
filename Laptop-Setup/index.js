@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const fs   = require('fs');
+const fs = require('fs');
 require('../Server/Server.js');
 
 // ── Data directory ────────────────────────────────────────────────────────────
@@ -11,31 +11,31 @@ const DATA_DIR = app.isPackaged
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const PATHS = {
-  users:    path.join(DATA_DIR, 'users.json'),
-  data:     path.join(DATA_DIR, 'data.json'),
+  users: path.join(DATA_DIR, 'users.json'),
+  data: path.join(DATA_DIR, 'data.json'),
   settings: path.join(DATA_DIR, 'settings.json'),
 };
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const DEFAULT_SETTINGS = {
-  setupComplete:    false,
-  teamNumber:       '',
-  teamName:         '',
-  school:           '',
-  city:             '',
-  state:            '',
-  yearsInFirst:     0,
-  theme:            { id: 'bluepurple', css: 'radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18' },
-  colors:           { primary: '#0a84ff', secondary: '#bf5af2', accent: '#ffd60a' },
-  display:          { mode: 'Dark', fontSize: 'Medium', fontSizePx: 15, cardStyle: 'Glass', radius: 'Rounded', density: 'Default' },
-  scouting:         { system: '', priority: '', events: '', device: 'Phone' },
-  adminRoles:       ['coach', 'lead'],
+  setupComplete: false,
+  teamNumber: '',
+  teamName: '',
+  school: '',
+  city: '',
+  state: '',
+  yearsInFirst: 0,
+  theme: { id: 'bluepurple', css: 'radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18' },
+  colors: { primary: '#0a84ff', secondary: '#bf5af2', accent: '#ffd60a' },
+  display: { mode: 'Dark', fontSize: 'Medium', fontSizePx: 15, cardStyle: 'Glass', radius: 'Rounded', density: 'Default' },
+  scouting: { system: '', priority: '', events: '', device: 'Phone' },
+  adminRoles: ['coach', 'lead'],
   perUserDashboard: false,
-  activeGame:       '',
+  activeGame: '',
 };
 
 const DEFAULT_USERS = { members: [], nextId: 1 };
-const DEFAULT_DATA  = { games: [], matchLogs: [], activity: [], nextGameId: 1 };
+const DEFAULT_DATA = { games: [], matchLogs: [], activity: [], nextGameId: 1 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function readFile(key) {
@@ -65,36 +65,36 @@ function writeFile(key, data) {
 // ── IPC ───────────────────────────────────────────────────────────────────────
 ipcMain.handle('load-all', () => {
   const settings = readFile('settings');
-  const users    = readFile('users');
-  const data     = readFile('data');
+  const users = readFile('users');
+  const data = readFile('data');
   return { firstRun: !settings.setupComplete, settings, users, data };
 });
 
 ipcMain.handle('setup-complete', (_, { config, adminUser }) => {
   const settings = {
     ...DEFAULT_SETTINGS,
-    setupComplete:    true,
-    teamNumber:       config.team.number,
-    teamName:         config.team.name,
-    school:           config.team.school,
-    city:             config.team.city,
-    state:            config.team.state,
-    yearsInFirst:     config.team.yearsInFirst,
-    theme:            config.theme,
-    colors:           config.colors,
-    display:          config.display,
-    scouting:         config.scouting,
-    adminRoles:       ['coach', 'lead'],
+    setupComplete: true,
+    teamNumber: config.team.number,
+    teamName: config.team.name,
+    school: config.team.school,
+    city: config.team.city,
+    state: config.team.state,
+    yearsInFirst: config.team.yearsInFirst,
+    theme: config.theme,
+    colors: config.colors,
+    display: config.display,
+    scouting: config.scouting,
+    adminRoles: ['coach', 'lead'],
     perUserDashboard: false,
-    activeGame:       '',
+    activeGame: '',
   };
   writeFile('settings', settings);
 
   const users = readFile('users');
-  adminUser.id      = users.nextId++;
-  adminUser.mins    = 0;
+  adminUser.id = users.nextId++;
+  adminUser.mins = 0;
   adminUser.matches = 0;
-  adminUser.status  = 'active';
+  adminUser.status = 'active';
   users.members.push(adminUser);
   writeFile('users', users);
 
@@ -102,17 +102,17 @@ ipcMain.handle('setup-complete', (_, { config, adminUser }) => {
 });
 
 ipcMain.handle('auth-login', (_, { username, password }) => {
-  const users    = readFile('users');
+  const users = readFile('users');
   const settings = readFile('settings');
-  const member   = users.members.find(m => m.username === username && m.password === password);
+  const member = users.members.find(m => m.username === username && m.password === password);
   if (!member) return { ok: false, error: 'Invalid username or password.' };
   const isAdmin = (settings.adminRoles || []).includes(member.role);
   return { ok: true, member, isAdmin };
 });
 
-ipcMain.handle('users-get',    ()              => readFile('users'));
-ipcMain.handle('settings-get', ()              => readFile('settings'));
-ipcMain.handle('data-get',     ()              => readFile('data'));
+ipcMain.handle('users-get', () => readFile('users'));
+ipcMain.handle('settings-get', () => readFile('settings'));
+ipcMain.handle('data-get', () => readFile('data'));
 
 ipcMain.handle('users-add', (_, member) => {
   const users = readFile('users');
@@ -177,7 +177,7 @@ function createWindow() {
 }
 
 
-  
+
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
