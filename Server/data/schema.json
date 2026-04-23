@@ -1,5 +1,6 @@
 {
   "version": 6,
+  "version": 21,
   "fields": [
     {
       "varName": "auto_score",
@@ -54,6 +55,11 @@
       "max": 5,
       "group": "Teleop",
       "id": "defense_rating"
+      "varName": "pre_name",
+      "label": "Name",
+      "type": "text",
+      "group": "Pre-game",
+      "required": true
     }
   ]
 }

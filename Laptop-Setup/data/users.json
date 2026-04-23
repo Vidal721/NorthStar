@@ -1,0 +1,60 @@
+{
+  "members": [
+    {
+      "name": "Austin Rich",
+      "username": "austin",
+      "email": "aprich1109@gmail.com",
+      "password": "@Pr73107!",
+      "role": "lead",
+      "id": 8,
+      "mins": 0,
+      "matches": 0,
+      "status": "active"
+    },
+    {
+      "name": "Sam",
+      "username": "sam",
+      "email": "—",
+      "password": "sam1234",
+      "role": "assistant",
+      "mins": 0,
+      "matches": 0,
+      "status": "active",
+      "id": 9
+    },
+    {
+      "name": "James",
+      "username": "james",
+      "email": "—",
+      "password": "james1234",
+      "role": "scouter",
+      "mins": 0,
+      "matches": 0,
+      "status": "active",
+      "id": 10
+    },
+    {
+      "name": "austin rich",
+      "username": "austin",
+      "email": "—",
+      "password": "scouting",
+      "role": "lead",
+      "id": 12,
+      "mins": 0,
+      "matches": 0,
+      "status": "active"
+    },
+    {
+      "name": "RaileRobotics",
+      "username": "Railer",
+      "email": "—",
+      "password": "Railer",
+      "role": "lead",
+      "id": 13,
+      "mins": 0,
+      "matches": 0,
+      "status": "active"
+    }
+  ],
+  "nextId": 14
+}

@@ -21,357 +21,494 @@
   <div class="blob b2"></div>
   <div class="blob b3"></div>
 
-    <!-- STICKY NAV WRAPPER -->
-    <div class="nav-sticky-wrapper">
-      <div class="wrap" style="padding-bottom:0">
-        <nav class="nav">
-          <div class="logo">
-            <div>
-              <div class="doto">NorthStar</div>
-              <div class="logo-sub">Powered By: Team 935</div>
-            </div>
-          </div>
+  <!-- STICKY NAV WRAPPER -->
+  <div class="nav-sticky-wrapper">
+    <div class="wrap" style="padding-bottom:0">
+      <nav class="nav">
+        <div class="logo">
           <div>
+            <div class="doto">NorthStar</div>
+            <div class="logo-sub">Powered By: Team 935</div>
+          </div>
+        </div>
+        <div>
 
-            <div>
-              <div class="btn-group-wrap">
+          <div>
+            <div class="btn-group-wrap">
               <button class="btn-seg active" onclick="switchTab('dashboard',this)">Dashboard</button>
               <button class="btn-seg" onclick="switchTab('picklist',this)">Picklist</button>
               <button class="btn-seg" onclick="switchTab('formbuilder',this)">Form Builder</button>
               <button class="btn-seg" onclick="switchTab('settings',this)">Settings</button>
-              </div>
             </div>
           </div>
-          <div class="tb-right">
-            <span id="sync-status" class="idle">Idle</span>
-            <!--<div id="edit-toggle" onclick="toggleEdit()">✦ Edit layout</div>-->
-            <button id="add-widget-btn" onclick="openDrawer()"><span style="font-size:15px;font-weight:300">+</span>
-              Widget</button>
-            <div class="status-pill">
-              <div class="dot"></div>Live
-            </div>
-            <div id="clock">--:--:--</div>
+        </div>
+        <div class="tb-right">
+          <span id="sync-status" class="idle">Idle</span>
+          <!--<div id="edit-toggle" onclick="toggleEdit()">✦ Edit layout</div>-->
+          <button id="add-widget-btn" onclick="openDrawer()"><span style="font-size:15px;font-weight:300">+</span>
+            Widget</button>
+          <div class="status-pill">
+            <div class="dot"></div>Live
           </div>
-        </nav>
-      </div>
+          <div id="clock">--:--:--</div>
+        </div>
+      </nav>
     </div>
+  </div>
 
-    <!-- DASHBOARD -->
-    <div class="tab-page active" id="dashboard-page">
-      <div id="canvas-wrap">
-        <div id="canvas"></div>
-      </div>
+  <!-- DASHBOARD -->
+  <div class="tab-page active" id="dashboard-page">
+    <div id="canvas-wrap">
+      <div id="canvas"></div>
     </div>
+  </div>
 
-    <!-- PICKLIST -->
-    <div class="tab-page" id="picklist-page">
-      <div class="pl-toolbar">
-        <input class="pl-search" type="text" placeholder="Search teams…" oninput="filterPL(this.value)">
-        <button class="pl-sort-btn" id="plsort-rank" onclick="sortPL('rank',this)">Rank</button>
-        <button class="pl-sort-btn active" id="plsort-total_score" onclick="sortPL('total_score',this)">Score</button>
-        <button class="pl-sort-btn" id="plsort-auto_high" onclick="sortPL('auto_high',this)">Auto</button>
-        <button class="pl-sort-btn" id="plsort-tele_cubes" onclick="sortPL('tele_cubes',this)">Tele Cubes</button>
-        <button class="pl-export" onclick="exportPL()">Export CSV</button>
-      </div>
-      <div class="pl-table-wrap">
-        <table id="pl-table">
-          <thead>
-            <tr id="pl-thead"></tr>
-          </thead>
-          <tbody id="pl-body"></tbody>
-        </table>
-      </div>
+  <!-- PICKLIST -->
+  <div class="tab-page" id="picklist-page">
+    <div class="pl-toolbar">
+      <input class="pl-search" type="text" placeholder="Search teams…" oninput="filterPL(this.value)">
+      <button class="pl-sort-btn" id="plsort-rank" onclick="sortPL('rank',this)">Rank</button>
+      <button class="pl-sort-btn active" id="plsort-total_score" onclick="sortPL('total_score',this)">Score</button>
+      <button class="pl-sort-btn" id="plsort-auto_high" onclick="sortPL('auto_high',this)">Auto</button>
+      <button class="pl-sort-btn" id="plsort-tele_cubes" onclick="sortPL('tele_cubes',this)">Tele Cubes</button>
+      <button class="pl-export" onclick="exportPL()">Export CSV</button>
     </div>
+    <div class="pl-table-wrap">
+      <table id="pl-table">
+        <thead>
+          <tr id="pl-thead"></tr>
+        </thead>
+        <tbody id="pl-body"></tbody>
+      </table>
+    </div>
+  </div>
 
-    <!-- FORM BUILDER -->
-    <div class="tab-page" id="formbuilder-page">
-      <div class="fb-layout">
-        <div class="fb-panel">
-          <div class="fb-panel-head">
-            <span class="fb-panel-title">Field Editor</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:10px;color:var(--text-3)">Schema v<span id="sv">1</span></span>
-              <button class="fb-sync-btn" onclick="saveSchemaToServer()">↑ Sync to Pi</button>
-            </div>
-          </div>
-          <div id="schema-diff" class="schema-diff hidden"></div>
-          <div class="fb-body" id="fb-fields"></div>
-          <div class="add-field-row">
-            <select class="af-select" id="af-type">
-              <option value="counter">Counter</option>
-              <option value="slider">Slider</option>
-              <option value="toggle">Toggle</option>
-              <option value="text">Text</option>
-              <option value="dropdown">Dropdown</option>
-            </select>
-            <button class="af-btn" onclick="addField()">+ Add Field</button>
+  <!-- FORM BUILDER -->
+  <div class="tab-page" id="formbuilder-page">
+    <div class="fb-layout">
+      <div class="fb-panel">
+        <div class="fb-panel-head">
+          <span class="fb-panel-title">Field Editor</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;color:var(--text-3)">Schema v<span id="sv">1</span></span>
+            <button class="fb-sync-btn" onclick="saveSchemaToServer()">↑ Sync to Pi</button>
           </div>
         </div>
-        <div class="fb-panel">
-          <div class="fb-panel-head">
-            <span class="fb-panel-title">JSON Preview</span>
-            <span style="font-size:10px;color:var(--green);cursor:pointer;font-weight:600"
-              onclick="copyJSON()">Copy</span>
+        <div id="schema-diff" class="schema-diff hidden"></div>
+        <div class="fb-body" id="fb-fields"></div>
+        <div class="add-field-row">
+          <select class="af-select" id="af-type">
+            <option value="counter">Counter</option>
+            <option value="slider">Slider</option>
+            <option value="toggle">Toggle</option>
+            <option value="text">Text</option>
+            <option value="dropdown">Dropdown</option>
+          </select>
+          <button class="af-btn" onclick="addField()">+ Add Field</button>
+        </div>
+      </div>
+      <div class="fb-panel">
+        <div class="fb-panel-head">
+          <span class="fb-panel-title">JSON Preview</span>
+          <span style="font-size:10px;color:var(--green);cursor:pointer;font-weight:600"
+            onclick="copyJSON()">Copy</span>
+        </div>
+        <div class="json-preview" id="json-preview"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tab-page" id="settings-page">
+    <div style="padding:32px;max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+      <div class="glass-card" style="padding:20px;border-radius:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">🏟 Match Control</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <label style="font-size:12px;color:var(--text-3)">Current Match #</label>
+          <input type="number" id="set-match-num" value="1" min="1" max="200"
+            style="width:80px;background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 10px;font-size:14px;font-weight:700;color:var(--text-1);outline:none;text-align:center">
+          <button onclick="setCurrentMatch()"
+            style="padding:6px 16px;border-radius:8px;background:rgba(10,132,255,0.2);border:0.5px solid rgba(10,132,255,0.4);color:var(--blue);font-weight:600;font-size:12px;cursor:pointer">Set</button>
+          <span style="font-size:11px;color:var(--text-3)">Broadcasts to all scouter widgets</span>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding:20px;border-radius:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">✦ Admin Fill — Push Fields to
+          Scouters</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Select a connected scouter and set field
+          values remotely. The scouter's form will update automatically within a few seconds.</div>
+        <div id="adm-fill-scouter-list" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;color:var(--text-3)">No scouters connected yet. They'll appear here once active.
           </div>
-          <div class="json-preview" id="json-preview"></div>
+        </div>
+        <button onclick="refreshAdminFillList()"
+          style="margin-top:12px;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);color:var(--text-2);font-size:12px;cursor:pointer">↻
+          Refresh List</button>
+      </div>
+
+      <div class="glass-card" style="padding:20px;border-radius:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">💬 Chat Management</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="clearChat()"
+            style="padding:6px 16px;border-radius:8px;background:rgba(255,69,58,0.15);border:0.5px solid rgba(255,69,58,0.35);color:var(--red);font-size:12px;cursor:pointer;font-weight:600">Clear
+            All Chat History</button>
         </div>
       </div>
-    </div>
 
-    <!-- SETTINGS -->
-    <div class="tab-page" id="settings-page">
-      <div style="padding:40px;text-align:center;color:var(--text-3);font-size:13px">Settings coming soon.</div>
-    </div>
-
-    <!-- EQUATION EDITOR MODAL -->
-    <div id="eq-modal">
-      <div id="eq-modal-bg" onclick="closeEqModal()"></div>
-      <div id="eq-modal-box">
-        <div class="eq-modal-head">
-          <span class="eq-modal-title">⚡ Logic Engine — Equations</span>
-          <button class="eq-modal-close" onclick="closeEqModal()">✕</button>
-        </div>
-        <div class="eq-modal-body" id="eq-modal-body"></div>
-        <div class="eq-modal-footer">
-          <button class="eq-add-new-btn" onclick="addEquation()"><span style="font-size:14px">+</span> New
-            Equation</button>
-          <button class="eq-save-btn" onclick="saveEquations()">Save & Sync to Pi</button>
+      <div class="glass-card" style="padding:20px;border-radius:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:var(--text-1)">📦 Data Export</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="exportTableCSV()"
+            style="padding:6px 16px;border-radius:8px;background:rgba(48,209,88,0.15);border:0.5px solid rgba(48,209,88,0.3);color:var(--green);font-size:12px;cursor:pointer;font-weight:600">Export
+            All Data (CSV)</button>
+          <button onclick="exportPL()"
+            style="padding:6px 16px;border-radius:8px;background:rgba(10,132,255,0.15);border:0.5px solid rgba(10,132,255,0.3);color:var(--blue);font-size:12px;cursor:pointer;font-weight:600">Export
+            Picklist (CSV)</button>
         </div>
       </div>
-    </div>
 
-    <!-- WIDGET DRAWER -->
-    <div id="widget-drawer">
-      <div id="drawer-head">
-        <span id="drawer-title">Add Widget</span>
-        <button id="drawer-close" onclick="closeDrawer()">✕</button>
+      <div class="glass-card" style="padding:20px;border-radius:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text-1)">⚙ Server Health</div>
+        <div id="health-info" style="font-size:12px;color:var(--text-3);font-family:'SF Mono',monospace">—</div>
+        <button onclick="loadHealth()"
+          style="margin-top:10px;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);color:var(--text-2);font-size:12px;cursor:pointer">Check
+          Health</button>
       </div>
-      <input id="drawer-search" type="text" placeholder="Search widgets…" oninput="filterCatalog(this.value)">
-      <div class="drawer-section-lbl">Available widgets</div>
-      <div id="widget-catalog"></div>
+
     </div>
-    <div id="drawer-overlay" onclick="closeDrawer()"></div>
+  </div>
 
-    <script>
-      // ═══════════════════════════════════════════════════════════
-      // SERVER API LAYER
-      // ═══════════════════════════════════════════════════════════
-      const API = (() => {
-        const BASE = ''; // same origin — runs on Pi
-        async function req(method, path, body) {
-          setSyncStatus('syncing');
-          try {
-            const res = await fetch(BASE + path, {
-              method,
-              headers: { 'Content-Type': 'application/json' },
-              ...(body !== undefined ? { body: JSON.stringify(body) } : {})
-            });
-            const data = await res.json();
-            setSyncStatus('ok');
-            return data;
-          } catch (e) {
-            console.warn('API error:', e);
-            setSyncStatus('error');
-            return null;
-          }
-        }
-        return {
-          getSchema: () => req('GET', '/api/schema'),
-          putSchema: (s) => req('PUT', '/api/schema', s),
-          getEquations: () => req('GET', '/api/equations'),
-          putEquations: (e) => req('PUT', '/api/equations', e),
-          getData: () => req('GET', '/api/data'),
-          getPicklist: () => req('GET', '/api/picklist'),
-          getTeamHistory: (t) => req('GET', `/api/team/${t}/history`),
-        };
-      })();
+  <!-- ADMIN FILL MODAL -->
+  <div id="admfill-modal"
+    style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center">
+    <div onclick="closeAdminFill()"
+      style="position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px)"></div>
+    <div
+      style="position:relative;z-index:1;background:#10152a;border:0.5px solid rgba(255,255,255,0.18);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,0.5);width:min(480px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08)">
+        <div>
+          <div style="font-weight:700;font-size:14px" id="admfill-title">Admin Fill</div>
+          <div style="font-size:11px;color:var(--text-3)" id="admfill-sub">Push field values to scouter</div>
+        </div>
+        <button onclick="closeAdminFill()"
+          style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;color:var(--text-2);font-size:14px">✕</button>
+      </div>
+      <div id="admfill-body" style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+      </div>
+      <div
+        style="padding:12px 20px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="closeAdminFill()"
+          style="padding:8px 16px;border-radius:8px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);color:var(--text-2);font-size:12px;cursor:pointer">Cancel</button>
+        <button onclick="submitAdminFill()"
+          style="padding:8px 20px;border-radius:8px;background:rgba(10,132,255,0.25);border:0.5px solid rgba(10,132,255,0.45);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer">✦
+          Push to Scouter</button>
+      </div>
+    </div>
+  </div>
 
-      const links = document.querySelectorAll('.btn-seg');
+  <!-- EQUATION EDITOR MODAL -->
+  <div id="eq-modal">
+    <div id="eq-modal-bg" onclick="closeEqModal()"></div>
+    <div id="eq-modal-box">
+      <div class="eq-modal-head">
+        <span class="eq-modal-title">⚡ Logic Engine — Equations</span>
+        <button class="eq-modal-close" onclick="closeEqModal()">✕</button>
+      </div>
+      <div class="eq-modal-body" id="eq-modal-body"></div>
+      <div class="eq-modal-footer">
+        <button class="eq-add-new-btn" onclick="addEquation()"><span style="font-size:14px">+</span> New
+          Equation</button>
+        <button class="eq-save-btn" onclick="saveEquations()">Save & Sync to Pi</button>
+      </div>
+    </div>
+  </div>
 
-      links.forEach(link => {
-        link.addEventListener('click', function () {
-          // Remove 'active' from all other links
-          links.forEach(l => l.classList.remove('active'));
-          // Add 'active' back to the clicked link
-          this.classList.add('active');
-        });
-      });
+  <!-- WIDGET DRAWER -->
+  <div id="widget-drawer">
+    <div id="drawer-head">
+      <span id="drawer-title">Add Widget</span>
+      <button id="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <input id="drawer-search" type="text" placeholder="Search widgets…" oninput="filterCatalog(this.value)">
+    <div class="drawer-section-lbl">Available widgets</div>
+    <div id="widget-catalog"></div>
+  </div>
+  <div id="drawer-overlay" onclick="closeDrawer()"></div>
 
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // SERVER API LAYER
+    // ═══════════════════════════════════════════════════════════
+    const API = (() => {
+      const BASE = '';
 
-      // Sync status indicator
-      let syncTimer = null;
-      function setSyncStatus(state) {
-        const el = document.getElementById('sync-status');
-        el.className = state;
-        const labels = { idle: 'Idle', syncing: '⟳ Syncing…', ok: '✓ Synced', error: '✕ Error' };
-        el.textContent = labels[state] || state;
-        clearTimeout(syncTimer);
-        if (state === 'ok') syncTimer = setTimeout(() => setSyncStatus('idle'), 2000);
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // STATE
-      // ═══════════════════════════════════════════════════════════
-      const TOTAL_MATCHES = 60;
-      let currentMatch = 14, matchesLogged = 0, teamsScouted = 0, flags = 0;
-
-      const SCOUTERS = [
-        { id: 1, name: 'Alex', status: 'active', battery: 82, match: 14, team: 1678, alliance: 'Red', formPct: 78, formSection: 'Teleop', flag: null },
-        { id: 2, name: 'Jordan', status: 'flagged', battery: 74, match: 14, team: 1678, alliance: 'Red', formPct: 100, formSection: 'Done', flag: 'Impossible value: 99 pieces' },
-        { id: 3, name: 'Sam', status: 'active', battery: 63, match: 14, team: 254, alliance: 'Blue', formPct: 45, formSection: 'Auto', flag: null },
-        { id: 4, name: 'Taylor', status: 'idle', battery: 91, match: 13, team: 971, alliance: 'Blue', formPct: 100, formSection: 'Done', flag: null },
-        { id: 5, name: 'Morgan', status: 'active', battery: 18, match: 14, team: 118, alliance: 'Red', formPct: 20, formSection: 'Pre-match', flag: null },
-        { id: 6, name: 'Casey', status: 'offline', battery: 0, match: null, team: null, formPct: 0, formSection: null, flag: null },
-      ];
-
-      let chatMessages = [
-        { role: 'scouter', from: 'S3 · Sam', text: 'Team 254 scored 11 auto — right?', time: '10:42' },
-        { role: 'admin', from: 'Admin', text: 'Yes confirmed on stream.', time: '10:42' },
-        { role: 'broadcast', from: 'BROADCAST', text: '📢 Match 15 assignments sent', time: '10:45' },
-      ];
-
-      // Schema & equations — loaded from server on init, fallback to defaults
-      let schemaFields = [];
-      let equations = [];
-      let serverPicklist = [];
-      let serverData = [];
-
-      // ═══════════════════════════════════════════════════════════
-      // INIT — load everything from server
-      // ═══════════════════════════════════════════════════════════
-      async function initFromServer() {
-        const [schema, eqs, data, picklist] = await Promise.all([
-          API.getSchema(),
-          API.getEquations(),
-          API.getData(),
-          API.getPicklist(),
-        ]);
-
-        if (schema && schema.fields) {
-          schemaFields = schema.fields;
-          document.getElementById('sv').textContent = schema.version || 1;
-        } else {
-          schemaFields = [
-            { varName: 'auto_high', label: 'Auto High Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
-            { varName: 'auto_low', label: 'Auto Low Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
-            { varName: 'tele_cubes', label: 'Teleop Cubes', type: 'counter', min: 0, max: 20, group: 'Teleop' },
-            { varName: 'tele_cones', label: 'Teleop Cones', type: 'counter', min: 0, max: 20, group: 'Teleop' },
-            { varName: 'climb_level', label: 'Climb Level', type: 'counter', min: 0, max: 3, group: 'Endgame' },
-            { varName: 'defense_rating', label: 'Defense', type: 'slider', min: 0, max: 5, group: 'Teleop' },
-          ];
-        }
-
-        if (eqs && eqs.length) {
-          equations = eqs;
-        } else {
-          equations = [
-            { id: 'eq1', varName: 'total_score', label: 'Total Score', formula: '(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)' },
-            { id: 'eq2', varName: 'climb_pts', label: 'Climb Points', formula: 'climb_level * 6' },
-            { id: 'eq3', varName: 'climb_status', label: 'Climb Status', formula: "if (climb_level === 0) return 'None'; if (climb_level === 1) return 'Low'; if (climb_level === 2) return 'Mid'; return 'High';" },
-          ];
-        }
-
-        if (data && data.length) {
-          serverData = data;
-          matchesLogged = data.length;
-          teamsScouted = new Set(data.map(d => d.team)).size;
-        }
-
-        if (picklist && picklist.length) {
-          serverPicklist = picklist;
-        }
-
-        flags = SCOUTERS.filter(s => s.flag).length;
-
-        // Refresh any open widgets
-        Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
-        setSyncStatus('idle');
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // CLOCK
-      // ═══════════════════════════════════════════════════════════
-      setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
-      document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
-
-      // ═══════════════════════════════════════════════════════════
-      // TABS
-      // ═══════════════════════════════════════════════════════════
-      function switchTab(tab, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        const pg = document.getElementById(tab + '-page');
-        if (pg) pg.classList.add('active');
-        if (tab === 'picklist') renderPicklist();
-        if (tab === 'formbuilder') renderFormBuilder();
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // EQUATION EVALUATOR (client-side mirror of server logic)
-      // ═══════════════════════════════════════════════════════════
-      function evalEquation(formula, row) {
+      // silent background GETs — never touch the sync indicator
+      async function poll(apiPath) {
         try {
-          const keys = Object.keys(row);
-          const vals = Object.values(row);
-          let body = formula.trim();
-          if (!body.includes('return') && !body.includes('if') && !body.includes('let') && !body.includes(';')) {
-            body = `return (${body});`;
-          }
-          const fn = new Function(...keys, body);
-          return fn(...vals);
+          const res = await fetch(BASE + apiPath);
+          if (!res.ok) return null;
+          return await res.json();
         } catch (e) { return null; }
       }
-      function applyEquations(row) {
-        const r = { ...row };
-        for (let pass = 0; pass < 2; pass++) {
-          equations.forEach(eq => { r[eq.varName] = evalEquation(eq.formula, r); });
-        }
-        return r;
-      }
 
-      // ═══════════════════════════════════════════════════════════
-      // WIDGET CATALOG
-      // ═══════════════════════════════════════════════════════════
-      const CATALOG = [
-        { id: 'match-progress', name: 'Match Progress', icon: '🏟', desc: 'Current match, completion bar, stats', w: 320, h: 220 },
-        { id: 'scouter-status', name: 'Scouter Status', icon: '👥', desc: 'All scouters, form progress', w: 290, h: 380 },
-        { id: 'battery-monitor', name: 'Battery Monitor', icon: '🔋', desc: 'Live battery % for all tablets', w: 280, h: 230 },
-        { id: 'live-chat', name: 'Live Chat', icon: '💬', desc: 'Chat with scouters & broadcasts', w: 300, h: 360 },
-        { id: 'data-flags', name: 'Data Flags', icon: '🚩', desc: 'Review & dismiss flagged entries', w: 300, h: 240 },
-        { id: 'eq-builder', name: 'Logic Engine', icon: '⚡', desc: 'Custom scoring equations with scripts', w: 340, h: 230 },
-        { id: 'team-chart', name: 'Team Chart', icon: '📈', desc: 'Per-team metric timeline from real data', w: 380, h: 280 },
-        { id: 'matches-logged', name: 'Matches Logged', icon: '📋', desc: 'Matches scouted vs total', w: 200, h: 160 },
-        { id: 'teams-scouted', name: 'Teams Scouted', icon: '🤖', desc: 'Total unique teams scouted', w: 200, h: 160 },
-        { id: 'active-scouters', name: 'Active Scouters', icon: '✅', desc: 'Live scouter count', w: 200, h: 160 },
-      ];
-
-      let widgets = {}, zCount = 10, editMode = false;
-      const SNAP = 8;
-      function snap(v) { return Math.round(v / SNAP) * SNAP; }
-
-      // ═══════════════════════════════════════════════════════════
-      // WIDGET BODY BUILDERS
-      // ═══════════════════════════════════════════════════════════
-      function buildBody(type, uid) {
-        switch (type) {
-          case 'match-progress': return matchProgBody();
-          case 'scouter-status': return scouterBody(uid);
-          case 'battery-monitor': return battBody();
-          case 'live-chat': return chatBody(uid);
-          case 'data-flags': return flagsBody(uid);
-          case 'eq-builder': return eqBuilderBody(uid);
-          case 'team-chart': return teamChartBody(uid);
-          case 'matches-logged': return statBody('📋', matchesLogged, TOTAL_MATCHES, 'Matches Logged', 'var(--green)');
-          case 'teams-scouted': return statBody('🤖', teamsScouted, null, 'Teams Scouted', 'var(--blue)');
-          case 'active-scouters': return statBody('✅', SCOUTERS.filter(s => s.status === 'active').length, 6, 'Active Scouters', 'var(--purple)');
-          default: return '';
+      // loud writes — user-initiated, shows syncing indicator
+      async function write(method, apiPath, body) {
+        setSyncStatus('syncing');
+        try {
+          const res = await fetch(BASE + apiPath, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+          });
+          const data = await res.json();
+          setSyncStatus('ok');
+          return data;
+        } catch (e) {
+          console.warn('API error:', e);
+          setSyncStatus('error');
+          return null;
         }
       }
 
-      function matchProgBody() {
-        const pct = Math.round((matchesLogged / TOTAL_MATCHES) * 100);
-        return `<div class="match-wrap">
+      return {
+        // silent reads
+        getSchema: () => poll('/api/schema'),
+        getEquations: () => poll('/api/equations'),
+        getData: () => poll('/api/data'),
+        getPicklist: () => poll('/api/picklist'),
+        getTeamHistory: (t) => poll(`/api/team/${t}/history`),
+        getScoutProgress: () => poll('/api/scout-progress'),
+        getChat: () => poll('/api/chat'),
+        getHealth: () => poll('/api/health'),
+        // loud writes
+        putSchema: (s) => write('PUT', '/api/schema', s),
+        putEquations: (e) => write('PUT', '/api/equations', e),
+        deleteData: (id) => write('DELETE', `/api/data/${id}`),
+        postAdminFill: (sid, fv) => write('POST', '/api/admin-fill', { scouter_id: sid, fieldValues: fv }),
+        postChat: (msg) => write('POST', '/api/chat', msg),
+        deleteChat: () => write('DELETE', '/api/chat'),
+      };
+    })();
+
+    const links = document.querySelectorAll('.btn-seg');
+
+    links.forEach(link => {
+      link.addEventListener('click', function () {
+        // Remove 'active' from all other links
+        links.forEach(l => l.classList.remove('active'));
+        // Add 'active' back to the clicked link
+        this.classList.add('active');
+      });
+    });
+
+
+    // Sync status indicator
+    let syncTimer = null;
+    function setSyncStatus(state) {
+      const el = document.getElementById('sync-status');
+      el.className = state;
+      const labels = { idle: 'Idle', syncing: '⟳ Syncing…', ok: '✓ Synced', error: '✕ Error' };
+      el.textContent = labels[state] || state;
+      clearTimeout(syncTimer);
+      if (state === 'ok') syncTimer = setTimeout(() => setSyncStatus('idle'), 2000);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════
+    const TOTAL_MATCHES = 60;
+    let currentMatch = 1, matchesLogged = 0, teamsScouted = 0, flags = 0;
+
+    // Live scouter data — fetched from /api/scout-progress every 3 s
+    let liveScouters = [];   // [{ scouter_id, match, team, alliance, pct, fieldValues, lastSeen }]
+
+    // Live chat — fetched from /api/chat every 3 s
+    let chatMessages = [];
+
+    // Schema & equations — loaded from server on init, fallback to defaults
+    let schemaFields = [];
+    let equations = [];
+    let serverPicklist = [];
+    let serverData = [];
+
+    // ═══════════════════════════════════════════════════════════
+    // INIT — load everything from server
+    // ═══════════════════════════════════════════════════════════
+    async function initFromServer() {
+      const [schema, eqs, data, picklist] = await Promise.all([
+        API.getSchema(),
+        API.getEquations(),
+        API.getData(),
+        API.getPicklist(),
+      ]);
+
+      if (schema && schema.fields) {
+        schemaFields = schema.fields;
+        document.getElementById('sv').textContent = schema.version || 1;
+        recordSchemaVersion(schema.fields, schema.version || 1);
+      } else {
+        schemaFields = [
+          { varName: 'auto_high', label: 'Auto High Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
+          { varName: 'auto_low', label: 'Auto Low Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
+          { varName: 'tele_cubes', label: 'Teleop Cubes', type: 'counter', min: 0, max: 20, group: 'Teleop' },
+          { varName: 'tele_cones', label: 'Teleop Cones', type: 'counter', min: 0, max: 20, group: 'Teleop' },
+          { varName: 'climb_level', label: 'Climb Level', type: 'counter', min: 0, max: 3, group: 'Endgame' },
+          { varName: 'defense_rating', label: 'Defense', type: 'slider', min: 0, max: 5, group: 'Teleop' },
+        ];
+      }
+
+      if (eqs && eqs.length) {
+        equations = eqs;
+      } else {
+        equations = [
+          { id: 'eq1', varName: 'total_score', label: 'Total Score', formula: '(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)' },
+          { id: 'eq2', varName: 'climb_pts', label: 'Climb Points', formula: 'climb_level * 6' },
+          { id: 'eq3', varName: 'climb_status', label: 'Climb Status', formula: "if (climb_level === 0) return 'None'; if (climb_level === 1) return 'Low'; if (climb_level === 2) return 'Mid'; return 'High';" },
+        ];
+      }
+
+      if (data && data.length) {
+        serverData = data;
+        matchesLogged = data.length;
+        teamsScouted = new Set(data.map(d => d.team)).size;
+      }
+
+      if (picklist && picklist.length) {
+        serverPicklist = picklist;
+      }
+
+      flags = 0;
+
+      // Refresh any open widgets
+      Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
+      setSyncStatus('idle');
+
+      // Start live polling for scout progress and chat
+      startLivePolling();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // LIVE POLLING — scout progress + chat from server
+    // ═══════════════════════════════════════════════════════════
+    function startLivePolling() {
+      pollLive();
+      setInterval(pollLive, 3000);
+    }
+
+    async function pollLive() {
+      // Poll scout progress
+      const progress = await API.getScoutProgress();
+      if (progress && Array.isArray(progress)) {
+        liveScouters = progress;
+        // Update active scouter count
+        Object.entries(widgets).forEach(([id, w]) => {
+          if (['scouter-status', 'battery-monitor', 'match-progress', 'active-scouters'].includes(w.type)) refreshWidget(id);
+        });
+      }
+
+      // Poll chat
+      const chat = await API.getChat();
+      if (chat && Array.isArray(chat)) {
+        const prevLen = chatMessages.length;
+        chatMessages = chat;
+        if (chatMessages.length !== prevLen) {
+          Object.entries(widgets).forEach(([id, w]) => {
+            if (w.type === 'live-chat') refreshWidget(id);
+          });
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CLOCK
+    // ═══════════════════════════════════════════════════════════
+    setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+
+    // ═══════════════════════════════════════════════════════════
+    // TABS
+    // ═══════════════════════════════════════════════════════════
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const pg = document.getElementById(tab + '-page');
+      if (pg) pg.classList.add('active');
+      if (tab === 'picklist') renderPicklist();
+      if (tab === 'formbuilder') renderFormBuilder();
+      if (tab === 'settings') { setTimeout(() => { refreshAdminFillList(); loadHealth(); }, 50); }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // EQUATION EVALUATOR (client-side mirror of server logic)
+    // ═══════════════════════════════════════════════════════════
+    function evalEquation(formula, row) {
+      try {
+        const keys = Object.keys(row);
+        const vals = Object.values(row);
+        let body = formula.trim();
+        if (!body.includes('return') && !body.includes('if') && !body.includes('let') && !body.includes(';')) {
+          body = `return (${body});`;
+        }
+        const fn = new Function(...keys, body);
+        return fn(...vals);
+      } catch (e) { return null; }
+    }
+    function applyEquations(row) {
+      const r = { ...row };
+      for (let pass = 0; pass < 2; pass++) {
+        equations.forEach(eq => { r[eq.varName] = evalEquation(eq.formula, r); });
+      }
+      return r;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // WIDGET CATALOG
+    // ═══════════════════════════════════════════════════════════
+    const CATALOG = [
+      { id: 'match-progress', name: 'Match Progress', icon: '🏟', desc: 'Current match, completion bar, stats', w: 320, h: 220 },
+      { id: 'scouter-status', name: 'Scouter Status', icon: '👥', desc: 'All scouters, form progress + admin fill', w: 290, h: 380 },
+      { id: 'battery-monitor', name: 'Form Progress', icon: '📊', desc: 'Live form completion for all scouters', w: 280, h: 230 },
+      { id: 'live-chat', name: 'Live Chat', icon: '💬', desc: 'Chat with scouters & broadcasts', w: 300, h: 360 },
+      { id: 'data-flags', name: 'Data Flags', icon: '🚩', desc: 'Review & dismiss flagged entries', w: 300, h: 240 },
+      { id: 'eq-builder', name: 'Logic Engine', icon: '⚡', desc: 'Custom scoring equations with scripts', w: 340, h: 230 },
+      { id: 'team-chart', name: 'Team Chart', icon: '📈', desc: 'Per-team metric timeline from real data', w: 380, h: 280 },
+      { id: 'data-table', name: 'Data Table', icon: '🗃', desc: 'All scouted rows with computed columns', w: 520, h: 320 },
+      { id: 'matches-logged', name: 'Matches Logged', icon: '📋', desc: 'Matches scouted vs total', w: 200, h: 160 },
+      { id: 'teams-scouted', name: 'Teams Scouted', icon: '🤖', desc: 'Total unique teams scouted', w: 200, h: 160 },
+      { id: 'active-scouters', name: 'Active Scouters', icon: '✅', desc: 'Live scouter count', w: 200, h: 160 },
+    ];
+
+    let widgets = {}, zCount = 10, editMode = false;
+    const SNAP = 8;
+    function snap(v) { return Math.round(v / SNAP) * SNAP; }
+
+    // ═══════════════════════════════════════════════════════════
+    // WIDGET BODY BUILDERS
+    // ═══════════════════════════════════════════════════════════
+    function buildBody(type, uid) {
+      switch (type) {
+        case 'match-progress': return matchProgBody();
+        case 'scouter-status': return scouterBody(uid);
+        case 'battery-monitor': return battBody();
+        case 'live-chat': return chatBody(uid);
+        case 'data-flags': return flagsBody(uid);
+        case 'eq-builder': return eqBuilderBody(uid);
+        case 'team-chart': return teamChartBody(uid);
+        case 'data-table': return dataTableBody(uid);
+        case 'matches-logged': return statBody('📋', matchesLogged, TOTAL_MATCHES, 'Matches Logged', 'var(--green)');
+        case 'teams-scouted': return statBody('🤖', teamsScouted, null, 'Teams Scouted', 'var(--blue)');
+        case 'active-scouters': return statBody('✅', liveScouters.length, null, 'Active Scouters', 'var(--purple)');
+        default: return '';
+      }
+    }
+
+    function matchProgBody() {
+      const pct = Math.round((matchesLogged / TOTAL_MATCHES) * 100);
+      return `<div class="match-wrap">
     <div class="glass-card mc-main">
       <div class="mc-lbl">Current match</div>
       <div class="mc-num">${currentMatch}</div>
@@ -380,158 +517,169 @@
     </div>
     <div class="match-stats">
       <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--green)">${matchesLogged}</div><div class="ms-lbl">Logged</div></div>
-      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--red)">${flags}</div><div class="ms-lbl">Flags</div></div>
+      <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--purple)">${liveScouters.length}</div><div class="ms-lbl">Scouters</div></div>
       <div class="glass-card ms-cell"><div class="ms-val" style="color:var(--blue)">${teamsScouted}</div><div class="ms-lbl">Teams</div></div>
     </div>
   </div>`;
-      }
+    }
 
-      function scouterBody(uid) {
-        return '<div class="sc-list">' + SCOUTERS.map(s => {
-          const fp = s.status === 'offline' ? 0 : s.formPct;
-          const progressRow = (s.status !== 'offline' && s.status !== 'idle') ? `
-      <div class="form-prog-wrap">
-        <span class="form-prog-label">${s.formSection || ''}</span>
-        <div class="form-prog-track"><div class="form-prog-fill" style="width:${fp}%"></div></div>
-        <span class="form-prog-pct">${fp}%</span>
-      </div>` : '';
-          return `<div class="glass-card sc-item">
+    function scouterBody(uid) {
+      if (!liveScouters.length) {
+        return `<div style="text-align:center;padding:30px;color:var(--text-3);font-size:12px">
+            No scouters connected yet.<br><span style="opacity:.6">They appear here once they open scout.html.</span>
+          </div>`;
+      }
+      return '<div class="sc-list">' + liveScouters.map(s => {
+        const pct = s.pct || 0;
+        const name = s.display_name || s.scouter_id;
+        const allianceColor = s.alliance === 'Red' ? 'var(--red)' : s.alliance === 'Blue' ? 'var(--blue)' : 'var(--text-3)';
+        const statusClass = pct >= 100 ? 'idle' : pct > 0 ? 'active' : 'idle';
+        const statusLabel = pct >= 100 ? 'Done' : pct > 0 ? 'Scouting' : 'Waiting';
+        return `<div class="glass-card sc-item">
       <div class="sc-top-row">
-        <div class="sc-dot ${s.status}"></div>
-        <span class="sc-nm">S${s.id} · ${s.name}</span>
-        <span class="sc-pill ${s.status}">${s.status.charAt(0).toUpperCase() + s.status.slice(1)}</span>
+        <div class="sc-dot ${statusClass}"></div>
+        <span class="sc-nm">${name}</span>
+        <span class="sc-pill ${statusClass}">${statusLabel}</span>
+        <button class="sc-fill-btn" onclick="openAdminFill('${s.scouter_id}',${s.team || 0},${s.match || 0})" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(10,132,255,0.18);border:0.5px solid rgba(10,132,255,0.4);color:var(--blue);cursor:pointer">Fill ✦</button>
       </div>
-      <div class="sc-det">${s.match ? `Match ${s.match} · Team ${s.team} (${s.alliance})` : 'Not connected'}${s.flag ? ` · ⚠ ${s.flag}` : ''}</div>
-      ${progressRow}
+      <div class="sc-det" style="color:${allianceColor}">${s.match ? `Match ${s.match}` : 'No match'}${s.team ? ` · Team ${s.team}` : ''}${s.alliance ? ` · ${s.alliance}` : ''}</div>
+      <div class="form-prog-wrap">
+        <div class="form-prog-track"><div class="form-prog-fill" style="width:${pct}%"></div></div>
+        <span class="form-prog-pct">${pct}%</span>
+      </div>
     </div>`;
-        }).join('') + '</div>';
-      }
+      }).join('') + '</div>';
+    }
 
-      function battBody() {
-        return '<div class="batt-grid">' + SCOUTERS.map(s => {
-          const bc = s.battery > 50 ? 'batt-hi' : s.battery > 20 ? 'batt-mid' : 'batt-lo';
-          const bs = s.status === 'offline' ? 'bst-offline' : s.battery <= 20 ? 'bst-warn' : s.status === 'active' ? 'bst-active' : 'bst-idle';
-          const bl = s.status === 'offline' ? 'Offline' : s.battery <= 20 ? 'Low!' : s.status === 'active' ? 'Active' : 'Idle';
-          return `<div class="batt-row">
-      <span class="batt-name">S${s.id} ${s.name}</span>
-      <div class="batt-track"><div class="batt-fill ${bc}" style="width:${s.battery}%"></div></div>
-      <span class="batt-pct" style="color:${s.battery <= 20 && s.status !== 'offline' ? 'var(--red)' : 'var(--text-2)'}">${s.battery}%</span>
+    function battBody() {
+      if (!liveScouters.length) {
+        return `<div style="text-align:center;padding:24px;color:var(--text-3);font-size:12px">No scouters connected</div>`;
+      }
+      return '<div class="batt-grid">' + liveScouters.map(s => {
+        // pct-based battery proxy (server doesn't track battery, but we can show form progress as a proxy)
+        const pct = s.pct || 0;
+        const bc = pct > 50 ? 'batt-hi' : pct > 20 ? 'batt-mid' : 'batt-lo';
+        const bs = pct >= 100 ? 'bst-idle' : pct > 0 ? 'bst-active' : 'bst-offline';
+        const bl = pct >= 100 ? 'Done' : pct > 0 ? 'Active' : 'Waiting';
+        return `<div class="batt-row">
+      <span class="batt-name">${s.display_name || s.scouter_id}</span>
+      <div class="batt-track"><div class="batt-fill ${bc}" style="width:${pct}%"></div></div>
+      <span class="batt-pct">${pct}%</span>
       <span class="batt-status ${bs}">${bl}</span>
     </div>`;
-        }).join('') + '</div>';
-      }
+      }).join('') + '</div>';
+    }
 
-      function chatBody(uid) {
-        return `<div class="chat-msgs" id="cm-${uid}" style="height:calc(100% - 52px)">
-    ${chatMessages.map(m => `<div class="cm ${m.role}">
-      <span class="cm-from">${m.from} · ${m.time}</span>
-      <div class="cm-bubble">${m.text}</div>
-    </div>`).join('')}
+    function chatBody(uid) {
+      const msgs = chatMessages.map(m => {
+        const isAdmin = m.role === 'admin';
+        const isBroadcast = m.role === 'broadcast';
+        const roleColor = isAdmin ? 'var(--blue)' : isBroadcast ? 'var(--orange)' : 'var(--text-3)';
+        const bubbleBg = isAdmin ? 'rgba(10,132,255,0.12)' : isBroadcast ? 'rgba(255,159,10,0.10)' : 'rgba(255,255,255,0.06)';
+        const borderColor = isAdmin ? 'rgba(10,132,255,0.25)' : isBroadcast ? 'rgba(255,159,10,0.25)' : 'rgba(255,255,255,0.08)';
+        return `<div class="cm ${m.role}" style="margin-bottom:8px">
+            <span class="cm-from" style="color:${roleColor};font-size:10px;font-weight:600">${m.from || 'Unknown'} · ${m.time || ''}</span>
+            <div class="cm-bubble" style="background:${bubbleBg};border:0.5px solid ${borderColor};border-radius:10px;padding:6px 10px;margin-top:3px;font-size:12px">${m.text}</div>
+          </div>`;
+      }).join('');
+
+      return `<div class="chat-msgs" id="cm-${uid}" style="height:calc(100% - 52px);overflow-y:auto;padding:8px">
+    ${msgs || '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No messages yet</div>'}
   </div>
   <div class="chat-input-row">
     <select class="chat-type" id="ct-${uid}"><option value="direct">Direct</option><option value="broadcast">Broadcast</option></select>
-    <input class="chat-in" id="cin-${uid}" type="text" placeholder="Message…" maxlength="160">
+    <input class="chat-in" id="cin-${uid}" type="text" placeholder="Message to scouters…" maxlength="160">
     <button class="chat-send" onclick="sendChat('${uid}')">↑</button>
   </div>`;
-      }
-      function sendChat(uid) {
-        const inp = document.getElementById('cin-' + uid);
-        const t = document.getElementById('ct-' + uid)?.value;
-        if (!inp?.value.trim()) return;
-        const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-        chatMessages.push(t === 'broadcast'
-          ? { role: 'broadcast', from: 'BROADCAST', text: '📢 ' + inp.value.trim(), time: now }
-          : { role: 'admin', from: 'Admin', text: inp.value.trim(), time: now });
-        inp.value = '';
-        Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
-      }
+    }
+    async function sendChat(uid) {
+      const inp = document.getElementById('cin-' + uid);
+      const t = document.getElementById('ct-' + uid)?.value;
+      if (!inp?.value.trim()) return;
+      const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const msg = t === 'broadcast'
+        ? { role: 'broadcast', from: 'BROADCAST', text: '📢 ' + inp.value.trim(), time: now }
+        : { role: 'admin', from: 'Admin 👑', text: inp.value.trim(), time: now };
+      inp.value = '';
+      chatMessages.push(msg);
+      // POST to server so scouters receive it
+      try { await API.postChat(msg); } catch (e) { }
+      // Refresh chat widget immediately
+      Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
+    }
 
-      function flagsBody(uid) {
-        const fl = SCOUTERS.filter(s => s.flag);
-        if (!fl.length) return '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No flags 🎉</div>';
-        return '<div class="flags-list">' + fl.map(s => `
-    <div class="flag-item">
-      <div class="flag-top"><span class="flag-team">Team ${s.team}</span><span class="flag-scouter">S${s.id} · ${s.name}</span></div>
-      <div class="flag-reason">${s.flag}</div>
-      <div class="flag-actions">
-        <button class="flag-btn flag-dismiss" onclick="dismissFlag(${s.id})">Dismiss</button>
-        <button class="flag-btn flag-review">Mark for review</button>
-      </div>
-    </div>`).join('') + '</div>';
-      }
-      function dismissFlag(id) {
-        const s = SCOUTERS.find(x => x.id === id);
-        if (s) { delete s.flag; s.status = 'active'; flags = Math.max(0, flags - 1); }
-        Object.entries(widgets).forEach(([id, w]) => { if (['data-flags', 'match-progress', 'scouter-status'].includes(w.type)) refreshWidget(id); });
-      }
+    function flagsBody(uid) {
+      return `<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px">No flags 🎉<br><span style="opacity:.5">Data validation flags will appear here.</span></div>`;
+    }
+    function dismissFlag(id) { /* reserved */ }
 
-      // ── Logic Engine Widget (compact, opens modal for editing)
-      function eqBuilderBody(uid) {
-        const eqRows = equations.map((eq, i) => {
-          const sample = serverData.length ? applyEquations(serverData[0])[eq.varName] : null;
-          const typeClass = typeof sample === 'string' ? 'eq-type-text' : 'eq-type-numeric';
-          const typeLabel = typeof sample === 'string' ? 'text' : 'num';
-          return `<div class="glass-card eq-row">
+    // ── Logic Engine Widget (compact, opens modal for editing)
+    function eqBuilderBody(uid) {
+      const eqRows = equations.map((eq, i) => {
+        const sample = serverData.length ? applyEquations(serverData[0])[eq.varName] : null;
+        const typeClass = typeof sample === 'string' ? 'eq-type-text' : 'eq-type-numeric';
+        const typeLabel = typeof sample === 'string' ? 'text' : 'num';
+        return `<div class="glass-card eq-row">
       <span class="eq-nm">${eq.label || eq.varName}</span>
       <span class="eq-fm">= ${eq.formula.replace(/\n/g, ' ').slice(0, 32)}…</span>
       <span class="eq-type-badge ${typeClass}">${typeLabel}</span>
     </div>`;
-        }).join('');
-        return `<div class="eq-list">${eqRows}</div>
+      }).join('');
+      return `<div class="eq-list">${eqRows}</div>
     <div class="eq-add-row">
       <button class="eq-open-btn" onclick="openEqModal()">⚡ Edit Equations & Scripts…</button>
     </div>`;
-      }
+    }
 
-      // ── Team Chart Widget
-      function teamChartBody(uid) {
-        const teams = [...new Set(serverData.map(d => d.team))].sort((a, b) => a - b);
-        const numericEqs = equations.filter(eq => {
-          if (!serverData.length) return typeof evalEquation(eq.formula, {}) === 'number';
-          const sample = applyEquations(serverData[0]);
-          return typeof sample[eq.varName] === 'number';
+    // ── Team Chart Widget
+    function teamChartBody(uid) {
+      const teams = [...new Set(serverData.map(d => d.team))].sort((a, b) => a - b);
+      const numericEqs = equations.filter(eq => {
+        if (!serverData.length) return typeof evalEquation(eq.formula, {}) === 'number';
+        const sample = applyEquations(serverData[0]);
+        return typeof sample[eq.varName] === 'number';
+      });
+      const numericFields = schemaFields.filter(f => f.type !== 'text' && f.type !== 'dropdown');
+      const allMetrics = [...numericFields.map(f => ({ id: f.varName, label: f.label })), ...numericEqs.map(e => ({ id: e.varName, label: e.label || e.varName }))];
+
+      const stateKey = `chart_state_${uid}`;
+      if (!window[stateKey]) window[stateKey] = { team: teams[0] || 935, metric: allMetrics[allMetrics.length - 1]?.id || 'total_score' };
+      const st = window[stateKey];
+
+      const teamData = serverData
+        .filter(d => String(d.team) === String(st.team))
+        .map(d => applyEquations(d))
+        .sort((a, b) => a.match - b.match);
+
+      const metricData = teamData.map(d => d[st.metric]);
+      const hasData = metricData.length > 0 && metricData.some(v => v !== null);
+
+      let chartSVG = '';
+      if (hasData && typeof metricData[0] === 'number') {
+        const maxVal = Math.max(...metricData.filter(v => v !== null)) * 1.15 || 1;
+        const W = 100, H = 100;
+        const pts = metricData.map((v, i) => {
+          const x = metricData.length === 1 ? 50 : (i / (metricData.length - 1)) * W;
+          const y = H - ((v / maxVal) * H * 0.85) - 5;
+          return `${x},${y}`;
         });
-        const numericFields = schemaFields.filter(f => f.type !== 'text' && f.type !== 'dropdown');
-        const allMetrics = [...numericFields.map(f => ({ id: f.varName, label: f.label })), ...numericEqs.map(e => ({ id: e.varName, label: e.label || e.varName }))];
+        const areaPath = `M${pts[0].split(',')[0]},${H} ` + pts.map(p => `L${p}`).join(' ') + ` L${pts[pts.length - 1].split(',')[0]},${H} Z`;
+        const linePath = 'M' + pts.join(' L');
 
-        const stateKey = `chart_state_${uid}`;
-        if (!window[stateKey]) window[stateKey] = { team: teams[0] || 935, metric: allMetrics[allMetrics.length - 1]?.id || 'total_score' };
-        const st = window[stateKey];
-
-        const teamData = serverData
-          .filter(d => String(d.team) === String(st.team))
-          .map(d => applyEquations(d))
-          .sort((a, b) => a.match - b.match);
-
-        const metricData = teamData.map(d => d[st.metric]);
-        const hasData = metricData.length > 0 && metricData.some(v => v !== null);
-
-        let chartSVG = '';
-        if (hasData && typeof metricData[0] === 'number') {
-          const maxVal = Math.max(...metricData.filter(v => v !== null)) * 1.15 || 1;
-          const W = 100, H = 100;
-          const pts = metricData.map((v, i) => {
-            const x = metricData.length === 1 ? 50 : (i / (metricData.length - 1)) * W;
-            const y = H - ((v / maxVal) * H * 0.85) - 5;
-            return `${x},${y}`;
-          });
-          const areaPath = `M${pts[0].split(',')[0]},${H} ` + pts.map(p => `L${p}`).join(' ') + ` L${pts[pts.length - 1].split(',')[0]},${H} Z`;
-          const linePath = 'M' + pts.join(' L');
-
-          const dotsSVG = teamData.map((d, i) => {
-            const x = metricData.length === 1 ? 50 : (i / (metricData.length - 1)) * W;
-            const y = H - ((metricData[i] / maxVal) * H * 0.85) - 5;
-            return `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--blue)" stroke="rgba(5,8,22,0.8)" stroke-width="1.5"
+        const dotsSVG = teamData.map((d, i) => {
+          const x = metricData.length === 1 ? 50 : (i / (metricData.length - 1)) * W;
+          const y = H - ((metricData[i] / maxVal) * H * 0.85) - 5;
+          return `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--blue)" stroke="rgba(5,8,22,0.8)" stroke-width="1.5"
         data-match="${d.match}" data-val="${metricData[i] !== null ? metricData[i].toFixed?.(1) ?? metricData[i] : 'N/A'}" class="chart-dot"/>`;
-          }).join('');
+        }).join('');
 
-          // Y-axis labels
-          const yLabels = [0, Math.round(maxVal / 2), Math.round(maxVal)].map((v, i) => {
-            const y = H - (v / maxVal * H * 0.85) - 5;
-            return `<text x="-2" y="${y}" font-size="7" text-anchor="end" fill="rgba(255,255,255,0.25)" dominant-baseline="middle">${v}</text>`;
-          }).join('');
+        // Y-axis labels
+        const yLabels = [0, Math.round(maxVal / 2), Math.round(maxVal)].map((v, i) => {
+          const y = H - (v / maxVal * H * 0.85) - 5;
+          return `<text x="-2" y="${y}" font-size="7" text-anchor="end" fill="rgba(255,255,255,0.25)" dominant-baseline="middle">${v}</text>`;
+        }).join('');
 
-          chartSVG = `<svg viewBox="-12 0 112 105" class="chart-svg" id="csv-${uid}" onmouseleave="hideChartTip('${uid}')">
+        chartSVG = `<svg viewBox="-12 0 112 105" class="chart-svg" id="csv-${uid}" onmouseleave="hideChartTip('${uid}')">
       <defs>
         <linearGradient id="cg-${uid}" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.28"/>
@@ -544,29 +692,29 @@
       ${dotsSVG}
     </svg>
     <div class="chart-tooltip" id="ctt-${uid}"></div>`;
-        } else if (hasData && typeof metricData[0] === 'string') {
-          const cats = [...new Set(metricData.filter(v => v !== null))].sort();
-          const barW = cats.length > 0 ? 80 / metricData.length : 80;
-          const catColors = ['var(--green)', 'var(--blue)', 'var(--orange)', 'var(--purple)', 'var(--red)'];
-          const bars = teamData.map((d, i) => {
-            const catIdx = cats.indexOf(metricData[i]);
-            const pct = cats.length > 0 ? ((catIdx + 1) / cats.length) * 80 : 0;
-            const x = metricData.length === 1 ? 45 : (i / (metricData.length - 1)) * 80 + 10;
-            const color = catColors[catIdx % catColors.length] || 'var(--text-3)';
-            return `<g>
+      } else if (hasData && typeof metricData[0] === 'string') {
+        const cats = [...new Set(metricData.filter(v => v !== null))].sort();
+        const barW = cats.length > 0 ? 80 / metricData.length : 80;
+        const catColors = ['var(--green)', 'var(--blue)', 'var(--orange)', 'var(--purple)', 'var(--red)'];
+        const bars = teamData.map((d, i) => {
+          const catIdx = cats.indexOf(metricData[i]);
+          const pct = cats.length > 0 ? ((catIdx + 1) / cats.length) * 80 : 0;
+          const x = metricData.length === 1 ? 45 : (i / (metricData.length - 1)) * 80 + 10;
+          const color = catColors[catIdx % catColors.length] || 'var(--text-3)';
+          return `<g>
         <rect x="${x - barW * 0.4}" y="${100 - pct - 5}" width="${barW * 0.8}" height="${pct}" fill="${color}" opacity="0.5" rx="2"/>
         <text x="${x}" y="${100 - pct - 8}" font-size="7" text-anchor="middle" fill="${color}">${metricData[i]}</text>
       </g>`;
-          }).join('');
-          chartSVG = `<svg viewBox="0 0 100 105" class="chart-svg">${bars}</svg>`;
-        } else {
-          chartSVG = `<div class="chart-no-data">No data yet — sync from Pi</div>`;
-        }
+        }).join('');
+        chartSVG = `<svg viewBox="0 0 100 105" class="chart-svg">${bars}</svg>`;
+      } else {
+        chartSVG = `<div class="chart-no-data">No data yet — sync from Pi</div>`;
+      }
 
-        const teamOpts = teams.map(t => `<option value="${t}" ${String(t) === String(st.team) ? 'selected' : ''}>${t}</option>`).join('');
-        const metricOpts = allMetrics.map(m => `<option value="${m.id}" ${m.id === st.metric ? 'selected' : ''}>${m.label}</option>`).join('');
+      const teamOpts = teams.map(t => `<option value="${t}" ${String(t) === String(st.team) ? 'selected' : ''}>${t}</option>`).join('');
+      const metricOpts = allMetrics.map(m => `<option value="${m.id}" ${m.id === st.metric ? 'selected' : ''}>${m.label}</option>`).join('');
 
-        return `<div style="display:flex;flex-direction:column;height:100%;gap:6px">
+      return `<div style="display:flex;flex-direction:column;height:100%;gap:6px">
     <div class="chart-controls">
       <select class="chart-select" onchange="setChartState('${uid}','team',this.value);refreshWidget('${uid}')">
         ${teamOpts || '<option>No data</option>'}
@@ -580,133 +728,252 @@
       ${chartSVG}
     </div>
   </div>`;
+    }
+
+    function setChartState(uid, key, val) {
+      const stateKey = `chart_state_${uid}`;
+      if (!window[stateKey]) window[stateKey] = {};
+      window[stateKey][key] = val;
+    }
+
+    async function loadTeamChart(uid) {
+      const stateKey = `chart_state_${uid}`;
+      const st = window[stateKey];
+      if (!st) return;
+      const history = await API.getTeamHistory(st.team);
+      if (history) {
+        // Merge into serverData
+        serverData = serverData.filter(d => String(d.team) !== String(st.team));
+        serverData.push(...history);
+        refreshWidget(uid);
+      }
+    }
+
+    function chartMouseMove(e, uid) {
+      const svg = document.getElementById('csv-' + uid);
+      if (!svg) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const dots = svg.querySelectorAll('.chart-dot');
+      let nearest = null, minDist = 30;
+      dots.forEach(dot => {
+        const cr = dot.getBoundingClientRect();
+        const dx = e.clientX - (cr.left + cr.width / 2);
+        const dy = e.clientY - (cr.top + cr.height / 2);
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < minDist) { minDist = d; nearest = dot; }
+      });
+      const tip = document.getElementById('ctt-' + uid);
+      if (!tip) return;
+      if (nearest) {
+        tip.style.display = 'block';
+        tip.innerHTML = `Match <b>${nearest.dataset.match}</b>: ${nearest.dataset.val}`;
+        const x = e.clientX - rect.left + 8;
+        const y = e.clientY - rect.top - 28;
+        tip.style.left = x + 'px'; tip.style.top = y + 'px';
+      } else {
+        tip.style.display = 'none';
+      }
+    }
+    function hideChartTip(uid) {
+      const tip = document.getElementById('ctt-' + uid);
+      if (tip) tip.style.display = 'none';
+    }
+
+    // Track schema versions seen this session
+    let knownSchemaVersions = [];
+    function recordSchemaVersion(fields, version) {
+      if (!version) return;
+      if (!knownSchemaVersions.find(v => v.version === version)) {
+        knownSchemaVersions.push({ version, fields: fields.map(f => ({ ...f })), label: 'v' + version });
+      }
+    }
+
+    // ── Data Table Widget
+    function dataTableBody(uid) {
+      if (!serverData.length) return `<div style="text-align:center;padding:24px;color:var(--text-3);font-size:12px">No scouting data yet</div>`;
+
+      const stKey = 'dt_state_' + uid;
+      if (!window[stKey]) window[stKey] = { sortCol: 'match', sortDir: 1, filter: '', activeVersion: null };
+      const st = window[stKey];
+
+      const curVer = parseInt(document.getElementById('sv')?.textContent) || 1;
+      recordSchemaVersion(schemaFields, curVer);
+      if (!st.activeVersion || !knownSchemaVersions.find(v => v.version === st.activeVersion)) {
+        st.activeVersion = curVer;
       }
 
-      function setChartState(uid, key, val) {
-        const stateKey = `chart_state_${uid}`;
-        if (!window[stateKey]) window[stateKey] = {};
-        window[stateKey][key] = val;
+      const activeSchema = knownSchemaVersions.find(v => v.version === st.activeVersion);
+      const activeFields = activeSchema ? activeSchema.fields : schemaFields;
+
+      const coreCols = [
+        { key: 'match', label: 'Match' },
+        { key: 'team', label: 'Team' },
+        { key: 'alliance', label: 'Alliance' },
+        { key: 'scouter_id', label: 'Scouter' },
+      ];
+      const schemaCols = activeFields.map(f => ({ key: f.varName, label: f.label }));
+      const eqCols = equations.map(e => ({ key: e.varName, label: e.label || e.varName, isEq: true }));
+      const allCols = [...coreCols, ...schemaCols, ...eqCols];
+
+      let rows = serverData.map(r => applyEquations(r));
+
+      if (knownSchemaVersions.length > 1 && activeFields.length) {
+        rows = rows.filter(r => activeFields.some(f => r[f.varName] !== undefined && r[f.varName] !== null));
       }
 
-      async function loadTeamChart(uid) {
-        const stateKey = `chart_state_${uid}`;
-        const st = window[stateKey];
-        if (!st) return;
-        const history = await API.getTeamHistory(st.team);
-        if (history) {
-          // Merge into serverData
-          serverData = serverData.filter(d => String(d.team) !== String(st.team));
-          serverData.push(...history);
-          refreshWidget(uid);
-        }
+      if (st.filter) {
+        const q = st.filter.toLowerCase();
+        rows = rows.filter(r => String(r.team).includes(q) || String(r.match).includes(q) || String(r.scouter_id || '').toLowerCase().includes(q));
       }
 
-      function chartMouseMove(e, uid) {
-        const svg = document.getElementById('csv-' + uid);
-        if (!svg) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const dots = svg.querySelectorAll('.chart-dot');
-        let nearest = null, minDist = 30;
-        dots.forEach(dot => {
-          const cr = dot.getBoundingClientRect();
-          const dx = e.clientX - (cr.left + cr.width / 2);
-          const dy = e.clientY - (cr.top + cr.height / 2);
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < minDist) { minDist = d; nearest = dot; }
-        });
-        const tip = document.getElementById('ctt-' + uid);
-        if (!tip) return;
-        if (nearest) {
-          tip.style.display = 'block';
-          tip.innerHTML = `Match <b>${nearest.dataset.match}</b>: ${nearest.dataset.val}`;
-          const x = e.clientX - rect.left + 8;
-          const y = e.clientY - rect.top - 28;
-          tip.style.left = x + 'px'; tip.style.top = y + 'px';
-        } else {
-          tip.style.display = 'none';
-        }
-      }
-      function hideChartTip(uid) {
-        const tip = document.getElementById('ctt-' + uid);
-        if (tip) tip.style.display = 'none';
-      }
+      rows.sort((a, b) => {
+        const av = a[st.sortCol], bv = b[st.sortCol];
+        if (av == null) return 1; if (bv == null) return -1;
+        return st.sortDir * (av > bv ? 1 : av < bv ? -1 : 0);
+      });
 
-      function statBody(icon, val, total, label, color) {
-        const pct = total ? Math.round((val / total) * 100) : null;
-        return `<div class="stat-inner">
+      const thStyle = 'style="cursor:pointer;padding:4px 8px;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,0.08);user-select:none"';
+      const allianceColor = (v) => v === 'Red' ? 'color:var(--red)' : v === 'Blue' ? 'color:var(--blue)' : '';
+
+      const headers = allCols.map(c => {
+        const arrow = st.sortCol === c.key ? (st.sortDir === 1 ? ' ↑' : ' ↓') : '';
+        return `<th ${thStyle} onclick="dtSort('${uid}','${c.key}')">${c.label}${c.isEq ? ' ⚡' : ''}${arrow}</th>`;
+      }).join('');
+
+      const bodyRows = rows.slice(0, 200).map((r, ri) => {
+        const cells = allCols.map(c => {
+          let v = r[c.key];
+          if (v === null || v === undefined) v = '—';
+          else if (typeof v === 'number') v = Number.isInteger(v) ? v : v.toFixed(2);
+          const extra = c.key === 'alliance' ? allianceColor(String(v)) : '';
+          return `<td style="${extra};padding:4px 8px;font-size:11px;${c.isEq ? 'color:var(--blue);font-weight:600' : ''};white-space:nowrap;border-bottom:1px solid rgba(255,255,255,0.05)">${v}</td>`;
+        }).join('');
+        return `<tr style="background:${ri % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'}">${cells}</tr>`;
+      }).join('');
+
+      const tabsHtml = knownSchemaVersions.length > 1
+        ? '<div class="dt-version-tabs">' +
+        [...knownSchemaVersions].sort((a, b) => a.version - b.version).map(v =>
+          `<button class="dt-vtab${st.activeVersion === v.version ? ' active' : ''}" onclick="window['dt_state_${uid}'].activeVersion=${v.version};refreshWidget('${uid}')">${v.label}</button>`
+        ).join('') + '</div>'
+        : '';
+
+      return `<div style="display:flex;flex-direction:column;height:100%;gap:0">
+          ${tabsHtml}
+          <div style="display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0">
+            <input type="text" placeholder="Filter team / match / scouter…" value="${st.filter}"
+              oninput="window['dt_state_${uid}'].filter=this.value;refreshWidget('${uid}')"
+              style="flex:1;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--text-1);outline:none">
+            <span style="font-size:10px;color:var(--text-3);align-self:center">${rows.length} rows</span>
+            <button onclick="exportTableCSV()" style="font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(48,209,88,0.15);border:0.5px solid rgba(48,209,88,0.3);color:var(--green);cursor:pointer">CSV</button>
+          </div>
+          <div style="overflow:auto;flex:1">
+            <table style="border-collapse:collapse;width:100%;min-width:max-content">
+              <thead><tr>${headers}</tr></thead>
+              <tbody>${bodyRows || '<tr><td colspan="99" style="text-align:center;padding:16px;color:var(--text-3)">No results</td></tr>'}</tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+    function dtSort(uid, col) {
+      const st = window[`dt_state_${uid}`];
+      if (!st) return;
+      if (st.sortCol === col) st.sortDir *= -1;
+      else { st.sortCol = col; st.sortDir = 1; }
+      refreshWidget(uid);
+    }
+
+    function exportTableCSV() {
+      if (!serverData.length) return;
+      const rows = serverData.map(r => applyEquations(r));
+      const keys = Object.keys(rows[0]);
+      const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = 'scouting_data.csv'; a.click();
+    }
+
+    function statBody(icon, val, total, label, color) {
+      const pct = total ? Math.round((val / total) * 100) : null;
+      return `<div class="stat-inner">
     <div style="font-size:22px;margin-bottom:4px">${icon}</div>
     <div class="stat-num" style="color:${color}">${val}${total ? `<span class="stat-denom">/${total}</span>` : ''}</div>
     <div class="stat-lbl">${label}</div>
     ${pct !== null ? `<div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%;background:${color};box-shadow:0 0 6px ${color}88"></div></div>` : ''}
   </div>`;
-      }
+    }
 
-      // ═══════════════════════════════════════════════════════════
-      // EQUATION EDITOR MODAL
-      // ═══════════════════════════════════════════════════════════
-      function openEqModal() {
-        document.getElementById('eq-modal').classList.add('open');
-        renderEqModal();
-      }
-      function closeEqModal() {
-        document.getElementById('eq-modal').classList.remove('open');
-      }
-
-      function getAllVarNames() {
-        return [
-          ...schemaFields.map(f => f.varName),
-          ...equations.map(e => e.varName),
+    // ═══════════════════════════════════════════════════════════
+    // EQUATION EDITOR MODAL
+    // ═══════════════════════════════════════════════════════════
+    function openEqModal() {
+      // If equations haven't loaded yet (server still initializing or offline),
+      // fall back to the built-in defaults so the modal is never blank.
+      if (!equations.length) {
+        equations = [
+          { id: 'eq1', varName: 'total_score', label: 'Total Score', formula: '(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)' },
+          { id: 'eq2', varName: 'climb_pts', label: 'Climb Points', formula: 'climb_level * 6' },
+          { id: 'eq3', varName: 'climb_status', label: 'Climb Status', formula: "if (climb_level === 0) return 'None'; if (climb_level === 1) return 'Low'; if (climb_level === 2) return 'Mid'; return 'High';" },
         ];
       }
+      document.getElementById('eq-modal').classList.add('open');
+      renderEqModal();
+    }
+    function closeEqModal() {
+      document.getElementById('eq-modal').classList.remove('open');
+    }
 
-      function syntaxHighlight(code) {
-        const varNames = getAllVarNames();
-        // Escape HTML first
-        let s = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        // Comments
-        s = s.replace(/(\/\/[^\n]*)/g, '<span class="s-comment">$1</span>');
-        // Strings
-        s = s.replace(/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)/g, '<span class="s-str">$1</span>');
-        // Keywords
-        s = s.replace(/\b(if|else|return|let|const|var|for|while|function)\b/g, '<span class="s-kw">$1</span>');
-        // User-defined variables
-        varNames.forEach(v => {
-          s = s.replace(new RegExp(`\\b(${v})\\b`, 'g'), '<span class="s-var">$1</span>');
-        });
-        // Numbers
-        s = s.replace(/\b(\d+\.?\d*)\b/g, '<span class="s-num">$1</span>');
-        // Parens/braces
-        s = s.replace(/([(){}[\]])/g, '<span class="s-paren">$1</span>');
-        // Operators
-        s = s.replace(/([+\-*\/=<>!&|;])/g, '<span class="s-op">$1</span>');
-        return s;
-      }
+    function getAllVarNames() {
+      return [
+        ...schemaFields.map(f => f.varName),
+        ...equations.map(e => e.varName),
+      ];
+    }
 
-      function renderEqModal() {
-        const vars = getAllVarNames();
-        const body = document.getElementById('eq-modal-body');
-        body.innerHTML = equations.map((eq, i) => `
+    function syntaxHighlight(code) {
+      const varNames = getAllVarNames();
+      // Escape HTML first
+      let s = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Comments
+      s = s.replace(/(\/\/[^\n]*)/g, '<span class="s-comment">$1</span>');
+      // Strings
+      s = s.replace(/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)/g, '<span class="s-str">$1</span>');
+      // Keywords
+      s = s.replace(/\b(if|else|return|let|const|var|for|while|function)\b/g, '<span class="s-kw">$1</span>');
+      // User-defined variables
+      varNames.forEach(v => {
+        s = s.replace(new RegExp(`\\b(${v})\\b`, 'g'), '<span class="s-var">$1</span>');
+      });
+      // Numbers
+      s = s.replace(/\b(\d+\.?\d*)\b/g, '<span class="s-num">$1</span>');
+      // Parens/braces
+      s = s.replace(/([(){}[\]])/g, '<span class="s-paren">$1</span>');
+      // Operators
+      s = s.replace(/([+\-*\/=<>!&|;])/g, '<span class="s-op">$1</span>');
+      return s;
+    }
+
+    function renderEqModal() {
+      const vars = getSchemaVarNames();
+      const body = document.getElementById('eq-modal-body');
+      body.innerHTML = equations.map((eq, i) => `
     <div class="eq-card" id="eqcard-${i}">
       <div class="eq-card-head">
         <input class="eq-card-name-input" value="${eq.label || eq.varName}" placeholder="Equation Name"
-          onchange="equations[${i}].label = this.value; renderEqModal()">
+          onchange="equations[${i}].label = this.value">
         <div class="eq-card-var-wrap">
           <span class="eq-card-var-lbl">Output ID:</span>
           <input class="eq-card-var-input" value="${eq.varName}" placeholder="var_name"
-            onchange="equations[${i}].varName = this.value.toLowerCase().replace(/[^a-z0-9_]/g,''); renderEqModal()">
+            onchange="equations[${i}].varName = this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')">
         </div>
-        <button class="eq-card-del" onclick="equations.splice(${i},1); renderEqModal()">✕</button>
+        <button class="eq-card-del" onclick="equations.splice(${i},1); renderEqModal()">\u2715</button>
       </div>
       <div class="script-editor-wrap" id="sew-${i}">
-        <div class="script-highlight" id="seh-${i}">${syntaxHighlight(eq.formula)}&ZeroWidthSpace;</div>
         <textarea class="script-textarea" id="set-${i}" spellcheck="false"
           oninput="onScriptInput(${i}, this)"
           onkeydown="onScriptKeydown(event, ${i})"
           onblur="hideAC(${i})"
         >${eq.formula}</textarea>
-        <div class="ac-dropdown" id="ac-${i}">
-          <div class="ac-header">⚡ Variables</div>
-        </div>
       </div>
       <div class="eq-vars-hint">
         Available: ${vars.map(v => `<code>${v}</code>`).join(' ')}
@@ -714,142 +981,204 @@
       </div>
     </div>`).join('');
 
-        // Sync highlight divs height to textareas
-        equations.forEach((_, i) => {
-          const ta = document.getElementById('set-' + i);
-          const hl = document.getElementById('seh-' + i);
-          if (ta && hl) {
-            ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
-          }
-        });
-      }
+      equations.forEach((_, i) => {
+        const ta = document.getElementById('set-' + i);
+        if (ta) ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
+      });
+    }
 
-      let acSelectedIdx = {};
-      function onScriptInput(idx, ta) {
-        equations[idx].formula = ta.value;
-        const hl = document.getElementById('seh-' + idx);
-        if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
-        ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
-        // Autocomplete
-        const pos = ta.selectionStart;
-        const before = ta.value.slice(0, pos);
-        const word = before.match(/[A-Za-z_]\w*$/) ? before.match(/[A-Za-z_]\w*$/)[0] : '';
-        const dd = document.getElementById('ac-' + idx);
-        if (!word || word.length < 1) { dd.classList.remove('show'); return; }
-        const vars = getAllVarNames();
-        const kws = ['if', 'else', 'return', 'let', 'const'];
-        const matches = [...kws, ...vars].filter(v => v.toLowerCase().startsWith(word.toLowerCase()) && v !== word);
-        if (!matches.length) { dd.classList.remove('show'); return; }
-        acSelectedIdx[idx] = 0;
-        dd.innerHTML = '<div class="ac-header">⚡ Suggestions</div>' + matches.map((m, i) => {
-          const type = vars.includes(m) ? 'var' : 'keyword';
-          const prefix = m.slice(0, word.length);
-          const rest = m.slice(word.length);
-          return `<div class="ac-item${i === 0 ? ' selected' : ''}" data-var="${m}" data-idx="${i}"
-      onmousedown="applyAC(event,${idx})"
-      onmouseover="acHover(${i},${idx})">
-      <span><span class="ac-match">${prefix}</span>${rest}</span>
-      <span class="ac-item-type">${type}</span>
-    </div>`;
-        }).join('');
-        dd.classList.add('show');
-      }
+    let acSelectedIdx = {};
+    let acActiveIdx = null;
 
-      function acHover(itemIdx, eqIdx) {
-        acSelectedIdx[eqIdx] = itemIdx;
-        document.querySelectorAll(`#ac-${eqIdx} .ac-item`).forEach((el, i) => el.classList.toggle('selected', i === itemIdx));
+    function getACDropdown() {
+      let dd = document.getElementById('__ac_global');
+      if (!dd) {
+        dd = document.createElement('div');
+        dd.id = '__ac_global';
+        dd.className = 'ac-dropdown';
+        dd.addEventListener('mousedown', e => e.preventDefault());
+        document.body.appendChild(dd);
       }
+      return dd;
+    }
 
-      function applyAC(e, idx) {
+    function hideACGlobal() {
+      const dd = document.getElementById('__ac_global');
+      if (dd) dd.classList.remove('show');
+      acActiveIdx = null;
+    }
+
+    function getCaretCoords(ta) {
+      let helper = document.getElementById('__ac_caret_helper');
+      if (!helper) {
+        helper = document.createElement('div');
+        helper.id = '__ac_caret_helper';
+        helper.style.cssText = 'position:fixed;visibility:hidden;white-space:pre-wrap;word-break:break-all;pointer-events:none;z-index:-1;top:0;left:0;';
+        document.body.appendChild(helper);
+      }
+      const s = window.getComputedStyle(ta);
+      ['fontFamily', 'fontSize', 'lineHeight', 'letterSpacing',
+        'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom',
+        'borderLeftWidth', 'borderRightWidth', 'borderTopWidth', 'borderBottomWidth',
+        'boxSizing'].forEach(p => { helper.style[p] = s[p]; });
+      const taRect = ta.getBoundingClientRect();
+      helper.style.width = taRect.width + 'px';
+      helper.style.left = taRect.left + 'px';
+      helper.style.top = taRect.top + 'px';
+      const pos = ta.selectionStart;
+      const before = ta.value.slice(0, pos);
+      helper.textContent = '';
+      helper.appendChild(document.createTextNode(before));
+      const span = document.createElement('span');
+      span.textContent = '​';
+      helper.appendChild(span);
+      const r = span.getBoundingClientRect();
+      return { x: r.left, y: r.bottom + 4 };
+    }
+
+    function onScriptInput(idx, ta) {
+      equations[idx].formula = ta.value;
+      ta.style.minHeight = Math.max(80, ta.scrollHeight) + 'px';
+
+      const pos = ta.selectionStart;
+      const before = ta.value.slice(0, pos);
+      const wordMatch = before.match(/[A-Za-z_]\w*$/);
+      const word = wordMatch ? wordMatch[0] : '';
+      const dd = getACDropdown();
+
+      if (!word) { hideACGlobal(); return; }
+
+      const schemaVars = getSchemaVarNames();
+      const matches = schemaVars.filter(v => v.toLowerCase().startsWith(word.toLowerCase()) && v !== word);
+      if (!matches.length) { hideACGlobal(); return; }
+
+      acActiveIdx = idx;
+      acSelectedIdx[idx] = 0;
+
+      dd.innerHTML = '<div class="ac-header">Variables from Form</div>' + matches.map((m, i) => {
+        const field = schemaFields.find(f => f.varName === m);
+        const typeLabel = field ? field.type : 'var';
+        const prefix = m.slice(0, word.length);
+        const rest = m.slice(word.length);
+        return `<div class="ac-item${i === 0 ? ' selected' : ''}" data-var="${m}"
+            onmousedown="applyAC(event,${idx})"
+            onmouseover="acHover(${i},${idx})">
+            <span><span class="ac-match">${prefix}</span>${rest}</span>
+            <span class="ac-item-type">${typeLabel}</span>
+          </div>`;
+      }).join('');
+
+      try {
+        const coords = getCaretCoords(ta);
+        const dropH = Math.min(220, 28 + matches.length * 30);
+        const top = (coords.y + dropH > window.innerHeight - 8) ? (coords.y - dropH - 28) : coords.y;
+        dd.style.left = Math.min(coords.x, window.innerWidth - 260) + 'px';
+        dd.style.top = Math.max(4, top) + 'px';
+      } catch (e) { }
+      dd.classList.add('show');
+    }
+
+    function acHover(itemIdx, eqIdx) {
+      acSelectedIdx[eqIdx] = itemIdx;
+      document.querySelectorAll('#__ac_global .ac-item').forEach((el, i) => el.classList.toggle('selected', i === itemIdx));
+    }
+
+    function applyAC(e, idx) {
+      e.preventDefault();
+      const varName = e.currentTarget.dataset.var;
+      const ta = document.getElementById('set-' + idx);
+      const pos = ta.selectionStart;
+      const before = ta.value.slice(0, pos);
+      const word = before.match(/[A-Za-z_]\w*$/) ? before.match(/[A-Za-z_]\w*$/)[0] : '';
+      const start = pos - word.length;
+      ta.value = ta.value.slice(0, start) + varName + ta.value.slice(pos);
+      ta.selectionStart = ta.selectionEnd = start + varName.length;
+      equations[idx].formula = ta.value;
+      hideACGlobal();
+      ta.focus();
+    }
+
+    function hideAC(idx) {
+      setTimeout(() => hideACGlobal(), 150);
+    }
+
+    function onScriptKeydown(e, idx) {
+      const dd = document.getElementById('__ac_global');
+      const items = dd ? Array.from(dd.querySelectorAll('.ac-item')) : [];
+      const showing = dd && dd.classList.contains('show') && acActiveIdx === idx;
+      const ta = document.getElementById('set-' + idx);
+
+      if (e.key === '(') {
         e.preventDefault();
-        const varName = e.currentTarget.dataset.var;
-        const ta = document.getElementById('set-' + idx);
         const pos = ta.selectionStart;
-        const before = ta.value.slice(0, pos);
-        const word = before.match(/[A-Za-z_]\w*$/) ? before.match(/[A-Za-z_]\w*$/)[0] : '';
-        const start = pos - word.length;
-        ta.value = ta.value.slice(0, start) + varName + ta.value.slice(pos);
-        ta.selectionStart = ta.selectionEnd = start + varName.length;
+        ta.value = ta.value.slice(0, pos) + '()' + ta.value.slice(pos);
+        ta.selectionStart = ta.selectionEnd = pos + 1;
         equations[idx].formula = ta.value;
-        const hl = document.getElementById('seh-' + idx);
-        if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
-        document.getElementById('ac-' + idx).classList.remove('show');
-        ta.focus();
+        return;
+      }
+      if (e.key === '{') {
+        e.preventDefault();
+        const pos = ta.selectionStart;
+        ta.value = ta.value.slice(0, pos) + '{}' + ta.value.slice(pos);
+        ta.selectionStart = ta.selectionEnd = pos + 1;
+        equations[idx].formula = ta.value;
+        return;
       }
 
-      function hideAC(idx) {
-        setTimeout(() => { document.getElementById('ac-' + idx)?.classList.remove('show'); }, 200);
+      if (!showing || !items.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        acSelectedIdx[idx] = Math.min((acSelectedIdx[idx] || 0) + 1, items.length - 1);
+        items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx]));
+        items[acSelectedIdx[idx]]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        acSelectedIdx[idx] = Math.max((acSelectedIdx[idx] || 0) - 1, 0);
+        items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx]));
+        items[acSelectedIdx[idx]]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Tab' || e.key === 'Enter') {
+        const sel = items[acSelectedIdx[idx] || 0];
+        if (sel) { e.preventDefault(); applyAC({ preventDefault: () => { }, currentTarget: sel }, idx); }
+      } else if (e.key === 'Escape') {
+        hideACGlobal();
       }
+    }
 
-      function onScriptKeydown(e, idx) {
-        const dd = document.getElementById('ac-' + idx);
-        const items = dd?.querySelectorAll('.ac-item') || [];
-        const showing = dd?.classList.contains('show');
+    function addEquation() {
+      equations.push({ id: 'eq' + Date.now(), varName: 'new_metric', label: 'New Metric', formula: 'return 0;' });
+      renderEqModal();
+      // Scroll to bottom
+      setTimeout(() => {
+        const body = document.getElementById('eq-modal-body');
+        if (body) body.scrollTop = body.scrollHeight;
+      }, 50);
+    }
 
-        // Auto-close parens/braces
-        const ta = document.getElementById('set-' + idx);
-        if (e.key === '(') {
-          e.preventDefault();
-          const pos = ta.selectionStart;
-          ta.value = ta.value.slice(0, pos) + '()' + ta.value.slice(pos);
-          ta.selectionStart = ta.selectionEnd = pos + 1;
-          equations[idx].formula = ta.value;
-          const hl = document.getElementById('seh-' + idx);
-          if (hl) hl.innerHTML = syntaxHighlight(ta.value) + '\u200B';
-          return;
-        }
-        if (e.key === '{') {
-          e.preventDefault();
-          const pos = ta.selectionStart;
-          ta.value = ta.value.slice(0, pos) + '{}' + ta.value.slice(pos);
-          ta.selectionStart = ta.selectionEnd = pos + 1;
-          equations[idx].formula = ta.value;
-          return;
-        }
-
-        if (!showing || !items.length) return;
-        if (e.key === 'ArrowDown') { e.preventDefault(); acSelectedIdx[idx] = Math.min((acSelectedIdx[idx] || 0) + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx])); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); acSelectedIdx[idx] = Math.max((acSelectedIdx[idx] || 0) - 1, 0); items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx[idx])); }
-        else if (e.key === 'Tab' || e.key === 'Enter') {
-          const sel = acSelectedIdx[idx] >= 0 ? items[acSelectedIdx[idx]] : null;
-          if (sel) { e.preventDefault(); applyAC({ preventDefault: () => { }, currentTarget: sel }, idx); }
-        }
-        else if (e.key === 'Escape') { dd.classList.remove('show'); }
+    async function saveEquations() {
+      // Always close the modal and refresh widgets locally — the Pi sync is best-effort.
+      closeEqModal();
+      Object.entries(widgets).forEach(([id, w]) => {
+        if (['eq-builder', 'team-chart', 'matches-logged', 'teams-scouted'].includes(w.type)) refreshWidget(id);
+      });
+      await refreshPicklist();
+      // Attempt to sync to server in the background.
+      const result = await API.putEquations(equations);
+      if (result?.ok) {
+        setSyncStatus('ok');
       }
+    }
 
-      function addEquation() {
-        equations.push({ id: 'eq' + Date.now(), varName: 'new_metric', label: 'New Metric', formula: 'return 0;' });
-        renderEqModal();
-        // Scroll to bottom
-        setTimeout(() => {
-          const body = document.getElementById('eq-modal-body');
-          if (body) body.scrollTop = body.scrollHeight;
-        }, 50);
-      }
-
-      async function saveEquations() {
-        const result = await API.putEquations(equations);
-        if (result?.ok) {
-          closeEqModal();
-          // Refresh picklist and chart widgets since equations changed
-          Object.entries(widgets).forEach(([id, w]) => {
-            if (['eq-builder', 'team-chart', 'matches-logged', 'teams-scouted'].includes(w.type)) refreshWidget(id);
-          });
-          await refreshPicklist();
-        }
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // WIDGET SYSTEM
-      // ═══════════════════════════════════════════════════════════
-      function makeWidget(type, x, y, w, h) {
-        const def = CATALOG.find(c => c.id === type);
-        if (!def) return;
-        const uid = type + '_' + Date.now().toString(36);
-        const el = document.createElement('div');
-        el.className = 'widget'; el.id = uid;
-        el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${++zCount}`;
-        el.innerHTML = `
+    // ═══════════════════════════════════════════════════════════
+    // WIDGET SYSTEM
+    // ═══════════════════════════════════════════════════════════
+    function makeWidget(type, x, y, w, h) {
+      const def = CATALOG.find(c => c.id === type);
+      if (!def) return;
+      const uid = type + '_' + Date.now().toString(36);
+      const el = document.createElement('div');
+      el.className = 'widget'; el.id = uid;
+      el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${++zCount}`;
+      el.innerHTML = `
     <div class="widget-handle" data-drag="${uid}">
       <div class="widget-title"><span class="widget-icon">${def.icon}</span>${def.name}</div>
       <div class="widget-controls"><div class="wc-btn close" onclick="removeWidget('${uid}')">✕</div></div>
@@ -858,240 +1187,241 @@
     <svg class="resize-corner" width="12" height="12" viewBox="0 0 12 12" data-resize="${uid}">
       <path d="M2 12 L12 2 M7 12 L12 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
     </svg>`;
-        document.getElementById('canvas').appendChild(el);
-        widgets[uid] = { type, x, y, w, h, el };
-        bindWidget(uid);
-        if (type === 'live-chat') {
-          const inp = document.getElementById('cin-' + uid);
-          if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
-        }
-        updateCatalog();
-        saveLayout();
-        return uid;
+      document.getElementById('canvas').appendChild(el);
+      widgets[uid] = { type, x, y, w, h, el };
+      bindWidget(uid);
+      if (type === 'live-chat') {
+        const inp = document.getElementById('cin-' + uid);
+        if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
+        setTimeout(() => { const cm = document.getElementById('cm-' + uid); if (cm) cm.scrollTop = cm.scrollHeight; }, 50);
       }
+      updateCatalog();
+      saveLayout();
+      return uid;
+    }
 
-      function refreshWidget(uid) {
-        if (!uid || !widgets[uid]) return;
-        const body = document.getElementById('wb-' + uid);
-        if (!body) return;
-        body.innerHTML = buildBody(widgets[uid].type, uid);
-        if (widgets[uid].type === 'live-chat') {
-          const inp = document.getElementById('cin-' + uid);
-          if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
-          const cm = document.getElementById('cm-' + uid);
-          if (cm) cm.scrollTop = cm.scrollHeight;
-        }
+    function refreshWidget(uid) {
+      if (!uid || !widgets[uid]) return;
+      const body = document.getElementById('wb-' + uid);
+      if (!body) return;
+      body.innerHTML = buildBody(widgets[uid].type, uid);
+      if (widgets[uid].type === 'live-chat') {
+        const inp = document.getElementById('cin-' + uid);
+        if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(uid); });
+        const cm = document.getElementById('cm-' + uid);
+        if (cm) setTimeout(() => { cm.scrollTop = cm.scrollHeight; }, 10);
       }
+    }
 
-      function removeWidget(uid) {
-        widgets[uid]?.el?.remove();
-        delete widgets[uid];
-        updateCatalog();
-        saveLayout();
-      }
+    function removeWidget(uid) {
+      widgets[uid]?.el?.remove();
+      delete widgets[uid];
+      updateCatalog();
+      saveLayout();
+    }
 
-      let drag = null;
-      function bindWidget(uid) {
-        const el = document.getElementById(uid);
-        el.querySelector('[data-drag]')?.addEventListener('mousedown', e => {
-          if (e.target.closest('.wc-btn,.chart-select,.eq-open-btn,.eq-add-btn,.flag-btn,.chat-in,.chat-send,.chat-type')) return;
-          e.preventDefault();
-          el.style.zIndex = ++zCount;
-          el.classList.add('dragging');
-          const w = widgets[uid];
-          drag = { uid, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y };
-          window.addEventListener('mousemove', onDrag);
-          window.addEventListener('mouseup', endDrag);
-        });
-        el.querySelector('[data-resize]')?.addEventListener('mousedown', e => {
-          e.preventDefault(); e.stopPropagation();
-          const w = widgets[uid];
-          drag = { uid, resize: true, sx: e.clientX, sy: e.clientY, ow: w.w, oh: w.h };
-          window.addEventListener('mousemove', onDrag);
-          window.addEventListener('mouseup', endDrag);
-        });
+    let drag = null;
+    function bindWidget(uid) {
+      const el = document.getElementById(uid);
+      el.querySelector('[data-drag]')?.addEventListener('mousedown', e => {
+        if (e.target.closest('.wc-btn,.chart-select,.eq-open-btn,.eq-add-btn,.flag-btn,.chat-in,.chat-send,.chat-type')) return;
+        e.preventDefault();
+        el.style.zIndex = ++zCount;
+        el.classList.add('dragging');
+        const w = widgets[uid];
+        drag = { uid, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y };
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', endDrag);
+      });
+      el.querySelector('[data-resize]')?.addEventListener('mousedown', e => {
+        e.preventDefault(); e.stopPropagation();
+        const w = widgets[uid];
+        drag = { uid, resize: true, sx: e.clientX, sy: e.clientY, ow: w.w, oh: w.h };
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', endDrag);
+      });
+    }
+    function onDrag(e) {
+      if (!drag) return;
+      const w = widgets[drag.uid];
+      if (drag.resize) {
+        w.w = Math.max(160, snap(drag.ow + (e.clientX - drag.sx)));
+        w.h = Math.max(90, snap(drag.oh + (e.clientY - drag.sy)));
+        w.el.style.width = w.w + 'px'; w.el.style.height = w.h + 'px';
+      } else {
+        const canvas = document.getElementById('canvas');
+        w.x = Math.max(0, Math.min(snap(drag.ox + (e.clientX - drag.sx)), canvas.offsetWidth - w.w));
+        w.y = Math.max(0, snap(drag.oy + (e.clientY - drag.sy)));
+        w.el.style.left = w.x + 'px'; w.el.style.top = w.y + 'px';
       }
-      function onDrag(e) {
-        if (!drag) return;
-        const w = widgets[drag.uid];
-        if (drag.resize) {
-          w.w = Math.max(160, snap(drag.ow + (e.clientX - drag.sx)));
-          w.h = Math.max(90, snap(drag.oh + (e.clientY - drag.sy)));
-          w.el.style.width = w.w + 'px'; w.el.style.height = w.h + 'px';
-        } else {
-          const canvas = document.getElementById('canvas');
-          w.x = Math.max(0, Math.min(snap(drag.ox + (e.clientX - drag.sx)), canvas.offsetWidth - w.w));
-          w.y = Math.max(0, snap(drag.oy + (e.clientY - drag.sy)));
-          w.el.style.left = w.x + 'px'; w.el.style.top = w.y + 'px';
-        }
-      }
-      function endDrag() {
-        if (drag) { document.getElementById(drag.uid)?.classList.remove('dragging'); drag = null; saveLayout(); }
-        window.removeEventListener('mousemove', onDrag);
-        window.removeEventListener('mouseup', endDrag);
-      }
+    }
+    function endDrag() {
+      if (drag) { document.getElementById(drag.uid)?.classList.remove('dragging'); drag = null; saveLayout(); }
+      window.removeEventListener('mousemove', onDrag);
+      window.removeEventListener('mouseup', endDrag);
+    }
 
-      function toggleEdit() {
-        editMode = !editMode;
-        const btn = document.getElementById('edit-toggle');
-        btn.classList.toggle('on', editMode);
-        btn.textContent = editMode ? '✓ Done' : '✦ Edit layout';
-        document.getElementById('canvas').classList.toggle('edit-mode', editMode);
-      }
+    function toggleEdit() {
+      editMode = !editMode;
+      const btn = document.getElementById('edit-toggle');
+      btn.classList.toggle('on', editMode);
+      btn.textContent = editMode ? '✓ Done' : '✦ Edit layout';
+      document.getElementById('canvas').classList.toggle('edit-mode', editMode);
+    }
 
-      // ═══════════════════════════════════════════════════════════
-      // DRAWER + CATALOG
-      // ═══════════════════════════════════════════════════════════
-      function renderCatalog(filter = '') {
-        const active = new Set(Object.values(widgets).map(w => w.type));
-        document.getElementById('widget-catalog').innerHTML = CATALOG.filter(c =>
-          !filter || c.name.toLowerCase().includes(filter) || c.desc.toLowerCase().includes(filter)
-        ).map(c => `
+    // ═══════════════════════════════════════════════════════════
+    // DRAWER + CATALOG
+    // ═══════════════════════════════════════════════════════════
+    function renderCatalog(filter = '') {
+      const active = new Set(Object.values(widgets).map(w => w.type));
+      document.getElementById('widget-catalog').innerHTML = CATALOG.filter(c =>
+        !filter || c.name.toLowerCase().includes(filter) || c.desc.toLowerCase().includes(filter)
+      ).map(c => `
     <div class="catalog-item${active.has(c.id) ? ' added' : ''}"
       onmousedown="${active.has(c.id) ? '' : "spawnWidget('" + c.id + "')"}">
       <div class="ci-icon">${c.icon}</div>
       <div class="ci-name">${c.name}</div>
       <div class="ci-desc">${active.has(c.id) ? 'Already on dashboard' : c.desc}</div>
     </div>`).join('');
-      }
-      function updateCatalog() { renderCatalog(document.getElementById('drawer-search')?.value || ''); }
-      function filterCatalog(v) { renderCatalog(v.toLowerCase()); }
+    }
+    function updateCatalog() { renderCatalog(document.getElementById('drawer-search')?.value || ''); }
+    function filterCatalog(v) { renderCatalog(v.toLowerCase()); }
 
-      function spawnWidget(type) {
-        const def = CATALOG.find(c => c.id === type);
-        if (!def) return;
-        const ids = Object.keys(widgets);
-        const offset = ids.length * 28 % 140;
-        makeWidget(type, 14 + offset, 14 + offset, def.w, def.h);
-        closeDrawer();
-      }
+    function spawnWidget(type) {
+      const def = CATALOG.find(c => c.id === type);
+      if (!def) return;
+      const ids = Object.keys(widgets);
+      const offset = ids.length * 28 % 140;
+      makeWidget(type, 14 + offset, 14 + offset, def.w, def.h);
+      closeDrawer();
+    }
 
-      function openDrawer() { updateCatalog(); document.getElementById('widget-drawer').classList.add('open'); document.getElementById('drawer-overlay').style.display = 'block'; }
-      function closeDrawer() { document.getElementById('widget-drawer').classList.remove('open'); document.getElementById('drawer-overlay').style.display = 'none'; }
+    function openDrawer() { updateCatalog(); document.getElementById('widget-drawer').classList.add('open'); document.getElementById('drawer-overlay').style.display = 'block'; }
+    function closeDrawer() { document.getElementById('widget-drawer').classList.remove('open'); document.getElementById('drawer-overlay').style.display = 'none'; }
 
-      // ═══════════════════════════════════════════════════════════
-      // LAYOUT SAVE / RESTORE
-      // ═══════════════════════════════════════════════════════════
-      function saveLayout() {
-        try { localStorage.setItem('usc-v5-layout', JSON.stringify(Object.entries(widgets).map(([uid, w]) => ({ uid, type: w.type, x: w.x, y: w.y, ww: w.w, h: w.h })))); } catch (e) { }
-      }
-      function loadLayout() {
-        try {
-          const s = localStorage.getItem('usc-v5-layout');
-          if (!s) return false;
-          JSON.parse(s).forEach(item => {
-            if (!CATALOG.find(c => c.id === item.type)) return;
-            makeWidget(item.type, item.x, item.y, item.ww, item.h);
-          });
-          return true;
-        } catch (e) { return false; }
-      }
-      function loadDefaults() {
-        makeWidget('match-progress', 14, 14, 320, 220);
-        makeWidget('battery-monitor', 350, 14, 290, 230);
-        makeWidget('scouter-status', 14, 250, 290, 380);
-        makeWidget('live-chat', 320, 250, 310, 380);
-        makeWidget('eq-builder', 650, 14, 340, 220);
-        makeWidget('team-chart', 650, 248, 380, 280);
-      }
-      if (!loadLayout()) loadDefaults();
-
-      // ═══════════════════════════════════════════════════════════
-      // PICKLIST (server-driven)
-      // ═══════════════════════════════════════════════════════════
-      let plSort = 'total_score', plFilter = '';
-      let plData = [];
-
-      async function refreshPicklist() {
-        const data = await API.getPicklist();
-        if (data) serverPicklist = data;
-        if (document.getElementById('picklist-page').classList.contains('active')) renderPicklist();
-      }
-
-      function renderPicklist() {
-        let data = serverPicklist.length ? [...serverPicklist] : [];
-
-        // Build dynamic columns from equations + schema numeric fields
-        const numericEqCols = equations.filter(eq => {
-          if (!data.length) return false;
-          return typeof data[0][eq.varName] === 'number';
+    // ═══════════════════════════════════════════════════════════
+    // LAYOUT SAVE / RESTORE
+    // ═══════════════════════════════════════════════════════════
+    function saveLayout() {
+      try { localStorage.setItem('usc-v5-layout', JSON.stringify(Object.entries(widgets).map(([uid, w]) => ({ uid, type: w.type, x: w.x, y: w.y, ww: w.w, h: w.h })))); } catch (e) { }
+    }
+    function loadLayout() {
+      try {
+        const s = localStorage.getItem('usc-v5-layout');
+        if (!s) return false;
+        JSON.parse(s).forEach(item => {
+          if (!CATALOG.find(c => c.id === item.type)) return;
+          makeWidget(item.type, item.x, item.y, item.ww, item.h);
         });
-        const allCols = [
-          { key: 'team', label: 'Team' },
-          { key: 'matches', label: 'Matches' },
-          ...equations.filter(eq => data.length && typeof data[0][eq.varName] === 'number').map(eq => ({ key: eq.varName, label: eq.label || eq.varName })),
-        ];
+        return true;
+      } catch (e) { return false; }
+    }
+    function loadDefaults() {
+      makeWidget('match-progress', 14, 14, 320, 220);
+      makeWidget('battery-monitor', 350, 14, 290, 230);
+      makeWidget('scouter-status', 14, 250, 290, 380);
+      makeWidget('live-chat', 320, 250, 310, 380);
+      makeWidget('eq-builder', 650, 14, 340, 220);
+      makeWidget('team-chart', 650, 248, 380, 280);
+    }
+    if (!loadLayout()) loadDefaults();
 
-        // Sort
-        if (plFilter) data = data.filter(t => String(t.team).includes(plFilter));
-        data.sort((a, b) => (b[plSort] || 0) - (a[plSort] || 0));
+    // ═══════════════════════════════════════════════════════════
+    // PICKLIST (server-driven)
+    // ═══════════════════════════════════════════════════════════
+    let plSort = 'total_score', plFilter = '';
+    let plData = [];
 
-        // Render header
-        const rb = i => { const c = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn'; return `<span class="rank-badge ${c}">${i + 1}</span>`; };
-        document.getElementById('pl-thead').innerHTML = `<th style="width:32px"></th><th>#</th>` +
-          allCols.map(c => `<th onclick="sortPL('${c.key}',this)">${c.label}</th>`).join('') +
-          `<th>Matches</th>`;
+    async function refreshPicklist() {
+      const data = await API.getPicklist();
+      if (data) serverPicklist = data;
+      if (document.getElementById('picklist-page').classList.contains('active')) renderPicklist();
+    }
 
-        document.getElementById('pl-body').innerHTML = data.map((t, i) => {
-          const eqCells = equations.filter(eq => data.length && typeof data[0]?.[eq.varName] === 'number').map(eq =>
-            `<td><span class="pl-score">${t[eq.varName] !== undefined ? t[eq.varName].toFixed?.(1) ?? t[eq.varName] : '—'}</span></td>`
-          ).join('');
-          return `<tr>
+    function renderPicklist() {
+      let data = serverPicklist.length ? [...serverPicklist] : [];
+
+      // Build dynamic columns from equations + schema numeric fields
+      const numericEqCols = equations.filter(eq => {
+        if (!data.length) return false;
+        return typeof data[0][eq.varName] === 'number';
+      });
+      const allCols = [
+        { key: 'team', label: 'Team' },
+        { key: 'matches', label: 'Matches' },
+        ...equations.filter(eq => data.length && typeof data[0][eq.varName] === 'number').map(eq => ({ key: eq.varName, label: eq.label || eq.varName })),
+      ];
+
+      // Sort
+      if (plFilter) data = data.filter(t => String(t.team).includes(plFilter));
+      data.sort((a, b) => (b[plSort] || 0) - (a[plSort] || 0));
+
+      // Render header
+      const rb = i => { const c = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn'; return `<span class="rank-badge ${c}">${i + 1}</span>`; };
+      document.getElementById('pl-thead').innerHTML = `<th style="width:32px"></th><th>#</th>` +
+        allCols.map(c => `<th onclick="sortPL('${c.key}',this)">${c.label}</th>`).join('') +
+        `<th>Matches</th>`;
+
+      document.getElementById('pl-body').innerHTML = data.map((t, i) => {
+        const eqCells = equations.filter(eq => data.length && typeof data[0]?.[eq.varName] === 'number').map(eq =>
+          `<td><span class="pl-score">${t[eq.varName] !== undefined ? t[eq.varName].toFixed?.(1) ?? t[eq.varName] : '—'}</span></td>`
+        ).join('');
+        return `<tr>
       <td>${rb(i)}</td>
       <td>${i + 1}</td>
       <td><div style="font-weight:700">${t.team}</div></td>
       ${eqCells}
       <td class="pl-num">${t.matches}</td>
     </tr>`;
-        }).join('');
+      }).join('');
 
-        if (!data.length) {
-          document.getElementById('pl-body').innerHTML = `<tr><td colspan="20" style="text-align:center;padding:30px;color:var(--text-3)">No data — sync scouting tablets to Pi</td></tr>`;
-        }
+      if (!data.length) {
+        document.getElementById('pl-body').innerHTML = `<tr><td colspan="20" style="text-align:center;padding:30px;color:var(--text-3)">No data — sync scouting tablets to Pi</td></tr>`;
+      }
+    }
+
+    function sortPL(by, btn) {
+      plSort = by;
+      document.querySelectorAll('.pl-sort-btn').forEach(b => b.classList.remove('active'));
+      btn?.classList.add('active');
+      renderPicklist();
+    }
+    function filterPL(v) { plFilter = v; renderPicklist(); }
+
+    function exportPL() {
+      if (!serverPicklist.length) return;
+      const keys = Object.keys(serverPicklist[0]);
+      const rows = [keys, ...serverPicklist.map(t => keys.map(k => t[k]))];
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(rows.map(r => r.join(',')).join('\n'));
+      a.download = 'picklist.csv'; a.click();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FORM BUILDER (syncs to server)
+    // ═══════════════════════════════════════════════════════════
+    let formFields = [];
+    let originalSchemaFields = [];
+
+    function initFormFields() {
+      formFields = schemaFields.map(f => ({ ...f, id: f.varName }));
+      originalSchemaFields = schemaFields.map(f => ({ ...f }));
+    }
+
+    function renderFormBuilder() {
+      if (!formFields.length) initFormFields();
+      const diff = computeSchemaDiff();
+      const diffEl = document.getElementById('schema-diff');
+      if (diff.added.length || diff.removed.length) {
+        diffEl.classList.remove('hidden');
+        diffEl.innerHTML = `<div style="font-weight:600;margin-bottom:4px">⚠ Unsaved changes — will migrate existing data</div>` +
+          diff.added.map(v => `<div class="diff-row"><span class="diff-add">+ Added: ${v}</span></div>`).join('') +
+          diff.removed.map(v => `<div class="diff-row"><span class="diff-rem">− Removed: ${v}</span></div>`).join('');
+      } else {
+        diffEl.classList.add('hidden');
       }
 
-      function sortPL(by, btn) {
-        plSort = by;
-        document.querySelectorAll('.pl-sort-btn').forEach(b => b.classList.remove('active'));
-        btn?.classList.add('active');
-        renderPicklist();
-      }
-      function filterPL(v) { plFilter = v; renderPicklist(); }
-
-      function exportPL() {
-        if (!serverPicklist.length) return;
-        const keys = Object.keys(serverPicklist[0]);
-        const rows = [keys, ...serverPicklist.map(t => keys.map(k => t[k]))];
-        const a = document.createElement('a');
-        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(rows.map(r => r.join(',')).join('\n'));
-        a.download = 'picklist.csv'; a.click();
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // FORM BUILDER (syncs to server)
-      // ═══════════════════════════════════════════════════════════
-      let formFields = [];
-      let originalSchemaFields = [];
-
-      function initFormFields() {
-        formFields = schemaFields.map(f => ({ ...f, id: f.varName }));
-        originalSchemaFields = schemaFields.map(f => ({ ...f }));
-      }
-
-      function renderFormBuilder() {
-        if (!formFields.length) initFormFields();
-        const diff = computeSchemaDiff();
-        const diffEl = document.getElementById('schema-diff');
-        if (diff.added.length || diff.removed.length) {
-          diffEl.classList.remove('hidden');
-          diffEl.innerHTML = `<div style="font-weight:600;margin-bottom:4px">⚠ Unsaved changes — will migrate existing data</div>` +
-            diff.added.map(v => `<div class="diff-row"><span class="diff-add">+ Added: ${v}</span></div>`).join('') +
-            diff.removed.map(v => `<div class="diff-row"><span class="diff-rem">− Removed: ${v}</span></div>`).join('');
-        } else {
-          diffEl.classList.add('hidden');
-        }
-
-        document.getElementById('fb-fields').innerHTML = formFields.map((f, i) => `
+      document.getElementById('fb-fields').innerHTML = formFields.map((f, i) => `
     <div class="field-card">
       <div class="field-card-top">
         <span class="field-type-badge ft-${f.type}">${f.type}</span>
@@ -1127,105 +1457,270 @@
         ` : ''}
       </div>
     </div>`).join('');
-        renderJSONPreview();
-      }
+      renderJSONPreview();
+    }
 
-      function computeSchemaDiff() {
-        const origVars = new Set(originalSchemaFields.map(f => f.varName));
-        const newVars = new Set(formFields.map(f => f.varName));
-        return {
-          added: [...newVars].filter(v => !origVars.has(v)),
-          removed: [...origVars].filter(v => !newVars.has(v)),
-        };
-      }
+    function computeSchemaDiff() {
+      const origVars = new Set(originalSchemaFields.map(f => f.varName));
+      const newVars = new Set(formFields.map(f => f.varName));
+      return {
+        added: [...newVars].filter(v => !origVars.has(v)),
+        removed: [...origVars].filter(v => !newVars.has(v)),
+      };
+    }
 
-      function addField() {
-        const type = document.getElementById('af-type').value;
-        formFields.push({ id: Date.now().toString(), label: 'New Field', varName: 'new_field', type, group: 'Teleop', min: 0, max: 10, step: 1, options: '' });
+    function addField() {
+      const type = document.getElementById('af-type').value;
+      formFields.push({ id: Date.now().toString(), label: 'New Field', varName: 'new_field', type, group: 'Teleop', min: 0, max: 10, step: 1, options: '' });
+      renderFormBuilder();
+    }
+    function delField(i) { formFields.splice(i, 1); renderFormBuilder(); }
+
+    async function saveSchemaToServer() {
+      const schema = {
+        version: (parseInt(document.getElementById('sv').textContent) || 1),
+        fields: formFields,
+      };
+      const result = await API.putSchema(schema);
+      if (result?.ok) {
+        document.getElementById('sv').textContent = result.version;
+        schemaFields = [...formFields];
+        originalSchemaFields = [...formFields];
+        recordSchemaVersion(formFields, result.version);
+        // Reload data since migration happened
+        const [data, picklist] = await Promise.all([API.getData(), API.getPicklist()]);
+        if (data) { serverData = data; matchesLogged = data.length; teamsScouted = new Set(data.map(d => d.team)).size; }
+        if (picklist) serverPicklist = picklist;
         renderFormBuilder();
+        // Refresh widgets that depend on schema
+        Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
       }
-      function delField(i) { formFields.splice(i, 1); renderFormBuilder(); }
+    }
 
-      async function saveSchemaToServer() {
-        const schema = {
-          version: (parseInt(document.getElementById('sv').textContent) || 1),
-          fields: formFields,
-        };
-        const result = await API.putSchema(schema);
-        if (result?.ok) {
-          document.getElementById('sv').textContent = result.version;
-          schemaFields = [...formFields];
-          originalSchemaFields = [...formFields];
-          // Reload data since migration happened
-          const [data, picklist] = await Promise.all([API.getData(), API.getPicklist()]);
-          if (data) { serverData = data; matchesLogged = data.length; teamsScouted = new Set(data.map(d => d.team)).size; }
-          if (picklist) serverPicklist = picklist;
-          renderFormBuilder();
-          // Refresh widgets that depend on schema
-          Object.entries(widgets).forEach(([id, w]) => refreshWidget(id));
-        }
-      }
-
-      function renderJSONPreview() {
-        const groups = {};
-        formFields.forEach(f => { if (!groups[f.group]) groups[f.group] = []; groups[f.group].push(f); });
-        const schema = { schema_version: parseInt(document.getElementById('sv').textContent) || 1, groups: {} };
-        Object.entries(groups).forEach(([g, fields]) => {
-          schema.groups[g] = fields.map(f => {
-            const fd = { id: f.varName, label: f.label, type: f.type };
-            if (f.type === 'counter' || f.type === 'slider') { fd.min = f.min || 0; fd.max = f.max || 10; }
-            if (f.type === 'dropdown') fd.options = (f.options || '').split(',').map(s => s.trim()).filter(Boolean);
-            return fd;
-          });
+    function renderJSONPreview() {
+      const groups = {};
+      formFields.forEach(f => { if (!groups[f.group]) groups[f.group] = []; groups[f.group].push(f); });
+      const schema = { schema_version: parseInt(document.getElementById('sv').textContent) || 1, groups: {} };
+      Object.entries(groups).forEach(([g, fields]) => {
+        schema.groups[g] = fields.map(f => {
+          const fd = { id: f.varName, label: f.label, type: f.type };
+          if (f.type === 'counter' || f.type === 'slider') { fd.min = f.min || 0; fd.max = f.max || 10; }
+          if (f.type === 'dropdown') fd.options = (f.options || '').split(',').map(s => s.trim()).filter(Boolean);
+          return fd;
         });
-        const sample = {};
-        formFields.forEach(f => { sample[f.varName] = f.type === 'toggle' ? false : f.type === 'text' ? '' : f.type === 'dropdown' ? '' : 0; });
-        const out = { schema, sample_submission: { scouter_id: 'scouter_1', match: 14, team: 935, data: sample } };
-        document.getElementById('json-preview').innerHTML = syntaxHL(JSON.stringify(out, null, 2));
-      }
+      });
+      const sample = {};
+      formFields.forEach(f => { sample[f.varName] = f.type === 'toggle' ? false : f.type === 'text' ? '' : f.type === 'dropdown' ? '' : 0; });
+      const out = { schema, sample_submission: { scouter_id: 'scouter_1', match: 14, team: 935, data: sample } };
+      document.getElementById('json-preview').innerHTML = syntaxHL(JSON.stringify(out, null, 2));
+    }
 
-      function syntaxHL(json) {
-        return json.replace(/("[\w]+")\s*:/g, '<span class="json-key">$1</span>:')
-          .replace(/:\s*(".*?")/g, ': <span class="json-str">$1</span>')
-          .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-num">$1</span>')
-          .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
-          .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
-      }
-      function copyJSON() {
-        const el = document.getElementById('json-preview');
-        navigator.clipboard?.writeText(el.innerText);
-      }
+    function syntaxHL(json) {
+      return json.replace(/("[\w]+")\s*:/g, '<span class="json-key">$1</span>:')
+        .replace(/:\s*(".*?")/g, ': <span class="json-str">$1</span>')
+        .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-num">$1</span>')
+        .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
+        .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+    }
+    function copyJSON() {
+      const el = document.getElementById('json-preview');
+      navigator.clipboard?.writeText(el.innerText);
+    }
 
-      // ═══════════════════════════════════════════════════════════
-      // LIVE SIMULATION (scouters only — data comes from server)
-      // ═══════════════════════════════════════════════════════════
-      setInterval(() => {
-        SCOUTERS.forEach(s => {
-          if (s.status !== 'offline' && s.battery > 2) s.battery = Math.max(2, s.battery - (Math.random() < .2 ? 1 : 0));
-          if (s.status === 'active' && s.formPct < 100) s.formPct = Math.min(100, s.formPct + (Math.random() < .3 ? Math.floor(Math.random() * 8 + 1) : 0));
-          const sections = ['Pre-match', 'Auto', 'Teleop', 'Endgame', 'Done'];
-          if (s.status === 'active') s.formSection = sections[Math.min(4, Math.floor(s.formPct / 25))];
+    // Refresh data every 30s
+    setInterval(async () => {
+      const [data, picklist] = await Promise.all([API.getData(), API.getPicklist()]);
+      if (data) { serverData = data; matchesLogged = data.length; teamsScouted = new Set(data.map(d => d.team)).size; }
+      if (picklist) serverPicklist = picklist;
+      Object.entries(widgets).forEach(([id, w]) => {
+        if (['matches-logged', 'teams-scouted', 'match-progress', 'team-chart', 'data-table'].includes(w.type)) refreshWidget(id);
+      });
+    }, 30000);
+
+    // ═══════════════════════════════════════════════════════════
+    // ADMIN FILL MODAL
+    // ═══════════════════════════════════════════════════════════
+    let admFillTarget = null;
+    let admFillValues = {};
+
+    function openAdminFill(scouterId, team, match) {
+      admFillTarget = scouterId;
+      admFillValues = {};
+
+      // Find this scouter's current field values from live progress
+      const scouter = liveScouters.find(s => s.scouter_id === scouterId);
+      const currentVals = scouter?.fieldValues || {};
+
+      document.getElementById('admfill-title').textContent = `Admin Fill — ${scouter?.display_name || scouterId}`;
+      document.getElementById('admfill-sub').textContent = `Match ${match || '?'} · Team ${team || '?'} · Pushed within ~3 s`;
+      const body = document.getElementById('admfill-body');
+
+      // Render fields exactly like scout.html does, pre-filled with scouter's current values
+      const groups = {};
+      schemaFields.forEach(f => {
+        const g = f.group || 'General';
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(f);
+      });
+
+      const groupOrder = ['Autonomous', 'Teleop', 'Endgame', 'General'];
+      const sorted = Object.keys(groups).sort((a, b) => {
+        const ai = groupOrder.indexOf(a), bi = groupOrder.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1; if (bi === -1) return -1;
+        return ai - bi;
+      });
+
+      let html = '';
+      sorted.forEach(group => {
+        html += `<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:10px 0 6px">${group}</div>`;
+        groups[group].forEach(f => {
+          const v = currentVals[f.varName] ?? (f.type === 'toggle' ? false : f.type === 'text' || f.type === 'dropdown' ? '' : (f.min ?? 0));
+          html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <label style="flex:1;font-size:12px;color:var(--text-1);font-weight:500">${f.label}</label>`;
+
+          if (f.type === 'counter') {
+            html += `<div style="display:flex;align-items:center;gap:0;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden">
+                <button onmousedown="admStepCounter('${f.varName}',-1,${f.min ?? 0},${f.max ?? 99})"
+                  style="width:34px;height:34px;background:none;border:none;color:var(--text-1);font-size:18px;cursor:pointer;font-weight:300">−</button>
+                <div id="adm-cv-${f.varName}" style="min-width:32px;text-align:center;font-size:16px;font-weight:700;color:var(--text-1)">${v}</div>
+                <button onmousedown="admStepCounter('${f.varName}',1,${f.min ?? 0},${f.max ?? 99})"
+                  style="width:34px;height:34px;background:none;border:none;color:var(--text-1);font-size:18px;cursor:pointer;font-weight:300">+</button>
+              </div>`;
+          } else if (f.type === 'slider') {
+            html += `<div style="display:flex;align-items:center;gap:8px">
+                <input type="range" id="adm-sl-${f.varName}" min="${f.min ?? 0}" max="${f.max ?? 10}" value="${v}" step="1"
+                  oninput="admFillValues['${f.varName}']=+this.value;document.getElementById('adm-slv-${f.varName}').textContent=this.value"
+                  style="width:100px;accent-color:var(--blue)">
+                <span id="adm-slv-${f.varName}" style="font-size:13px;font-weight:700;color:var(--blue);min-width:20px">${v}</span>
+              </div>`;
+            admFillValues[f.varName] = +v;
+          } else if (f.type === 'toggle') {
+            html += `<div id="adm-tgl-${f.varName}" onclick="admToggle('${f.varName}')"
+                style="width:46px;height:26px;border-radius:13px;background:${v ? 'var(--blue)' : 'rgba(255,255,255,0.15)'};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+                <div style="position:absolute;top:3px;left:${v ? '23px' : '3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s" id="adm-tgl-thumb-${f.varName}"></div>
+              </div>`;
+            admFillValues[f.varName] = !!v;
+          } else if (f.type === 'dropdown') {
+            const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options || [])).map(o => o.trim()).filter(Boolean);
+            html += `<select id="adm-dd-${f.varName}" onchange="admFillValues['${f.varName}']=this.value"
+                style="background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text-1);outline:none">
+                <option value="">— select —</option>
+                ${opts.map(o => `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`).join('')}
+              </select>`;
+          } else {
+            html += `<input type="text" id="adm-txt-${f.varName}" value="${v}"
+                oninput="admFillValues['${f.varName}']=this.value"
+                style="width:140px;background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text-1);outline:none">`;
+          }
+          html += `</div>`;
         });
-        Object.entries(widgets).forEach(([id, w]) => {
-          if (['battery-monitor', 'scouter-status', 'match-progress', 'active-scouters'].includes(w.type)) refreshWidget(id);
-        });
-      }, 9000);
+      });
 
-      const inMsgs = ['Team 4451 looks different today', '971 climbed — level 3?', 'Log defense separately?', 'Team 118 auto failed again', 'M15 red looks strong'];
-      setInterval(() => {
-        const s = SCOUTERS[Math.floor(Math.random() * 5)];
-        const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-        chatMessages.push({ role: 'scouter', from: `S${s.id} · ${s.name}`, text: inMsgs[Math.floor(Math.random() * inMsgs.length)], time: now });
-        if (chatMessages.length > 60) chatMessages.shift();
-        Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
-      }, 22000);
+      if (!schemaFields.length) html = '<div style="color:var(--text-3);font-size:12px">No schema fields defined. Use the Form Builder tab to add fields.</div>';
+      body.innerHTML = html;
 
-      // ═══════════════════════════════════════════════════════════
-      // BOOT
-      // ═══════════════════════════════════════════════════════════
-      // Try to fetch from server; fall back gracefully if not running
-      initFromServer().catch(() => setSyncStatus('error'));
-    </script>
+      // Init counter values into admFillValues
+      schemaFields.filter(f => f.type === 'counter').forEach(f => {
+        const v = currentVals[f.varName] ?? (f.min ?? 0);
+        admFillValues[f.varName] = +v;
+      });
+
+      document.getElementById('admfill-modal').style.display = 'flex';
+    }
+
+    function admStepCounter(varName, delta, min, max) {
+      admFillValues[varName] = Math.max(min, Math.min(max, (admFillValues[varName] ?? 0) + delta));
+      const el = document.getElementById('adm-cv-' + varName);
+      if (el) { el.textContent = admFillValues[varName]; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 100); }
+    }
+
+    function admToggle(varName) {
+      admFillValues[varName] = !admFillValues[varName];
+      const track = document.getElementById('adm-tgl-' + varName);
+      const thumb = document.getElementById('adm-tgl-thumb-' + varName);
+      if (track) track.style.background = admFillValues[varName] ? 'var(--blue)' : 'rgba(255,255,255,0.15)';
+      if (thumb) thumb.style.left = admFillValues[varName] ? '23px' : '3px';
+    }
+
+    function closeAdminFill() {
+      document.getElementById('admfill-modal').style.display = 'none';
+      admFillTarget = null;
+      admFillValues = {};
+    }
+
+    async function submitAdminFill() {
+      if (!admFillTarget) return;
+      if (!Object.keys(admFillValues).length) { closeAdminFill(); return; }
+      const result = await API.postAdminFill(admFillTarget, admFillValues);
+      if (result?.ok) {
+        closeAdminFill();
+        const toast = document.createElement('div');
+        toast.textContent = `✓ Pushed ${Object.keys(admFillValues).length} field(s) to ${admFillTarget}`;
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(48,209,88,0.25);border:0.5px solid rgba(48,209,88,0.5);color:var(--green);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SETTINGS FUNCTIONS
+    // ═══════════════════════════════════════════════════════════
+    function setCurrentMatch() {
+      const val = parseInt(document.getElementById('set-match-num')?.value);
+      if (!val || isNaN(val)) return;
+      currentMatch = val;
+      // Refresh match progress widgets
+      Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'match-progress') refreshWidget(id); });
+      // Send broadcast to chat
+      const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const msg = { role: 'broadcast', from: 'BROADCAST', text: `📢 Current match set to Match ${val}`, time: now };
+      chatMessages.push(msg);
+      API.postChat(msg).catch(() => { });
+      Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
+    }
+
+    async function clearChat() {
+      if (!confirm('Clear all chat history? This cannot be undone.')) return;
+      await API.deleteChat();
+      chatMessages = [];
+      Object.entries(widgets).forEach(([id, w]) => { if (w.type === 'live-chat') refreshWidget(id); });
+    }
+
+    async function loadHealth() {
+      const h = await API.getHealth();
+      const el = document.getElementById('health-info');
+      if (!el) return;
+      if (!h) { el.textContent = '✕ Server unreachable'; el.style.color = 'var(--red)'; return; }
+      el.style.color = 'var(--green)';
+      el.innerHTML = `✓ Online · Uptime: ${Math.floor(h.uptime)}s · Submissions: ${h.submissions} · Active scouters: ${h.activeScouters} · Chat msgs: ${h.chatMessages}`;
+    }
+
+    function refreshAdminFillList() {
+      const el = document.getElementById('adm-fill-scouter-list');
+      if (!el) return;
+      if (!liveScouters.length) {
+        el.innerHTML = '<div style="font-size:12px;color:var(--text-3)">No scouters connected yet.</div>';
+        return;
+      }
+      el.innerHTML = liveScouters.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:10px;border:0.5px solid rgba(255,255,255,0.08)">
+            <div class="sc-dot active" style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600">${s.scouter_id}</div>
+              <div style="font-size:10px;color:var(--text-3)">Match ${s.match || '?'} · Team ${s.team || '?'} · ${s.pct || 0}%</div>
+            </div>
+            <button onclick="openAdminFill('${s.scouter_id}',${s.team || 0},${s.match || 0})"
+              style="padding:5px 12px;border-radius:8px;background:rgba(10,132,255,0.18);border:0.5px solid rgba(10,132,255,0.4);color:var(--blue);font-size:11px;font-weight:600;cursor:pointer">Fill ✦</button>
+          </div>`).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // BOOT
+    // ═══════════════════════════════════════════════════════════
+    // Try to fetch from server; fall back gracefully if not running
+    initFromServer().catch(() => setSyncStatus('error'));
+  </script>
 </body>
 
 </html>

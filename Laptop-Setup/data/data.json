@@ -1,0 +1,34 @@
+{
+  "games": [
+    {
+      "name": "Rebuilt",
+      "year": 2026,
+      "event": "",
+      "created": "2026-04-11",
+      "matches": 0,
+      "scouts": 0,
+      "status": "active",
+      "id": 4
+    }
+  ],
+  "matchLogs": [],
+  "activity": [
+    {
+      "text": "Alex M. logged 22 scouting minutes — Match 38 vs Team 1114",
+      "time": "12 min ago"
+    },
+    {
+      "text": "Casey R. submitted form for Team 254 — Qualification round",
+      "time": "38 min ago"
+    },
+    {
+      "text": "Jordan D. flagged Team 973 data for review",
+      "time": "1 hr ago"
+    },
+    {
+      "text": "Sam K. role changed to Assistant Scout by coach",
+      "time": "3 hr ago"
+    }
+  ],
+  "nextGameId": 5
+}

@@ -1,0 +1,38 @@
+{
+  "setupComplete": true,
+  "teamNumber": "935",
+  "teamName": "NorthStar",
+  "school": "Newton High School",
+  "city": "Newton",
+  "state": "KS",
+  "yearsInFirst": 22,
+  "theme": {
+    "id": "bluepurple",
+    "label": "Blue/Purple",
+    "css": "radial-gradient(ellipse 80% 80% at 20% 20%,rgba(10,132,255,0.18),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(191,90,242,0.20),transparent),#060a18"
+  },
+  "colors": {
+    "primary": "#0a84ff",
+    "secondary": "#bf5af2",
+    "accent": "#ffd60a"
+  },
+  "display": {
+    "mode": "Dim",
+    "fontSize": "Large",
+    "fontSizePx": 16,
+    "cardStyle": "Flat",
+    "density": "Default"
+  },
+  "scouting": {
+    "system": "",
+    "priority": "",
+    "events": "",
+    "device": "Phone"
+  },
+  "adminRoles": [
+    "coach",
+    "lead"
+  ],
+  "perUserDashboard": false,
+  "activeGame": ""
+}
