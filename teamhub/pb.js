@@ -2,7 +2,7 @@
 //  pb.js — PocketBase client wrapper for Team 935
 // ═══════════════════════════════════════════════
 
-const PB_URL = window.PB_URL || 'http://127.0.0.1:8090';
+const PB_URL = window.PB_URL || 'https://injured-announce-reply-lone.trycloudflare.com';
 
 class PocketBase {
   constructor(url) {
