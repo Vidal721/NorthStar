@@ -31,7 +31,8 @@
   },
   "adminRoles": [
     "coach",
-    "lead"
+    "lead",
+    "assistant"
   ],
   "perUserDashboard": false,
   "activeGame": ""
