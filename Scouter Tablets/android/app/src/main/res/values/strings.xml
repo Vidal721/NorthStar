@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">935 Scout</string>
+    <string name="title_activity_main">935 Scout</string>
+    <string name="package_name">com.team935.scout</string>
+    <string name="custom_url_scheme">com.team935.scout</string>
+</resources>

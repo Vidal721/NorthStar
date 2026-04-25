@@ -1,0 +1,22 @@
+{
+  "name": "scouter-tablets",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^3.9.0",
+    "@capacitor/cli": "^3.9.0",
+    "@capacitor/core": "^3.9.0",
+    "cordova-plugin-bluetooth-serial": "^0.4.7"
+  },
+  "devDependencies": {
+    "patch-package": "^8.0.1"
+  }
+}

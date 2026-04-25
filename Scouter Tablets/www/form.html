@@ -286,38 +286,29 @@ html,body{
 .sc-pts-lbl{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);text-align:right;}
 .sc-arrow{color:var(--dim);font-size:18px;flex-shrink:0;}
 
-/* ── QR OVERLAY ──────────────────────────────────────── */
-#qr-ov{
+/* ── USB SEND OVERLAY ────────────────────────────────── */
+#usb-ov{
   display:none;position:fixed;inset:0;z-index:9900;
-  background:#d5cfc9;overflow-y:auto;
+  background:#0d1117;overflow-y:auto;
   flex-direction:column;align-items:center;
   padding:26px 18px 20px;
 }
-#qr-ov.on{display:flex;}
-.qr-hdr{width:100%;max-width:340px;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
-.qr-hdr-title{font-size:20px;font-weight:900;letter-spacing:3px;color:var(--acc);text-transform:uppercase;}
-.qr-hdr-meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px;}
-.qr-part-lbl{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:1px;padding-top:2px;}
-#qr-canvas{display:flex;justify-content:center;margin:8px 0;}
-.qr-hint{font-size:12px;color:var(--dim);margin:5px 0 14px;text-align:center;}
-.qr-actions{width:100%;max-width:340px;display:flex;flex-direction:column;gap:9px;margin-top:4px;}
-.qr-save{
-  width:100%;padding:17px;border-radius:10px;border:none;
-  background:var(--green);color:#fff;font-size:17px;font-weight:900;
-  cursor:pointer;text-transform:uppercase;font-family:var(--font);
-  letter-spacing:1.5px;display:flex;align-items:center;justify-content:center;gap:9px;
-}
-.qr-save:active{opacity:.85;}
-.qr-save.saved{background:var(--s2);border:1.5px solid var(--border2);color:var(--dim);}
-.qr-done{
+#usb-ov.on{display:flex;}
+.usb-hdr{width:100%;max-width:340px;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.usb-hdr-title{font-size:20px;font-weight:900;letter-spacing:3px;color:var(--acc);text-transform:uppercase;}
+.usb-hdr-meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px;}
+#usb-status-icon{font-size:64px;margin:20px 0 10px;text-align:center;}
+#usb-status-text{font-family:var(--mono);font-size:15px;color:var(--text);text-align:center;margin-bottom:6px;font-weight:700;letter-spacing:1px;}
+#usb-status-sub{font-size:12px;color:var(--dim);text-align:center;margin-bottom:20px;}
+.usb-actions{width:100%;max-width:340px;display:flex;flex-direction:column;gap:9px;margin-top:4px;}
+.usb-done{
   width:100%;padding:14px;border-radius:10px;border:none;
   background:var(--acc);color:#0a0a0a;font-size:16px;
   font-weight:900;cursor:pointer;text-transform:uppercase;
   font-family:var(--font);letter-spacing:1.5px;
 }
-.qr-done:active{opacity:.8;}
-
-.qr-json{
+.usb-done:active{opacity:.8;}
+.usb-retry{
   width:100%;padding:14px;border-radius:10px;
   background:rgba(232,192,0,.09);color:var(--acc);font-size:15px;
   font-weight:900;cursor:pointer;text-transform:uppercase;
@@ -325,7 +316,15 @@ html,body{
   border:1.5px solid rgba(232,192,0,.35);
   display:flex;align-items:center;justify-content:center;gap:8px;
 }
-.qr-json:active{background:var(--acc);color:#0a0a0a;}
+.usb-retry:active{background:var(--acc);color:#0a0a0a;}
+.usb-save{
+  width:100%;padding:17px;border-radius:10px;border:none;
+  background:var(--green);color:#fff;font-size:17px;font-weight:900;
+  cursor:pointer;text-transform:uppercase;font-family:var(--font);
+  letter-spacing:1.5px;display:flex;align-items:center;justify-content:center;gap:9px;
+}
+.usb-save:active{opacity:.85;}
+.usb-save.saved{background:var(--s2);border:1.5px solid var(--border2);color:var(--dim);}
 
 /* ── SAVED QR VIEWER ─────────────────────────────────── */
 #sqr-ov{
@@ -609,7 +608,7 @@ html,body{
     </div>
   </div>
   <div class="footer">
-    <div class="big-btn" onclick="submitMatch()">SUBMIT &amp; GENERATE QR →</div>
+    <div class="big-btn" onclick="submitMatch()">SUBMIT &amp; SEND →</div>
   </div>
 </div>
 
@@ -629,28 +628,27 @@ html,body{
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     OVERLAY: QR CODE
+     OVERLAY: USB SEND
 ══════════════════════════════════════════════════════ -->
-<div id="qr-ov">
-  <div class="qr-hdr">
+<div id="usb-ov">
+  <div class="usb-hdr">
     <div>
-      <div class="qr-hdr-title">QR CODE</div>
-      <div class="qr-hdr-meta" id="qr-meta">—</div>
+      <div class="usb-hdr-title">SEND DATA</div>
+      <div class="usb-hdr-meta" id="usb-meta">—</div>
     </div>
-    <div class="qr-part-lbl" id="qr-part-lbl">PART 1</div>
   </div>
-  <div id="qr-canvas"></div>
-  <div class="qr-hint">Hold steady — Lead Scout scans</div>
-  <div class="qr-actions">
-    <div class="qr-done" onclick="resetAndNext()">✓ DONE — NEW MATCH</div>
-    <div class="qr-json" id="qr-json-btn" onclick="saveToLocal()">📄 EXPORT TO JSON</div>
-    <button class="qr-json" onclick="window.location.href='scanner.html'">SCANNER</button>
-    <div class="qr-save" id="qr-save-btn" onclick="saveCurrentMatch()">💾 SAVE FOR LATER</div>
+  <div id="usb-status-icon">🔌</div>
+  <div id="usb-status-text">CONNECTING...</div>
+  <div id="usb-status-sub">Sending via USB to Pi</div>
+  <div class="usb-actions">
+    <div class="usb-done" id="usb-done-btn" onclick="resetAndNext()" style="display:none;">✓ DONE — NEW MATCH</div>
+    <div class="usb-retry" id="usb-retry-btn" onclick="retrySend()" style="display:none;">↺ RETRY SEND</div>
+    <div class="usb-save" id="usb-save-btn" onclick="saveCurrentMatch()">💾 SAVE FOR LATER</div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     OVERLAY: SAVED MATCH QR VIEWER
+     OVERLAY: SAVED MATCH SENDER
 ══════════════════════════════════════════════════════ -->
 <div id="sqr-ov">
   <div class="sqr-hdr">
@@ -661,10 +659,10 @@ html,body{
     </div>
   </div>
   <div class="sqr-info" id="sqr-info-body"></div>
-  <div class="sqr-part-lbl" id="sqr-part-lbl">PART 1</div>
+  <div class="sqr-part-lbl" id="sqr-part-lbl"></div>
   <div id="sqr-canvas"></div>
-  <div class="sqr-hint">Lead Scout scans this QR code</div>
   <div class="sqr-footer">
+    <div class="usb-retry" onclick="sendSavedMatch()">🔌 SEND VIA USB</div>
     <div class="sqr-del" onclick="deleteSavedMatch()">🗑 DELETE THIS MATCH</div>
   </div>
 </div>
@@ -3484,8 +3482,26 @@ function renderStats() {
 }
 
 // ════════════════════════════════════════════════════════
-//  SUBMIT / QR
+//  SUBMIT / USB SEND
 // ════════════════════════════════════════════════════════
+// USB send via HTTP over ADB reverse tunnel (no internet required)
+// On the Pi run: adb reverse tcp:8765 tcp:8765
+// Then start usb_server.py which listens on port 8765
+const USB_SERVER = 'http://localhost:8765/scout';
+
+async function sendOverUSB(payload) {
+  try {
+    const resp = await fetch(USB_SERVER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: payload
+    });
+    return resp.ok;
+  } catch(e) {
+    return false;
+  }
+}
+
 function submitMatch() {
   const sn = $('scout-name').value;
   const mn = $('match-num').value;
@@ -3494,7 +3510,7 @@ function submitMatch() {
   finalizeZoneTime();
   const payload = buildPayload();
   currentPayload = payload.replace(/[^\x20-\x7E]/g, '');
-  showQR(currentPayload);
+  showUSBOverlay(currentPayload);
 }
 
 function buildPayload() {
@@ -3528,33 +3544,58 @@ function buildPayload() {
   ].join('|');
 }
 
-function showQR(payload) {
-  clearInterval(window._qrInt);
+function showUSBOverlay(payload) {
   const mn = $('match-num').value, tn = $('team-num').value;
-  $('qr-meta').textContent = 'Match ' + mn + ' · Team #' + tn;
-  $('qr-save-btn').textContent = '💾 SAVE FOR LATER';
-  $('qr-save-btn').classList.remove('saved');
-
-  const CHUNK = 120, chunks = [];
-  for (let i = 0; i < payload.length; i += CHUNK)
-    chunks.push(payload.substring(i, i + CHUNK));
-
-  const div = $('qr-canvas');
-  let idx = 0;
-  const show = () => {
-    div.innerHTML = '';
-    const txt = (idx+1) + '/' + chunks.length + '|' + chunks[idx];
-    $('qr-part-lbl').textContent = 'PART ' + (idx+1) + ' OF ' + chunks.length;
-    try {
-      new QRCode(div, { text:txt, width:290, height:290, correctLevel:QRCode.CorrectLevel.L });
-    } catch(e) {
-      div.innerHTML = '<p style="color:var(--acc);padding:20px;font-weight:800;">QR too dense — shorten notes</p>';
+  $('usb-meta').textContent = 'Match ' + mn + ' · Team #' + tn;
+  $('usb-done-btn').style.display = 'none';
+  $('usb-retry-btn').style.display = 'none';
+  $('usb-save-btn').textContent = '💾 SAVE FOR LATER';
+  $('usb-save-btn').classList.remove('saved');
+  $('usb-ov').classList.add('on');
+  setUSBStatus('sending');
+  sendOverUSB(payload).then(ok => {
+    if (ok) {
+      setUSBStatus('success');
+    } else {
+      setUSBStatus('error');
     }
-    idx = (idx + 1) % chunks.length;
-  };
-  show();
-  if (chunks.length > 1) window._qrInt = setInterval(show, 900);
-  $('qr-ov').classList.add('on');
+  });
+}
+
+function setUSBStatus(state) {
+  if (state === 'sending') {
+    $('usb-status-icon').textContent = '🔌';
+    $('usb-status-text').textContent = 'SENDING...';
+    $('usb-status-sub').textContent = 'Sending via USB to Pi';
+    $('usb-done-btn').style.display = 'none';
+    $('usb-retry-btn').style.display = 'none';
+  } else if (state === 'success') {
+    $('usb-status-icon').textContent = '✅';
+    $('usb-status-text').textContent = 'SENT!';
+    $('usb-status-sub').textContent = 'Pi received the data';
+    $('usb-done-btn').style.display = 'block';
+    $('usb-retry-btn').style.display = 'none';
+  } else if (state === 'error') {
+    $('usb-status-icon').textContent = '❌';
+    $('usb-status-text').textContent = 'SEND FAILED';
+    $('usb-status-sub').textContent = 'Check USB connection and retry';
+    $('usb-done-btn').style.display = 'none';
+    $('usb-retry-btn').style.display = 'block';
+  }
+}
+
+function retrySend() {
+  if (!currentPayload) return;
+  setUSBStatus('sending');
+  usbPort = null;
+  usbWriter = null;
+  sendOverUSB(currentPayload).then(ok => {
+    if (ok) {
+      setUSBStatus('success');
+    } else {
+      setUSBStatus('error');
+    }
+  });
 }
 
 function saveCurrentMatch() {
@@ -3564,8 +3605,8 @@ function saveCurrentMatch() {
   const saved = getSaved();
   saved.push({ id, ts:id, payload:currentPayload, match:p.mt, team:p.tm, alliance:p.al, pts:p.pts || p.ev, scout:p.sc });
   setSaved(saved);
-  $('qr-save-btn').textContent = '✅ SAVED!';
-  $('qr-save-btn').classList.add('saved');
+  $('usb-save-btn').textContent = '✅ SAVED!';
+  $('usb-save-btn').classList.add('saved');
   toast('💾 Match saved!');
 }
 
@@ -3579,8 +3620,7 @@ function parsePayload(raw) {
 }
 
 function resetAndNext() {
-  clearInterval(window._qrInt);
-  $('qr-ov').classList.remove('on');
+  $('usb-ov').classList.remove('on');
 
   const prevMatch = $('match-num').value;
   events = []; penalties = []; foulsCaused = 0;
@@ -3677,32 +3717,29 @@ function openSavedQR(id) {
     <div class="sqr-row"><span class="sqr-row-lbl">Climb</span><span class="sqr-row-val">${p.cl||'?'}</span></div>
     <div class="sqr-row"><span class="sqr-row-lbl">Events</span><span class="sqr-row-val">${p.ev||'?'}</span></div>`;
 
-  clearInterval(savedQrInterval);
-  const raw = m.payload.replace(/[^\x20-\x7E]/g, '');
-  const CHUNK = 120, chunks = [];
-  for (let i = 0; i < raw.length; i += CHUNK) chunks.push(raw.substring(i, i+CHUNK));
-
-  const div = $('sqr-canvas');
-  let idx = 0;
-  const show = () => {
-    div.innerHTML = '';
-    const txt = (idx+1) + '/' + chunks.length + '|' + chunks[idx];
-    $('sqr-part-lbl').textContent = 'PART ' + (idx+1) + ' OF ' + chunks.length;
-    try {
-      new QRCode(div, { text:txt, width:290, height:290, correctLevel:QRCode.CorrectLevel.L });
-    } catch(e) {
-      div.innerHTML = '<p style="color:var(--acc);padding:20px;">QR error</p>';
-    }
-    idx = (idx+1) % chunks.length;
-  };
-  show();
-  if (chunks.length > 1) savedQrInterval = setInterval(show, 1400);
+  $('sqr-canvas').innerHTML = '<div style="padding:20px;text-align:center;color:var(--acc);font-weight:800;font-size:15px;">Press SEND to transmit via USB</div>';
+  $('sqr-part-lbl').textContent = '';
   $('sqr-ov').classList.add('on');
 }
 
+function sendSavedMatch() {
+  if (viewingSavedId === null) return;
+  const m = getSaved().find(x => x.id === viewingSavedId);
+  if (!m) return;
+  const raw = m.payload.replace(/[^\x20-\x7E]/g, '');
+  $('sqr-canvas').innerHTML = '<div style="padding:20px;text-align:center;color:var(--dim);font-size:14px;">Sending...</div>';
+  sendOverUSB(raw).then(ok => {
+    if (ok) {
+      $('sqr-canvas').innerHTML = '<div style="padding:20px;text-align:center;color:var(--acc);font-weight:800;font-size:24px;">✅ SENT!</div>';
+      toast('✅ Match sent!');
+    } else {
+      $('sqr-canvas').innerHTML = '<div style="padding:20px;text-align:center;color:#e08070;font-weight:800;font-size:15px;">❌ Send failed — check USB</div>';
+      toast('❌ Send failed');
+    }
+  });
+}
+
 function closeSavedQR() {
-  clearInterval(savedQrInterval);
-  savedQrInterval = null;
   $('sqr-ov').classList.remove('on');
   viewingSavedId = null;
 }
