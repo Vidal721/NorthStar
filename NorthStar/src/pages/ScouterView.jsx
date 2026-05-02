@@ -1,0 +1,1 @@
+export default function Name() { return <h1>Scouter View</h1> }
