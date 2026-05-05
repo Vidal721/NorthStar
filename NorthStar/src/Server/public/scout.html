@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NorthStar — Scout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: rgba(255,255,255,0.95);
+      background: #060a18;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+    }
+
+    :root {
+      --glass: rgba(255,255,255,0.11);
+      --glass-h: rgba(255,255,255,0.19);
+      --glass-s: rgba(255,255,255,0.22);
+      --border: rgba(255,255,255,0.26);
+      --border-s: rgba(255,255,255,0.46);
+      --sh: 0 8px 32px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.10), 0 0 0 0.5px rgba(255,255,255,.20) inset, 0 1px 0 rgba(255,255,255,.38) inset;
+      --sh-sm: 0 2px 8px rgba(0,0,0,.14), 0 0 0 0.5px rgba(255,255,255,.18) inset, 0 1px 0 rgba(255,255,255,.32) inset;
+      --sh-lg: 0 20px 60px rgba(0,0,0,.30), 0 0 0 0.5px rgba(255,255,255,.22) inset, 0 1.5px 0 rgba(255,255,255,.44) inset;
+      --blur: blur(20px);
+      --blur-sm: blur(10px);
+      --blue: #0A84FF;
+      --green: #30D158;
+      --purple: #BF5AF2;
+      --pink: #FF375F;
+      --orange: #FF9F0A;
+      --red: #FF453A;
+      --teal: #5AC8FA;
+      --t1: rgba(255,255,255,0.95);
+      --t2: rgba(255,255,255,0.60);
+      --t3: rgba(255,255,255,0.35);
+      --divider: rgba(255,255,255,0.10);
+      --ease-s: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-o: cubic-bezier(0.16, 1, 0.3, 1);
+      --r-pill: 9999px;
+      --r-md: 14px;
+      --r-lg: 20px;
+      --r-xl: 28px;
+    }
+
+    /* ── BG ── */
+    .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse 80% 80% at 20% 20%, rgba(10,132,255,0.13), transparent),
+        radial-gradient(ellipse 60% 60% at 80% 80%, rgba(191,90,242,0.16), transparent),
+        linear-gradient(135deg, #050816 0%, #0a0f26 100%);
+    }
+    .blob { position: fixed; border-radius: 50%; filter: blur(70px); animation: blobFloat 10s ease-in-out infinite; pointer-events: none; z-index: 0; }
+    .b1 { width: 400px; height: 400px; top: -120px; left: -120px; background: radial-gradient(#0A84FF22, transparent 70%); }
+    .b2 { width: 340px; height: 340px; bottom: -80px; right: -60px; background: radial-gradient(#BF5AF225, transparent 70%); animation-delay: -4s; }
+    @keyframes blobFloat { 0%,100%{transform:translate(0,0)} 33%{transform:translate(25px,-18px)} 66%{transform:translate(-18px,12px)} }
+
+    /* ── NAV ── */
+    .nav-wrapper { position: sticky; top: 0; z-index: 200; padding: 12px 16px 0;
+      background: linear-gradient(to bottom, rgba(6,10,24,.85) 0%, transparent 100%);
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; height: 52px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: saturate(180%) blur(40px);
+      -webkit-backdrop-filter: saturate(180%) blur(40px);
+      border: 0.5px solid rgba(255,255,255,0.16);
+      border-radius: var(--r-xl);
+      box-shadow: var(--sh);
+    }
+    .doto { font-family: 'Doto', monospace; font-weight: 700; font-size: 18px; letter-spacing: .04em;
+      background: linear-gradient(125deg,#fff 0%,#e8eaf6 20%,#c5cae9 42%,#a5d8ff 62%,#e0cffc 80%,#fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-sub { font-size: 10px; color: var(--t3); font-weight: 500; margin-top: -1px; }
+    .status-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(48,209,88,0.14); border: 0.5px solid rgba(48,209,88,0.28);
+      border-radius: var(--r-pill); padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--green);
+    }
+    .dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+    /* ── LAYOUT ── */
+    .wrap { position: relative; z-index: 1; padding: 0 16px 80px; max-width: 680px; margin: 0 auto; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar-wrap { margin-bottom: 24px; }
+
+    /* ── Alliance buttons (rendered dynamically when schema has an alliance field) ── */
+    .alliance-btn {
+      padding: 10px; border-radius: var(--r-md); border: 1.5px solid transparent;
+      font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 200ms var(--ease-s); background: var(--glass); color: var(--t2);
+    }
+    .alliance-btn.red.selected { background: rgba(255,69,58,0.25); border-color: var(--red); color: var(--red); box-shadow: 0 0 20px rgba(255,69,58,0.2); }
+    .alliance-btn.blue.selected { background: rgba(10,132,255,0.25); border-color: var(--blue); color: var(--blue); box-shadow: 0 0 20px rgba(10,132,255,0.2); }
+    .alliance-btn:not(.selected):hover { background: var(--glass-h); color: var(--t1); }
+
+    /* ── Stars / Checkboxes (rendered dynamically) ── */
+    .pv-star { font-size: 28px; cursor: pointer; transition: transform 150ms var(--ease-s); color: rgba(255,255,255,.2); }
+    .pv-star.lit { color: var(--yellow); }
+    .pv-star:hover { transform: scale(1.2); }
+    .pv-check-btn { padding: 7px 14px; border-radius: var(--r-pill); border: 0.5px solid var(--border); background: var(--glass); font-family: inherit; font-size: 12px; font-weight: 600; color: var(--t2); cursor: pointer; transition: all 150ms; }
+    .pv-check-btn.checked { background: rgba(48,209,88,.18); border-color: rgba(48,209,88,.4); color: var(--green); }
+    .prog-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .prog-label span { font-size: 12px; font-weight: 600; color: var(--t2); }
+    .prog-label .pct { color: var(--blue); }
+    .prog { width: 100%; height: 5px; background: rgba(255,255,255,0.10); border-radius: var(--r-pill); overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: var(--r-pill); background: var(--blue); box-shadow: 0 0 8px rgba(10,132,255,.60); transition: width .5s var(--ease-o); }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 28px; animation: slideUp 300ms var(--ease-o) both; }
+    .section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); }
+    .section-line { flex: 1; height: 0.5px; background: var(--divider); }
+
+    /* ── FIELD CARD ── */
+    .field-card {
+      background: var(--glass); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
+      border: 0.5px solid var(--border); border-radius: var(--r-lg);
+      padding: 16px 18px; margin-bottom: 10px; box-shadow: var(--sh-sm);
+      transition: border-color 200ms, box-shadow 200ms;
+    }
+    .field-card.admin-filled { border-color: rgba(191,90,242,0.5); box-shadow: 0 0 0 1px rgba(191,90,242,0.2), var(--sh-sm); }
+    .field-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .field-label { font-size: 14px; font-weight: 500; color: var(--t1); }
+    .admin-badge { font-size: 10px; font-weight: 600; letter-spacing: .04em; color: var(--purple);
+      background: rgba(191,90,242,0.15); border: 0.5px solid rgba(191,90,242,0.3);
+      border-radius: var(--r-pill); padding: 2px 8px; }
+
+    /* ── COUNTER ── */
+    .counter { display: flex; align-items: center; gap: 0; }
+    .counter-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: 0.5px solid var(--border);
+      background: var(--glass-s); color: var(--t1); font-size: 22px; font-weight: 300;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 120ms var(--ease-s); user-select: none; -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+    .counter-btn:active { transform: scale(0.88); background: rgba(255,255,255,0.3); }
+    .counter-val {
+      flex: 1; text-align: center; font-size: 28px; font-weight: 700;
+      color: var(--t1); letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+    }
+    .counter-range { font-size: 11px; color: var(--t3); text-align: center; margin-top: 4px; }
+
+    /* ── SLIDER ── */
+    .slider-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-val { font-size: 22px; font-weight: 700; color: var(--t1); min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+    input[type=range] {
+      flex: 1; -webkit-appearance: none; appearance: none; height: 5px;
+      background: rgba(255,255,255,0.15); border-radius: 10px; outline: none;
+      accent-color: var(--blue);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.3); cursor: pointer;
+    }
+    .slider-ticks { display: flex; justify-content: space-between; padding: 0 2px; }
+    .slider-tick { font-size: 10px; color: var(--t3); }
+
+    /* ── TOGGLE ── */
+    .toggle-row { display: flex; align-items: center; gap: 14px; }
+    .toggle-track {
+      width: 52px; height: 30px; border-radius: var(--r-pill); background: rgba(255,255,255,0.14);
+      border: 0.5px solid var(--border); position: relative; cursor: pointer;
+      transition: background 220ms var(--ease-o); flex-shrink: 0;
+    }
+    .toggle-track.on { background: var(--green); border-color: transparent; }
+    .toggle-thumb {
+      width: 26px; height: 26px; background: white; border-radius: 50%;
+      position: absolute; top: 2px; left: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.30); transition: transform 220ms var(--ease-s);
+    }
+    .toggle-track.on .toggle-thumb { transform: translateX(22px); }
+    .toggle-status { font-size: 14px; color: var(--t2); }
+
+    /* ── TEXT INPUT ── */
+    .text-input {
+      font-family: inherit; font-size: 14px; color: var(--t1);
+      background: rgba(255,255,255,0.07); border: 0.5px solid var(--border); border-radius: var(--r-md);
+      padding: 10px 13px; width: 100%; outline: none; resize: vertical; min-height: 80px;
+      transition: background 200ms, border-color 200ms, box-shadow 200ms;
+    }
+    .text-input:focus { background: var(--glass-h); border-color: var(--blue); box-shadow: 0 0 0 3px rgba(10,132,255,.22); }
+
+    /* ── DROPDOWN ── */
+    .dropdown {
+      font-family: inherit; font-size: 14px; color: var(--t1);
+      background: var(--glass); border: 0.5px solid var(--border); border-radius: var(--r-md);
+      padding: 10px 13px; width: 100%; outline: none;
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+      box-shadow: var(--sh-sm);
+    }
+    .dropdown:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(10,132,255,.22), var(--sh-sm); }
+    .dropdown option { background: #1a1f36; color: white; }
+
+    /* ── NOTES ── */
+    .notes-field { margin-bottom: 20px; }
+    .notes-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--t3); margin-bottom: 8px; }
+    textarea.text-input { min-height: 90px; }
+
+    /* ── FIELD MAP ── */
+    .field-map-wrap {
+      margin-bottom: 24px; border-radius: var(--r-lg);
+      overflow: hidden; position: relative;
+      border: 0.5px solid var(--border);
+      box-shadow: var(--sh);
+      background: #0a0e20;
+    }
+    .field-map-inner { position: relative; display: block; width: 100%; }
+    .field-map-inner img { display: block; width: 100%; height: auto; user-select: none; pointer-events: none; }
+    .field-map-overlay { position: absolute; inset: 0; }
+    /* Zone highlight */
+    .fmap-zone {
+      position: absolute; border-radius: 8px; pointer-events: none;
+      transition: background 400ms, border-color 400ms, opacity 400ms;
+    }
+    .fmap-zone.active {
+      background: rgba(255,255,255,.08);
+      border: 2px solid rgba(255,255,255,.6);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.2);
+    }
+    .fmap-zone.inactive {
+      background: rgba(0,0,0,.45);
+      border: 2px solid rgba(255,255,255,.1);
+    }
+    .fmap-zone-label {
+      position: absolute; top: 5px; left: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: .04em;
+      pointer-events: none; text-shadow: 0 1px 4px rgba(0,0,0,.8);
+    }
+    /* Map buttons */
+    .fmap-btn {
+      position: absolute; transform: translate(-50%,-50%);
+      border-radius: 10px; color: white;
+      font-family: inherit; font-size: 13px; font-weight: 700;
+      padding: 10px 16px; border: 2px solid rgba(255,255,255,.3);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,.4);
+      transition: transform 120ms var(--ease-s), box-shadow 120ms;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fmap-btn:active { transform: translate(-50%,-50%) scale(0.9); }
+    .fmap-btn.hidden { display: none; }
+
+    /* ── SCORING MODAL ── */
+    .score-modal-backdrop {
+      position: fixed; inset: 0; z-index: 800;
+      background: rgba(5,8,22,.85); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 250ms;
+    }
+    .score-modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .score-modal {
+      width: calc(100% - 40px); max-width: 420px;
+      background: rgba(18,22,42,.98);
+      border: 0.5px solid rgba(255,255,255,.18);
+      border-radius: var(--r-xl);
+      box-shadow: 0 24px 80px rgba(0,0,0,.6);
+      padding: 24px;
+      transform: scale(0.92) translateY(20px);
+      transition: transform 280ms var(--ease-s);
+    }
+    .score-modal-backdrop.open .score-modal { transform: scale(1) translateY(0); }
+    .score-modal-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .score-modal-sub { font-size: 12px; color: var(--t3); margin-bottom: 20px; }
+    .score-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .score-action-btn {
+      padding: 16px 10px; border-radius: var(--r-md); border: 1.5px solid transparent;
+      font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 200ms var(--ease-s); text-align: center;
+      background: var(--glass); color: var(--t1);
+    }
+    .score-action-btn:hover { background: var(--glass-h); }
+    .score-action-btn:active { transform: scale(0.95); }
+    .score-action-btn.scored { background: rgba(48,209,88,.2); border-color: rgba(48,209,88,.5); color: var(--green); }
+    .score-action-btn.missed { background: rgba(255,69,58,.15); border-color: rgba(255,69,58,.35); color: var(--red); }
+    .score-modal-close {
+      width: 100%; padding: 12px; border-radius: var(--r-md); border: 0.5px solid var(--border);
+      background: var(--glass); color: var(--t2); font-family: inherit; font-size: 13px;
+      font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 150ms;
+    }
+    .score-modal-close:hover { background: var(--glass-h); color: var(--t1); }
+
+    /* ── EVENT LOG CHIP ── */
+    .event-log-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .event-chip {
+      font-size: 11px; font-weight: 600; padding: 3px 9px;
+      border-radius: var(--r-pill); background: rgba(255,255,255,.08);
+      border: 0.5px solid rgba(255,255,255,.14); color: var(--t2);
+      animation: popIn 200ms var(--ease-s);
+    }
+    @keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+
+    /* ── SUBMIT ── */
+    .submit-btn {
+      width: 100%; padding: 16px; border-radius: var(--r-xl); border: none; cursor: pointer;
+      font-family: inherit; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+      background: var(--blue); color: white;
+      box-shadow: 0 4px 20px rgba(10,132,255,.45), 0 1px 0 rgba(255,255,255,.20) inset;
+      transition: all 200ms var(--ease-s);
+    }
+    .submit-btn:hover { background: #3a9eff; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(10,132,255,.6), 0 1px 0 rgba(255,255,255,.20) inset; }
+    .submit-btn:active { transform: scale(0.97); }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .submit-btn.success { background: var(--green); box-shadow: 0 4px 20px rgba(48,209,88,.45); }
+
+    /* ── TOAST ── */
+    .toast-container { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .toast {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(28,28,32,0.95); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+      border: 0.5px solid var(--border); border-radius: var(--r-xl);
+      padding: 12px 18px; box-shadow: var(--sh-lg);
+      font-size: 13px; font-weight: 450; color: var(--t1);
+      animation: slideDown .4s cubic-bezier(0.34,1.56,0.64,1) both;
+      white-space: nowrap;
+    }
+    .toast.success { border-color: rgba(48,209,88,.35); }
+    .toast.error { border-color: rgba(255,69,58,.35); }
+    .toast.info { border-color: rgba(191,90,242,.35); }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(20px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+    /* ── CHAT BUBBLE ── */
+    .chat-fab {
+      position: fixed; bottom: 24px; right: 20px; z-index: 1000;
+      width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+      background: var(--blue); color: white;
+      box-shadow: 0 4px 20px rgba(10,132,255,.55), 0 1px 0 rgba(255,255,255,.20) inset;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 200ms var(--ease-s);
+      font-size: 22px;
+    }
+    .chat-fab:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(10,132,255,.65); }
+    .chat-fab:active { transform: scale(0.93); }
+    .chat-unread {
+      position: absolute; top: -4px; right: -4px;
+      width: 20px; height: 20px; background: var(--red); border-radius: 50%;
+      font-size: 11px; font-weight: 700; color: white;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #060a18; animation: popIn 300ms var(--ease-s);
+    }
+    @keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+
+    /* ── CHAT PANEL ── */
+    .chat-panel {
+      position: fixed; bottom: 90px; right: 20px; z-index: 999;
+      width: 320px; max-height: 420px;
+      background: rgba(18,22,42,0.97); backdrop-filter: saturate(180%) blur(40px); -webkit-backdrop-filter: saturate(180%) blur(40px);
+      border: 0.5px solid rgba(255,255,255,0.18); border-radius: var(--r-xl);
+      box-shadow: var(--sh-lg); display: flex; flex-direction: column;
+      transform-origin: bottom right;
+      transition: all 280ms var(--ease-o);
+    }
+    .chat-panel.hidden { opacity: 0; transform: scale(0.85) translateY(16px); pointer-events: none; }
+    .chat-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-bottom: 0.5px solid var(--divider);
+    }
+    .chat-title { font-size: 14px; font-weight: 600; color: var(--t1); display: flex; align-items: center; gap: 8px; }
+    .chat-title .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    .chat-close { background: none; border: none; color: var(--t3); cursor: pointer; font-size: 16px; padding: 2px; }
+    .chat-msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msgs::-webkit-scrollbar { width: 3px; }
+    .chat-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    .msg { display: flex; flex-direction: column; max-width: 82%; gap: 3px; }
+    .msg.mine { align-self: flex-end; align-items: flex-end; }
+    .msg.theirs { align-self: flex-start; }
+    .msg-from { font-size: 10px; font-weight: 600; color: var(--t3); letter-spacing: .02em; }
+    .msg.mine .msg-from { color: rgba(10,132,255,0.7); }
+    .msg-from.admin-from { color: rgba(191,90,242,0.8); }
+    .msg-bubble {
+      padding: 8px 12px; border-radius: 16px; font-size: 13px; line-height: 1.45; color: var(--t1);
+      background: rgba(255,255,255,0.10); border: 0.5px solid rgba(255,255,255,0.12);
+    }
+    .msg.mine .msg-bubble { background: var(--blue); border-color: transparent; }
+    .msg.admin .msg-bubble { background: rgba(191,90,242,0.2); border-color: rgba(191,90,242,0.3); }
+    .msg-time { font-size: 10px; color: var(--t3); }
+    .chat-input-row {
+      display: flex; gap: 8px; padding: 12px; border-top: 0.5px solid var(--divider);
+    }
+    .chat-input {
+      flex: 1; font-family: inherit; font-size: 13px; color: var(--t1);
+      background: rgba(255,255,255,0.08); border: 0.5px solid var(--border); border-radius: var(--r-pill);
+      padding: 8px 12px; outline: none;
+    }
+    .chat-input:focus { border-color: var(--blue); }
+    .chat-send {
+      width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+      background: var(--blue); color: white; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 150ms var(--ease-s); flex-shrink: 0;
+    }
+    .chat-send:hover { transform: scale(1.08); }
+    .chat-send:active { transform: scale(0.92); }
+
+    /* ── OFFLINE BANNER ── */
+    .offline-banner {
+      background: rgba(255,159,10,0.15); border: 0.5px solid rgba(255,159,10,0.3);
+      border-radius: var(--r-md); padding: 10px 14px; margin-bottom: 16px;
+      font-size: 13px; color: var(--orange); display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── LOADING ── */
+    .loading-state { text-align: center; padding: 60px 20px; color: var(--t3); font-size: 14px; }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* ── MISC ── */
+    .mt-16 { margin-top: 16px; }
+    .divider { height: 0.5px; background: var(--divider); margin: 28px 0; }
+
+    @media (max-width: 480px) {
+      .id-bar { grid-template-columns: 1fr 1fr; }
+      .chat-panel { width: calc(100vw - 32px); right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- NAV -->
+<div class="nav-wrapper">
+  <div class="wrap" style="padding-bottom:0">
+    <nav class="nav">
+      <div>
+        <div class="doto">NorthStar</div>
+        <div class="nav-sub">Scout Form · Team 935</div>
+      </div>
+      <div class="status-pill" id="conn-pill">
+        <div class="dot"></div><span id="conn-label">Connected</span>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap" style="margin-top:20px">
+    <div class="prog-label">
+      <span>Form Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- OFFLINE BANNER -->
+  <div class="offline-banner" id="offline-banner" style="display:none">
+    ⚠ Server unreachable — form is in offline mode. Data will be queued.
+  </div>
+
+  <!-- FIELD MAP (shown if field schema has zones) -->
+  <div id="field-map-container" style="display:none">
+    <div class="section-head" style="margin-bottom:10px">
+      <div class="section-label">Field Map</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="field-map-wrap">
+      <div class="field-map-inner" id="field-map-inner">
+        <img id="fmap-img" src="" alt="" style="display:none">
+        <div class="field-map-overlay" id="fmap-overlay"></div>
+      </div>
+    </div>
+    <div id="event-log-wrap" class="event-log-wrap"></div>
+  </div>
+
+  <!-- DYNAMIC FORM -->
+  <div id="form-container">
+    <div class="loading-state">
+      <div class="spinner"></div><br>Loading form schema…
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <button class="submit-btn" id="submit-btn" onclick="submitForm()" style="display:none">
+    Submit Scouting Data
+  </button>
+
+</div>
+
+<!-- SCORING MODAL -->
+<div class="score-modal-backdrop" id="score-modal-backdrop">
+  <div class="score-modal">
+    <div class="score-modal-title" id="score-modal-title">Score</div>
+    <div class="score-modal-sub" id="score-modal-sub">Select an outcome</div>
+    <div class="score-modal-actions" id="score-modal-actions"></div>
+    <button class="score-modal-close" onclick="closeScoreModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="Live Chat">
+  💬
+  <div class="chat-unread" id="chat-unread" style="display:none">0</div>
+</button>
+
+<!-- CHAT PANEL -->
+<div class="chat-panel hidden" id="chat-panel">
+  <div class="chat-head">
+    <div class="chat-title"><div class="dot"></div>Team Chat</div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs"></div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const BASE = 'http://localhost:3000';  // proxied through usb_server.py → Server.js:3000
+let schema = null;
+let fieldSchema = null; // field map schema
+let fieldValues = {};
+let adminFilledFields = new Set();
+let chatOpen = false;
+let chatMessages = [];
+let unreadCount = 0;
+let scouterName = localStorage.getItem('ns_scouter') || '';
+let offlineQueue = JSON.parse(localStorage.getItem('ns_queue') || '[]');
+let pollTimer = null;
+
+// Field map state
+let activeZoneId = null;   // currently active zone id
+let eventLog = [];         // [{time, label, zoneId}]
+
+// Stable anonymous ID so admin sees scouter even before they type their name
+const anonId = localStorage.getItem('ns_anon_id') || ('Scout-' + Math.random().toString(36).slice(2,6).toUpperCase());
+localStorage.setItem('ns_anon_id', anonId);
+
+function getScouterId() {
+  // Try to find a scouter identity field in fieldValues
+  const idField = schema?.fields?.find(f => f.isScouterId || f.varName === 'scouter_name' || f.varName === 'scouter_id' || f.varName === 'scouter');
+  if (idField && fieldValues[idField.varName]) return String(fieldValues[idField.varName]);
+  return scouterName || anonId;
+}
+
+function getMatchNum() {
+  const f = schema?.fields?.find(f => f.varName === 'match' || f.varName === 'match_num' || f.varName === 'match_number');
+
+  if (!f) {
+    // Try to infer match number from scouter name if it contains a pattern like "Match12" or "M12"
+    const match = scouterName.match(/(?:match|m)(\d+)/i);
+    if (match) return parseInt(match[1]);
+  }
+  return f ? (parseInt(fieldValues[f.varName]) || 0) : 0;
+}
+
+function getTeamNum() {
+  const f = schema?.fields?.find(f => f.varName === 'team' || f.varName === 'team_num' || f.varName === 'team_number');
+
+  if (!f) {
+    // Try to infer team number from scouter name if it contains a pattern like "Team935" or "T935"
+    const match = scouterName.match(/(?:team|t)(\d+)/i);
+    if (match) return parseInt(match[1]);
+  }
+  return f ? (parseInt(fieldValues[f.varName]) || 0) : 0;
+}
+
+function getAlliance() {
+  const f = schema?.fields?.find(f => f.varName === 'alliance');
+  if (!f) {
+    // Try to infer alliance from scouter name if it contains "Red" or "Blue"
+    if (/red/i.test(scouterName)) return 'Red';
+    if (/blue/i.test(scouterName)) return 'Blue';
+  }
+  return f ? (fieldValues[f.varName] || null) : null;
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function toast(msg, type = 'info', dur = 3000) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), dur);
+}
+
+function now() {
+  return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════
+// SCHEMA → FORM
+// ═══════════════════════════════════════
+async function loadSchema() {
+  startPolling();
+  pushProgress();
+
+  try {
+    const [schemaRes, fieldRes] = await Promise.all([
+      fetch(BASE + '/api/schema'),
+      fetch(BASE + '/api/field-schema').catch(() => null)
+    ]);
+
+    if (!schemaRes.ok) throw new Error('Schema fetch failed');
+    schema = await schemaRes.json();
+
+    if (fieldRes && fieldRes.ok) {
+      fieldSchema = await fieldRes.json();
+    } else {
+      // Try localStorage fallback
+      const saved = localStorage.getItem('ns_field_schema');
+      if (saved) try { fieldSchema = JSON.parse(saved); } catch {}
+    }
+
+    buildForm();
+    buildFieldMap();
+    setConnected(true);
+  } catch (e) {
+    setConnected(false);
+    const cached = localStorage.getItem('ns_schema');
+    if (cached) {
+      schema = JSON.parse(cached);
+      const savedFS = localStorage.getItem('ns_field_schema');
+      if (savedFS) try { fieldSchema = JSON.parse(savedFS); } catch {}
+      buildForm();
+      buildFieldMap();
+      toast('Using cached form (offline mode)', 'error');
+    } else {
+      document.getElementById('form-container').innerHTML = `
+        <div class="loading-state" style="color:var(--red)">
+          ✕ Cannot reach server and no cached form found.<br>
+          <span style="font-size:12px;color:var(--t3)">Make sure the Pi is running.</span>
+        </div>`;
+    }
+    return;
+  }
+  localStorage.setItem('ns_schema', JSON.stringify(schema));
+  if (fieldSchema) localStorage.setItem('ns_field_schema', JSON.stringify(fieldSchema));
+}
+
+function buildForm() {
+  if (!schema || !schema.fields || !schema.fields.length) return;
+
+  // Group fields
+  const groups = {};
+  const groupOrder = [];
+  schema.fields.forEach(f => {
+    const g = f.group || 'General';
+    if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
+    groups[g].push(f);
+    if (fieldValues[f.varName] === undefined) {
+      fieldValues[f.varName] = f.type === 'toggle' ? false
+        : f.type === 'text' ? ''
+        : f.type === 'dropdown' ? ''
+        : (f.min || 0);
+    }
+  });
+
+  // Sort groups
+  const priority = ['Pre-Match', 'Autonomous', 'Teleop', 'Endgame', 'General'];
+  const sorted = [...groupOrder].sort((a, b) => {
+    const ai = priority.indexOf(a), bi = priority.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1; if (bi === -1) return -1;
+    return ai - bi;
+  });
+
+  let html = '';
+  sorted.forEach(group => {
+    html += `<div class="section">
+      <div class="section-head">
+        <div class="section-label">${group}</div>
+        <div class="section-line"></div>
+      </div>`;
+    groups[group].forEach(f => { html += buildFieldCard(f); });
+    html += `</div>`;
+  });
+
+  document.getElementById('form-container').innerHTML = html;
+  document.getElementById('submit-btn').style.display = 'block';
+
+  // Restore scouter name field if present
+  const snField = schema.fields.find(f => f.varName === 'scouter_name' || f.varName === 'scouter_id' || f.varName === 'scouter');
+  if (snField && scouterName && !fieldValues[snField.varName]) {
+    fieldValues[snField.varName] = scouterName;
+  }
+
+  updateProgress();
+}
+
+function buildFieldCard(f) {
+  const isAdminFilled = adminFilledFields.has(f.varName);
+  return `
+    <div class="field-card${isAdminFilled ? ' admin-filled' : ''}" id="card-${f.varName}">
+      <div class="field-card-top">
+        <div class="field-label">${f.label}${f.required ? '<span style="color:var(--red);margin-left:3px">*</span>' : ''}</div>
+        ${isAdminFilled ? '<span class="admin-badge">Admin filled</span>' : ''}
+      </div>
+      ${buildFieldControl(f)}
+    </div>`;
+}
+
+function buildFieldControl(f) {
+  const v = fieldValues[f.varName];
+  switch (f.type) {
+    case 'counter': return `
+      <div class="counter">
+        <button class="counter-btn" onclick="counterStep('${f.varName}', -1, ${f.min??0}, ${f.max??99})">−</button>
+        <div class="counter-val" id="cv-${f.varName}">${v}</div>
+        <button class="counter-btn" onclick="counterStep('${f.varName}', 1, ${f.min??0}, ${f.max??99})">+</button>
+      </div>
+      <div class="counter-range">${f.min ?? 0} – ${f.max ?? 99}</div>`;
+
+    case 'slider': {
+      const ticks = [];
+      for (let i = f.min ?? 0; i <= (f.max ?? 10); i++) ticks.push(i);
+      return `
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input type="range" min="${f.min??0}" max="${f.max??10}" value="${v}" step="1"
+              id="sl-${f.varName}" oninput="sliderChange('${f.varName}', this.value)">
+            <div class="slider-val" id="slv-${f.varName}">${v}</div>
+          </div>
+          <div class="slider-ticks">${ticks.map(t => `<span class="slider-tick">${t}</span>`).join('')}</div>
+        </div>`;
+    }
+
+    case 'toggle': return `
+      <div class="toggle-row">
+        <div class="toggle-track${v ? ' on' : ''}" id="tgl-${f.varName}" onclick="toggleChange('${f.varName}')">
+          <div class="toggle-thumb"></div>
+        </div>
+        <div class="toggle-status" id="tgls-${f.varName}">${v ? (f.onLabel||'Yes') : (f.offLabel||'No')}</div>
+      </div>`;
+
+    case 'text': return `
+      <textarea class="text-input" id="txt-${f.varName}" placeholder="${escHtml(f.placeholder||'Enter text…')}"
+        oninput="fieldValues['${f.varName}']=this.value;updateProgress()">${v}</textarea>`;
+
+    case 'dropdown': {
+      const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options || [])).map(o => o.trim()).filter(Boolean);
+      // Special case: alliance field
+      if (f.varName === 'alliance') {
+        return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="alliance-btn red${v==='Red'?' selected':''}" onclick="allianceSet('${f.varName}','Red',this)">🔴 Red Alliance</button>
+          <button class="alliance-btn blue${v==='Blue'?' selected':''}" onclick="allianceSet('${f.varName}','Blue',this)">🔵 Blue Alliance</button>
+        </div>`;
+      }
+      return `<select class="dropdown" id="dd-${f.varName}" onchange="fieldValues['${f.varName}']=this.value;updateProgress()">
+        <option value="">— Select —</option>
+        ${opts.map(o => `<option value="${o}"${v===o?' selected':''}>${o}</option>`).join('')}
+      </select>`;
+    }
+
+    case 'rating': {
+      const max = f.max || 5;
+      const stars = Array.from({length: max}, (_,i) =>
+        `<span class="pv-star${(v||0) > i ? ' lit' : ''}"
+          onclick="ratingSet('${f.varName}',${i+1},${max})"
+          id="star-${f.varName}-${i+1}">★</span>`).join('');
+      return `<div style="display:flex;gap:6px;font-size:28px">${stars}</div>`;
+    }
+
+    case 'checkboxes': {
+      const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options || [])).map(o => o.trim()).filter(Boolean);
+      const sel = Array.isArray(v) ? v : [];
+      return `<div style="display:flex;flex-wrap:wrap;gap:8px">${opts.map(o =>
+        `<button class="pv-check-btn${sel.includes(o)?' checked':''}" onclick="checkboxToggle('${f.varName}','${o}',this)">${o}</button>`
+      ).join('')}</div>`;
+    }
+
+    case 'button': {
+      const btns = f.buttons || [];
+      return `<div style="display:flex;gap:8px;flex-wrap:wrap">${btns.map(b => {
+        const colorMap = { blue:'#0A84FF', green:'#30D158', purple:'#BF5AF2', pink:'#FF375F', orange:'#FF9F0A', teal:'#5AC8FA', red:'#FF453A', yellow:'#FFD60A' };
+        const hex = colorMap[b.color] || '#0A84FF';
+        return `<button class="score-action-btn" style="border-color:${hex}44;color:${hex};background:${hex}18"
+          onclick="buttonFieldTap('${f.varName}','${b.label}')">${b.label}</button>`;
+      }).join('')}</div>`;
+    }
+
+    default: return '';
+  }
+}
+
+// ═══════════════════════════════════════
+// FIELD CONTROLS
+// ═══════════════════════════════════════
+function counterStep(varName, delta, min, max) {
+  const cur = fieldValues[varName] ?? 0;
+  const nxt = Math.max(min, Math.min(max, cur + delta));
+  fieldValues[varName] = nxt;
+  const el = document.getElementById('cv-' + varName);
+  if (el) { el.textContent = nxt; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 120); }
+  pushProgress(); updateProgress();
+}
+
+function sliderChange(varName, val) {
+  fieldValues[varName] = +val;
+  const el = document.getElementById('slv-' + varName);
+  if (el) el.textContent = val;
+  updateProgress();
+}
+
+function toggleChange(varName) {
+  fieldValues[varName] = !fieldValues[varName];
+  const f = schema?.fields?.find(f => f.varName === varName);
+  const track = document.getElementById('tgl-' + varName);
+  const status = document.getElementById('tgls-' + varName);
+  if (track) track.classList.toggle('on', fieldValues[varName]);
+  if (status) status.textContent = fieldValues[varName] ? (f?.onLabel||'Yes') : (f?.offLabel||'No');
+  updateProgress();
+}
+
+function allianceSet(varName, val, btn) {
+  fieldValues[varName] = val;
+  // Update sibling buttons
+  btn.closest('div').querySelectorAll('.alliance-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateProgress();
+}
+
+function ratingSet(varName, n, max) {
+  fieldValues[varName] = n;
+  for (let i = 1; i <= max; i++) {
+    const el = document.getElementById(`star-${varName}-${i}`);
+    if (el) el.classList.toggle('lit', i <= n);
+  }
+  updateProgress();
+}
+
+function checkboxToggle(varName, opt, btn) {
+  if (!Array.isArray(fieldValues[varName])) fieldValues[varName] = [];
+  const arr = fieldValues[varName];
+  const idx = arr.indexOf(opt);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(opt);
+  btn.classList.toggle('checked', arr.includes(opt));
+  updateProgress();
+}
+
+function buttonFieldTap(varName, label) {
+  if (!Array.isArray(fieldValues[varName])) fieldValues[varName] = [];
+  fieldValues[varName].push({ label, time: now() });
+  pushProgress(); updateProgress();
+  toast(`Logged: ${label}`, 'success', 1500);
+}
+
+// ═══════════════════════════════════════
+// FIELD MAP
+// ═══════════════════════════════════════
+function buildFieldMap() {
+  const container = document.getElementById('field-map-container');
+  if (!fieldSchema || !fieldSchema.zones || !fieldSchema.zones.length || !fieldSchema.imageDataUrl) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  const img = document.getElementById('fmap-img');
+  img.src = fieldSchema.imageDataUrl;
+  img.style.display = 'block';
+
+  // Sort zones by order
+  const zones = [...fieldSchema.zones].sort((a,b) => (a.order??0) - (b.order??0));
+  // Set first zone as active if none set
+  if (!activeZoneId && zones.length) activeZoneId = zones[0].id;
+
+  renderFieldMap();
+}
+
+function renderFieldMap() {
+  const overlay = document.getElementById('fmap-overlay');
+  if (!fieldSchema || !overlay) return;
+
+  const zones = [...fieldSchema.zones].sort((a,b) => (a.order??0) - (b.order??0));
+  const colorMap = { blue:'#0A84FF', green:'#30D158', purple:'#BF5AF2', pink:'#FF375F', orange:'#FF9F0A', teal:'#5AC8FA', red:'#FF453A', yellow:'#FFD60A' };
+
+  let html = '';
+
+  // Draw zones
+  zones.forEach(z => {
+    const isActive = z.id === activeZoneId;
+    const c = colorMap[z.color] || '#ffffff';
+    const labelColor = isActive ? c : 'rgba(255,255,255,.3)';
+    html += `<div class="fmap-zone ${isActive ? 'active' : 'inactive'}"
+      style="left:${z.x*100}%;top:${z.y*100}%;width:${z.w*100}%;height:${z.h*100}%;
+      border-color:${isActive ? c : 'rgba(255,255,255,.12)'};
+      background:${isActive ? c+'18' : 'rgba(0,0,0,.4)'}">
+      <div class="fmap-zone-label" style="color:${labelColor}">${z.name}</div>
+    </div>`;
+  });
+
+  // Draw buttons (only show buttons in active zone)
+  fieldSchema.buttons.forEach(b => {
+    const isVisible = b.zoneId === activeZoneId;
+    const c = colorMap[b.color] || '#0A84FF';
+    html += `<button class="fmap-btn${isVisible ? '' : ' hidden'}"
+      style="left:${b.x*100}%;top:${b.y*100}%;background:${c}dd"
+      onclick="mapButtonTap('${b.id}')">
+      ${b.icon ? `<span style="margin-right:4px">${b.icon}</span>` : ''}${b.label}
+    </button>`;
+  });
+
+  overlay.innerHTML = html;
+}
+
+function mapButtonTap(btnId) {
+  const btn = fieldSchema?.buttons?.find(b => b.id === btnId);
+  if (!btn) return;
+
+  const label = btn.logLabel || btn.label;
+
+  if (btn.action === 'score') {
+    openScoreModal(btn);
+    return;
+  }
+
+  // Log the event
+  logMapEvent(label, btn.zoneId);
+
+  // Increment score field if specified
+  if (btn.scoreField && fieldValues[btn.scoreField] !== undefined) {
+    const cur = fieldValues[btn.scoreField] ?? 0;
+    fieldValues[btn.scoreField] = cur + 1;
+    const el = document.getElementById('cv-' + btn.scoreField);
+    if (el) { el.textContent = fieldValues[btn.scoreField]; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 120); }
+  }
+
+  // Advance zone
+  if (btn.nextZoneId) {
+    activeZoneId = btn.nextZoneId;
+    toast(`→ ${fieldSchema.zones.find(z=>z.id===btn.nextZoneId)?.name || 'Next Zone'}`, 'info', 1200);
+    renderFieldMap();
+  }
+
+  pushProgress(); updateProgress();
+}
+
+function logMapEvent(label, zoneId) {
+  const zone = fieldSchema?.zones?.find(z => z.id === zoneId);
+  const entry = { label, zoneId, zoneName: zone?.name || '', time: now() };
+  eventLog.push(entry);
+
+  // Also store in fieldValues as event_log array
+  if (!Array.isArray(fieldValues['_field_events'])) fieldValues['_field_events'] = [];
+  fieldValues['_field_events'].push(entry);
+
+  // Update event chip display
+  const wrap = document.getElementById('event-log-wrap');
+  if (wrap) {
+    const chip = document.createElement('div');
+    chip.className = 'event-chip';
+    chip.textContent = label;
+    wrap.appendChild(chip);
+  }
+
+  toast(`✓ ${label}`, 'success', 1000);
+}
+
+// ── Scoring modal ──
+let _scoreModalBtn = null;
+function openScoreModal(btn) {
+  _scoreModalBtn = btn;
+  document.getElementById('score-modal-title').textContent = btn.label;
+  document.getElementById('score-modal-sub').textContent = 'Choose an outcome to log';
+  const actions = document.getElementById('score-modal-actions');
+  actions.innerHTML = `
+    <button class="score-action-btn scored" onclick="scoreModalAction('Scored')">✓ Scored</button>
+    <button class="score-action-btn missed" onclick="scoreModalAction('Missed')">✗ Missed</button>
+  `;
+  document.getElementById('score-modal-backdrop').classList.add('open');
+}
+
+function scoreModalAction(outcome) {
+  if (!_scoreModalBtn) return;
+  const btn = _scoreModalBtn;
+  const label = `${btn.label}: ${outcome}`;
+  logMapEvent(label, btn.zoneId);
+
+  if (outcome === 'Scored' && btn.scoreField) {
+    const cur = fieldValues[btn.scoreField] ?? 0;
+    fieldValues[btn.scoreField] = cur + 1;
+    const el = document.getElementById('cv-' + btn.scoreField);
+    if (el) { el.textContent = fieldValues[btn.scoreField]; el.style.transform = 'scale(1.3)'; setTimeout(() => el.style.transform = '', 120); }
+  }
+
+  if (btn.nextZoneId) {
+    activeZoneId = btn.nextZoneId;
+    renderFieldMap();
+  }
+
+  closeScoreModal();
+  pushProgress(); updateProgress();
+}
+
+function closeScoreModal() {
+  document.getElementById('score-modal-backdrop').classList.remove('open');
+  _scoreModalBtn = null;
+}
+
+// ═══════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════
+function updateProgress() {
+  if (!schema) return;
+  let filled = 0;
+  const total = schema.fields.length;
+
+  schema.fields.forEach(f => {
+    const v = fieldValues[f.varName];
+    if (f.type === 'toggle') filled++;
+    else if (f.type === 'counter' || f.type === 'slider') { if (v !== (f.min ?? 0) || adminFilledFields.has(f.varName)) filled++; }
+    else if (f.type === 'checkboxes' || f.type === 'button') { if (Array.isArray(v) && v.length > 0) filled++; }
+    else if (v && v !== '') filled++;
+  });
+
+  const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('pct-label').textContent = pct + '%';
+
+  pushProgress();
+}
+
+// ═══════════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════════
+async function submitForm() {
+  const match = getMatchNum();
+  const team = getTeamNum();
+  const scouter = getScouterId();
+
+  if (!match || !team) { toast('Make sure Match # and Team # are filled in', 'error'); return; }
+
+  localStorage.setItem('ns_scouter', scouter);
+
+  const payload = { match, team, alliance: getAlliance(), scouter_id: scouter, ...fieldValues };
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch(BASE + '/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Submit failed');
+    btn.classList.add('success');
+    btn.textContent = '✓ Submitted!';
+    toast('Data submitted successfully!', 'success');
+    pushProgress(100);
+    setTimeout(() => resetForm(), 2200);
+  } catch (e) {
+    offlineQueue.push(payload);
+    localStorage.setItem('ns_queue', JSON.stringify(offlineQueue));
+    toast('Offline — saved locally. Will retry when connected.', 'error', 5000);
+    btn.disabled = false;
+    btn.textContent = 'Submit Scouting Data';
+  }
+}
+
+function resetForm() {
+  fieldValues = {};
+  adminFilledFields.clear();
+  eventLog = [];
+  lastPushPct = -1;
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = false; btn.classList.remove('success'); btn.textContent = 'Submit Scouting Data';
+
+  // Reset event log chips
+  const wrap = document.getElementById('event-log-wrap');
+  if (wrap) wrap.innerHTML = '';
+
+  // Reset field map to first zone
+  if (fieldSchema?.zones?.length) {
+    const sorted = [...fieldSchema.zones].sort((a,b) => (a.order??0)-(b.order??0));
+    activeZoneId = sorted[0].id;
+    renderFieldMap();
+  }
+
+  buildForm();
+  // Auto-advance match
+  const matchField = schema?.fields?.find(f => f.varName === 'match' || f.varName === 'match_num');
+  if (matchField) {
+    const prev = parseInt(fieldValues[matchField.varName]) || 0;
+    if (prev) {
+      fieldValues[matchField.varName] = prev + 1;
+    }
+  }
+  buildForm();
+  pushProgress();
+}
+
+// ═══════════════════════════════════════
+// OFFLINE QUEUE RETRY
+// ═══════════════════════════════════════
+async function retryQueue() {
+  if (!offlineQueue.length) return;
+  const item = offlineQueue[0];
+  try {
+    const res = await fetch(BASE + '/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+    if (res.ok) { offlineQueue.shift(); localStorage.setItem('ns_queue', JSON.stringify(offlineQueue)); toast(`Synced queued submission for Team ${item.team}`, 'success'); retryQueue(); }
+  } catch {}
+}
+
+// ═══════════════════════════════════════
+// PROGRESS PUSH
+// ═══════════════════════════════════════
+let lastPushPct = -1;
+async function pushProgress(forcePct) {
+  const match = getMatchNum();
+  const team = getTeamNum();
+  const scouterId = getScouterId();
+
+  let filled = 0;
+  const total = (schema?.fields?.length ?? 0);
+  if (schema) schema.fields.forEach(f => {
+    const v = fieldValues[f.varName];
+    if (f.type === 'toggle') filled++;
+    else if (v !== undefined && v !== '' && v !== (f.min ?? 0)) filled++;
+  });
+  const pct = forcePct ?? Math.round((total > 0 ? filled / total : 0) * 100);
+  if (pct === lastPushPct && forcePct === undefined) return;
+  lastPushPct = pct;
+
+  try {
+    await fetch(BASE + '/api/scout-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scouter_id: scouterId,
+        display_name: scouterId,
+        match, team, alliance: getAlliance(), pct, fieldValues
+      })
+    });
+  } catch {}
+}
+
+// ═══════════════════════════════════════
+// ADMIN FILL POLLING
+// ═══════════════════════════════════════
+function startPolling() {
+  if (pollTimer) return;
+  pollTimer = setInterval(pollForUpdates, 3000);
+  pollForUpdates();
+  setInterval(retryQueue, 30000);
+  setInterval(() => pushProgress(), 5000);
+}
+
+async function pollForUpdates() {
+  const scouterId = getScouterId();
+  try {
+    const res = await fetch(BASE + `/api/scout-updates?scouter_id=${encodeURIComponent(scouterId)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.fillFields && Object.keys(data.fillFields).length) {
+      let any = false;
+      Object.entries(data.fillFields).forEach(([varName, val]) => {
+        if (!adminFilledFields.has(varName) || fieldValues[varName] !== val) {
+          fieldValues[varName] = val;
+          adminFilledFields.add(varName);
+          any = true;
+        }
+      });
+      if (any) { toast('Admin filled some fields for you', 'info', 4000); buildForm(); }
+    }
+
+    if (data.messages && Array.isArray(data.messages)) {
+      const prevLen = chatMessages.length;
+      chatMessages = data.messages;
+      if (chatMessages.length > prevLen && !chatOpen) {
+        unreadCount += chatMessages.length - prevLen;
+        showUnread();
+      }
+      if (chatOpen) renderChat();
+    }
+
+    setConnected(true);
+  } catch {
+    setConnected(false);
+  }
+}
+
+// ═══════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const panel = document.getElementById('chat-panel');
+  panel.classList.toggle('hidden', !chatOpen);
+  if (chatOpen) {
+    unreadCount = 0;
+    document.getElementById('chat-unread').style.display = 'none';
+    renderChat();
+    setTimeout(() => document.getElementById('chat-input').focus(), 200);
+  }
+}
+
+function showUnread() {
+  const badge = document.getElementById('chat-unread');
+  badge.style.display = 'flex';
+  badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+}
+
+function renderChat() {
+  const container = document.getElementById('chat-msgs');
+  const myId = getScouterId();
+  container.innerHTML = chatMessages.map(m => {
+    const isMine = m.from === myId || m.role === 'self';
+    const isAdmin = m.role === 'admin';
+    return `<div class="msg ${isMine ? 'mine' : isAdmin ? 'admin' : 'theirs'}">
+      <div class="msg-from ${isAdmin ? 'admin-from' : ''}">${m.from}</div>
+      <div class="msg-bubble">${escHtml(m.text)}</div>
+      <div class="msg-time">${m.time || ''}</div>
+    </div>`;
+  }).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const myId = getScouterId();
+  input.value = '';
+  const msg = { role: 'scouter', from: myId, text, time: now() };
+  chatMessages.push(msg);
+  renderChat();
+  try {
+    await fetch(BASE + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
+  } catch {}
+}
+
+// ═══════════════════════════════════════
+// CONNECTION STATUS
+// ═══════════════════════════════════════
+function setConnected(ok) {
+  const pill = document.getElementById('conn-pill');
+  const label = document.getElementById('conn-label');
+  const banner = document.getElementById('offline-banner');
+  pill.style.background = ok ? 'rgba(48,209,88,0.14)' : 'rgba(255,69,58,0.14)';
+  pill.style.borderColor = ok ? 'rgba(48,209,88,0.28)' : 'rgba(255,69,58,0.28)';
+  pill.querySelector('.dot').style.background = ok ? 'var(--green)' : 'var(--red)';
+  label.textContent = ok ? 'Connected' : 'Offline';
+  banner.style.display = ok ? 'none' : 'flex';
+}
+
+// Close score modal on backdrop click
+document.getElementById('score-modal-backdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeScoreModal();
+});
+
+// ── BOOT ──
+loadSchema();
+</script>
+</body>
+</html>

@@ -59,36 +59,54 @@ const lightTokens = {
 }
 
 export default function App() {
-  const [userRole, setUserRole] = useState(null)
+  const [userRole, setUserRole] = useState(() => {
+    try { return sessionStorage.getItem('northstar_role') || null } catch { return null }
+  })
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [focused, setFocused] = useState(false)
-  const [dark, setDark] = useState(true)
+  const [dark, setDark] = useState(() => {
+    try { const s = localStorage.getItem('northstar_dark'); return s === null ? true : s === 'true' } catch { return true }
+  })
   const t = dark ? darkTokens : lightTokens
 
-  const logout = () => { setUserRole(null); setPassword(""); setError("") }
+  const setDarkPersist = (val) => {
+    setDark(val)
+    try { localStorage.setItem('northstar_dark', val) } catch {}
+  }
+
+  const logout = () => {
+    try { sessionStorage.removeItem('northstar_role') } catch {}
+    setUserRole(null); setPassword(""); setError("")
+  }
   const handleLogin = () => {
     const role = credentials[password]
-    if (role) { setUserRole(role); setError("") }
-    else setError("Incorrect access code.")
+    if (role) {
+      try { sessionStorage.setItem('northstar_role', role) } catch {}
+      setUserRole(role); setError("")
+    } else setError("Incorrect access code.")
+  }
+  const setGuestRole = () => {
+    try { sessionStorage.setItem('northstar_role', 'guest') } catch {}
+    setUserRole('guest')
   }
 
   if (userRole === "admin") return <AdminView onLogout={logout} />
 
   if (userRole === "scouter") return (
-    <ViewShell role="scouter" onLogout={logout} dark={dark} onToggleDark={() => setDark(d => !d)}>
+    <ViewShell role="scouter" onLogout={logout} dark={dark} onToggleDark={() => setDarkPersist(!dark)}>
       <ScouterView />
     </ViewShell>
   )
 
   if (userRole === "drive") return (
-    <ViewShell role="drive" onLogout={logout} dark={dark} onToggleDark={() => setDark(d => !d)}>
+    <ViewShell role="drive" onLogout={logout} dark={dark} onToggleDark={() => setDarkPersist(!dark)}>
       <DriveView />
     </ViewShell>
   )
 
   if (userRole === "guest") return (
-    <ViewShell role="guest" onLogout={logout} dark={dark} onToggleDark={() => setDark(d => !d)}>
+    <ViewShell role="guest" onLogout={logout} dark={dark} onToggleDark={() => setDarkPersist(!dark)}>
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 10, padding: "3rem", textAlign: "center", color: t.textMid, fontSize: 14 }}>
         Guest content renders here
       </div>
@@ -168,7 +186,7 @@ export default function App() {
         {/* Right panel — login */}
         <div style={{ width: 420, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 40px", position: "relative", background: t.bg }}>
           <button
-            onClick={() => setDark(d => !d)}
+            onClick={() => setDarkPersist(!dark)}
             style={{ position: "absolute", top: 20, right: 20, padding: "5px 12px", background: "transparent", border: `1px solid ${t.border2}`, borderRadius: 7, fontSize: 12, color: t.textMid, cursor: "pointer", fontFamily: "inherit" }}
           >
             {dark ? "☀ Light" : "☾ Dark"}
@@ -222,7 +240,7 @@ export default function App() {
             </div>
 
             <button
-              onClick={() => setUserRole("guest")}
+              onClick={() => setGuestRole()}
               style={{ width: "100%", padding: "11px", background: "transparent", border: `1px solid ${t.border2}`, borderRadius: 8, fontSize: 13, color: t.textMid, fontFamily: "inherit", cursor: "pointer", transition: "all 0.15s" }}
               onMouseEnter={e => { e.target.style.borderColor = t.border; e.target.style.color = t.text }}
               onMouseLeave={e => { e.target.style.borderColor = t.border2; e.target.style.color = t.textMid }}

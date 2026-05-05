@@ -1,0 +1,13 @@
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 1
+names: ['bumpers']
+
+roboflow:
+  workspace: 935scouting
+  project: 935scouting
+  version: dataset
+  license: Private
+  url: https://app.roboflow.com/935scouting/935scouting/dataset
