@@ -490,7 +490,7 @@
   </div>
 
   <!-- SUBMIT -->
-  <button class="submit-btn" id="submit-btn" onclick="submitForm()" style="display:none">
+  <button class="submit-btn" id="submit-btn" type="button" onclick="submitForm(event)" style="display:none">
     Submit Scouting Data
   </button>
 
@@ -502,12 +502,12 @@
     <div class="score-modal-title" id="score-modal-title">Score</div>
     <div class="score-modal-sub" id="score-modal-sub">Select an outcome</div>
     <div class="score-modal-actions" id="score-modal-actions"></div>
-    <button class="score-modal-close" onclick="closeScoreModal()">Cancel</button>
+    <button class="score-modal-close" type="button" onclick="closeScoreModal()">Cancel</button>
   </div>
 </div>
 
 <!-- CHAT FAB -->
-<button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="Live Chat">
+<button class="chat-fab" id="chat-fab" type="button" onclick="toggleChat()" title="Live Chat">
   💬
   <div class="chat-unread" id="chat-unread" style="display:none">0</div>
 </button>
@@ -516,12 +516,12 @@
 <div class="chat-panel hidden" id="chat-panel">
   <div class="chat-head">
     <div class="chat-title"><div class="dot"></div>Team Chat</div>
-    <button class="chat-close" onclick="toggleChat()">✕</button>
+    <button class="chat-close" type="button" onclick="toggleChat()">✕</button>
   </div>
   <div class="chat-msgs" id="chat-msgs"></div>
   <div class="chat-input-row">
     <input class="chat-input" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChat()">
-    <button class="chat-send" onclick="sendChat()">↑</button>
+    <button class="chat-send" type="button" onclick="sendChat()">↑</button>
   </div>
 </div>
 
@@ -556,36 +556,11 @@ function getScouterId() {
   return scouterName || anonId;
 }
 
-function getMatchNum() {
-  const f = schema?.fields?.find(f => f.varName === 'match' || f.varName === 'match_num' || f.varName === 'match_number');
-
-  if (!f) {
-    // Try to infer match number from scouter name if it contains a pattern like "Match12" or "M12"
-    const match = scouterName.match(/(?:match|m)(\d+)/i);
-    if (match) return parseInt(match[1]);
-  }
-  return f ? (parseInt(fieldValues[f.varName]) || 0) : 0;
-}
-
-function getTeamNum() {
-  const f = schema?.fields?.find(f => f.varName === 'team' || f.varName === 'team_num' || f.varName === 'team_number');
-
-  if (!f) {
-    // Try to infer team number from scouter name if it contains a pattern like "Team935" or "T935"
-    const match = scouterName.match(/(?:team|t)(\d+)/i);
-    if (match) return parseInt(match[1]);
-  }
-  return f ? (parseInt(fieldValues[f.varName]) || 0) : 0;
-}
-
-function getAlliance() {
-  const f = schema?.fields?.find(f => f.varName === 'alliance');
-  if (!f) {
-    // Try to infer alliance from scouter name if it contains "Red" or "Blue"
-    if (/red/i.test(scouterName)) return 'Red';
-    if (/blue/i.test(scouterName)) return 'Blue';
-  }
-  return f ? (fieldValues[f.varName] || null) : null;
+function readKnownMeta() {
+  const team = fieldValues.team ?? fieldValues.team_num ?? fieldValues.team_number ?? null;
+  const match = fieldValues.match ?? fieldValues.match_num ?? fieldValues.match_number ?? null;
+  const alliance = fieldValues.alliance ?? null;
+  return { team, match, alliance };
 }
 
 // ═══════════════════════════════════════
@@ -724,9 +699,9 @@ function buildFieldControl(f) {
   switch (f.type) {
     case 'counter': return `
       <div class="counter">
-        <button class="counter-btn" onclick="counterStep('${f.varName}', -1, ${f.min??0}, ${f.max??99})">−</button>
+        <button type="button" class="counter-btn" onclick="counterStep('${f.varName}', -1, ${f.min??0}, ${f.max??99})">−</button>
         <div class="counter-val" id="cv-${f.varName}">${v}</div>
-        <button class="counter-btn" onclick="counterStep('${f.varName}', 1, ${f.min??0}, ${f.max??99})">+</button>
+        <button type="button" class="counter-btn" onclick="counterStep('${f.varName}', 1, ${f.min??0}, ${f.max??99})">+</button>
       </div>
       <div class="counter-range">${f.min ?? 0} – ${f.max ?? 99}</div>`;
 
@@ -761,8 +736,8 @@ function buildFieldControl(f) {
       // Special case: alliance field
       if (f.varName === 'alliance') {
         return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="alliance-btn red${v==='Red'?' selected':''}" onclick="allianceSet('${f.varName}','Red',this)">🔴 Red Alliance</button>
-          <button class="alliance-btn blue${v==='Blue'?' selected':''}" onclick="allianceSet('${f.varName}','Blue',this)">🔵 Blue Alliance</button>
+          <button type="button" class="alliance-btn red${v==='Red'?' selected':''}" onclick="allianceSet('${f.varName}','Red',this)">🔴 Red Alliance</button>
+          <button type="button" class="alliance-btn blue${v==='Blue'?' selected':''}" onclick="allianceSet('${f.varName}','Blue',this)">🔵 Blue Alliance</button>
         </div>`;
       }
       return `<select class="dropdown" id="dd-${f.varName}" onchange="fieldValues['${f.varName}']=this.value;updateProgress()">
@@ -784,7 +759,7 @@ function buildFieldControl(f) {
       const opts = (typeof f.options === 'string' ? f.options.split(',') : (f.options || [])).map(o => o.trim()).filter(Boolean);
       const sel = Array.isArray(v) ? v : [];
       return `<div style="display:flex;flex-wrap:wrap;gap:8px">${opts.map(o =>
-        `<button class="pv-check-btn${sel.includes(o)?' checked':''}" onclick="checkboxToggle('${f.varName}','${o}',this)">${o}</button>`
+        `<button type="button" class="pv-check-btn${sel.includes(o)?' checked':''}" onclick="checkboxToggle('${f.varName}','${o}',this)">${o}</button>`
       ).join('')}</div>`;
     }
 
@@ -793,7 +768,7 @@ function buildFieldControl(f) {
       return `<div style="display:flex;gap:8px;flex-wrap:wrap">${btns.map(b => {
         const colorMap = { blue:'#0A84FF', green:'#30D158', purple:'#BF5AF2', pink:'#FF375F', orange:'#FF9F0A', teal:'#5AC8FA', red:'#FF453A', yellow:'#FFD60A' };
         const hex = colorMap[b.color] || '#0A84FF';
-        return `<button class="score-action-btn" style="border-color:${hex}44;color:${hex};background:${hex}18"
+        return `<button type="button" class="score-action-btn" style="border-color:${hex}44;color:${hex};background:${hex}18"
           onclick="buttonFieldTap('${f.varName}','${b.label}')">${b.label}</button>`;
       }).join('')}</div>`;
     }
@@ -912,7 +887,7 @@ function renderFieldMap() {
   fieldSchema.buttons.forEach(b => {
     const isVisible = b.zoneId === activeZoneId;
     const c = colorMap[b.color] || '#0A84FF';
-    html += `<button class="fmap-btn${isVisible ? '' : ' hidden'}"
+    html += `<button type="button" class="fmap-btn${isVisible ? '' : ' hidden'}"
       style="left:${b.x*100}%;top:${b.y*100}%;background:${c}dd"
       onclick="mapButtonTap('${b.id}')">
       ${b.icon ? `<span style="margin-right:4px">${b.icon}</span>` : ''}${b.label}
@@ -983,8 +958,8 @@ function openScoreModal(btn) {
   document.getElementById('score-modal-sub').textContent = 'Choose an outcome to log';
   const actions = document.getElementById('score-modal-actions');
   actions.innerHTML = `
-    <button class="score-action-btn scored" onclick="scoreModalAction('Scored')">✓ Scored</button>
-    <button class="score-action-btn missed" onclick="scoreModalAction('Missed')">✗ Missed</button>
+    <button type="button" class="score-action-btn scored" onclick="scoreModalAction('Scored')">✓ Scored</button>
+    <button type="button" class="score-action-btn missed" onclick="scoreModalAction('Missed')">✗ Missed</button>
   `;
   document.getElementById('score-modal-backdrop').classList.add('open');
 }
@@ -1042,16 +1017,15 @@ function updateProgress() {
 // ═══════════════════════════════════════
 // SUBMIT
 // ═══════════════════════════════════════
-async function submitForm() {
-  const match = getMatchNum();
-  const team = getTeamNum();
+async function submitForm(evt) {
+  evt?.preventDefault?.();
   const scouter = getScouterId();
 
-  if (!match || !team) { toast('Make sure Match # and Team # are filled in', 'error'); return; }
+  //if (!match || !team) { toast('Make sure Match # and Team # are filled in', 'error'); return; }
 
   localStorage.setItem('ns_scouter', scouter);
 
-  const payload = { match, team, alliance: getAlliance(), scouter_id: scouter, ...fieldValues };
+  const payload = { scouter_id: scouter, ...fieldValues };
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
@@ -1068,7 +1042,7 @@ async function submitForm() {
     btn.textContent = '✓ Submitted!';
     toast('Data submitted successfully!', 'success');
     pushProgress(100);
-    setTimeout(() => resetForm(), 2200);
+    setTimeout(() => resetForm(), 600);
   } catch (e) {
     offlineQueue.push(payload);
     localStorage.setItem('ns_queue', JSON.stringify(offlineQueue));
@@ -1099,15 +1073,6 @@ function resetForm() {
   }
 
   buildForm();
-  // Auto-advance match
-  const matchField = schema?.fields?.find(f => f.varName === 'match' || f.varName === 'match_num');
-  if (matchField) {
-    const prev = parseInt(fieldValues[matchField.varName]) || 0;
-    if (prev) {
-      fieldValues[matchField.varName] = prev + 1;
-    }
-  }
-  buildForm();
   pushProgress();
 }
 
@@ -1128,8 +1093,7 @@ async function retryQueue() {
 // ═══════════════════════════════════════
 let lastPushPct = -1;
 async function pushProgress(forcePct) {
-  const match = getMatchNum();
-  const team = getTeamNum();
+  const meta = readKnownMeta();
   const scouterId = getScouterId();
 
   let filled = 0;
@@ -1150,11 +1114,17 @@ async function pushProgress(forcePct) {
       body: JSON.stringify({
         scouter_id: scouterId,
         display_name: scouterId,
-        match, team, alliance: getAlliance(), pct, fieldValues
+        match: meta.match,
+        team: meta.team,
+        alliance: meta.alliance,
+        pct,
+        fieldValues
       })
     });
   } catch {}
 }
+
+window.addEventListener('submit', (e) => e.preventDefault());
 
 // ═══════════════════════════════════════
 // ADMIN FILL POLLING

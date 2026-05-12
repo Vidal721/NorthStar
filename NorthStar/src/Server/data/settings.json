@@ -1,0 +1,10 @@
+[
+  {
+    "teamNumber": "935",
+    "teamName": "RaileRobotics",
+    "adminRoles": ["coach", "lead"],
+    "rpiEnabled": true,
+    "backendUrl": "http://localhost:3000",
+    "mlBetaEnabled": false
+  }
+]

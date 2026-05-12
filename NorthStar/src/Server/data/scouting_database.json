@@ -6,5 +6,28 @@
     "notes": "Observations",
     "scouter_id": "Austin",
     "pre_name": 0
+  },
+  {
+    "scouter_id": "Scout-7PDA",
+    "scout_name": "Austin",
+    "new_rating": 3,
+    "new_toggle": true,
+    "new_text": "Text",
+    "new_dropdown": "Option A",
+    "new_checkboxes": [
+      "Option A"
+    ]
+  },
+  {
+    "scouter_id": "Scout-7PDA",
+    "scout_name": "Austin",
+    "new_rating": 3,
+    "new_toggle": true,
+    "new_text": "Text",
+    "new_dropdown": "Option B",
+    "new_checkboxes": [
+      "Option A",
+      "Option C"
+    ]
   }
 ]

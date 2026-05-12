@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faHouse, faUser, faGear, faGamepad, faGrip, faChartColumn, faSun, faMoon, faArrowUpFromBracket, faPlay, faPlus, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons'
 
 const FONTS = `
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap');
 `
 
 const ThemeCtx = createContext({ dark: true })
-const useTheme = () => useContext(ThemeCtx)
+//const useTheme = () => useContext(ThemeCtx)
 
 // ── Backend context ───────────────────────────────────────────
 const BackendCtx = createContext({ isBackend: false, backendUrl: 'http://localhost:3000' })
@@ -40,20 +42,29 @@ function saveToStorage(data) {
 function downloadJSON(data, filename) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click()
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click()
   URL.revokeObjectURL(url)
 }
 
 // ── Constants ─────────────────────────────────────────────────
 const ROLE_LABELS = { coach: 'Coach', lead: 'Lead Scout', assistant: 'Asst. Scout', scouter: 'Scouter' }
 
+if(BackendCtx.isBackend == true) {
+  console.log("Backend mode enabled - data will be fetched from backend API")
+};
+// TODO: Read these from backend or local JSON file
 const DEFAULT_SETTINGS = {
-  teamNumber: '4028', teamName: 'Bravely Bold',
+  teamNumber: '935', teamName: 'RaileRobotics',
   adminRoles: ['coach', 'lead'],
-  rpiEnabled: false,
+  rpiEnabled: true,
   backendUrl: 'http://localhost:3000',
+  mlBetaEnabled: false,
 }
 
+// TODO: Change this to work with RPI, and manage without backend
 const DEFAULT_USERS = {
   members: [
     { id: 1, name: 'Jordan Davis', username: 'jordan', role: 'lead', mins: 312, matches: 21, status: 'active', email: 'jordan@team4028.com' },
@@ -64,6 +75,7 @@ const DEFAULT_USERS = {
   nextId: 5,
 }
 
+// TODO: Clean up default data or functional data between sessions
 const DEFAULT_DATA = {
   games: [
     {
@@ -90,26 +102,48 @@ const DEFAULT_DATA = {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+// Returns the initials of the imported name
 function initials(n) {
   return (n || '').trim().split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase() || '??'
 }
-function uid() { return Math.random().toString(36).slice(2, 9) }
+
+function uid() {
+  return Math.random().toString(36).slice(2, 9)
+}
+
+function sanitizeVarName(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '')
+}
+
+function ensureFormulaModel(raw) {
+  const label = raw?.label || raw?.name || raw?.varName || 'New Formula'
+  const formula = raw?.formula || raw?.expression || ''
+  const varName = sanitizeVarName(raw?.varName || raw?.outputVar || label) || `metric_${uid()}`
+  return {
+    id: raw?.id || uid(),
+    label,
+    varName,
+    formula,
+    description: raw?.description || '',
+  }
+}
 
 // ── SVG Icons ─────────────────────────────────────────────────
+// TODO: replace the remaining hardcoded SVG icons with FontAwesome icons
 const Icon = ({ name, size = 16, color = 'currentColor' }) => {
   const icons = {
-    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
-    games: <><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></>,
-    account: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>,
-    matchdata: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14,2 14,8 20,8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10,9 9,9 8,9" /></>,
-    analytics: <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></>,
-    exports: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7,10 12,15 17,10" /><line x1="12" y1="15" x2="12" y2="3" /></>,
-    settings: <><circle cx="12" cy="12" r="3" /><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></>,
-    appmanager: <><rect x="2" y="3" width="7" height="7" rx="1" /><rect x="15" y="3" width="7" height="7" rx="1" /><rect x="2" y="14" width="7" height="7" rx="1" /><path d="M15 17.5h7M18.5 14v7" /></>,
-    plus: <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>,
-    logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16,17 21,12 16,7" /><line x1="21" y1="12" x2="9" y2="12" /></>,
-    sun: <><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></>,
-    moon: <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />,
+    dashboard: faHouse,
+    games: faGamepad,
+    account: faUser,
+    matchdata: faPlay,
+    analytics: faChartColumn,
+    exports: faArrowUpFromBracket,
+    settings: faGear,
+    appmanager: faGrip,
+    plus: faPlus,
+    logout: faArrowRightFromBracket,
+    sun: faSun,
+    moon: faMoon,
     trophy: <><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2z" /></>,
     check: <polyline points="20,6 9,17 4,12" />,
     trash: <><polyline points="3,6 5,6 21,6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></>,
@@ -128,27 +162,46 @@ const Icon = ({ name, size = 16, color = 'currentColor' }) => {
     upload: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17,8 12,3 7,8" /><line x1="12" y1="3" x2="12" y2="15" /></>,
   }
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      {icons[name]}
-    </svg>
+    <FontAwesomeIcon
+      icon={icons[name]}
+      style={{ fontSize: size, color: color }}
+    />
   )
 }
 
 // ── Theme tokens ──────────────────────────────────────────────
 function tokens(dark) {
   return dark ? {
-    bg: '#0a0a0a', surface: '#111111', surface2: '#181818',
-    border: '#222222', border2: '#2a2a2a',
-    text: '#f0f0f0', textMid: '#888888', textDim: '#444444', accent: '#f0f0f0',
-    blue: '#3b82f6', green: '#22c55e', amber: '#f59e0b',
-    red: '#ef4444', purple: '#a78bfa',
+    bg: '#0a0a0a', 
+    surface: '#111111', 
+    surface2: '#181818',
+    border: '#222222', 
+    border2: '#2a2a2a',
+    text: '#f0f0f0', 
+    textMid: '#888888', 
+    textDim: '#444444', 
+    accent: '#f0f0f0',
+    blue: '#3b82f6', 
+    green: '#22c55e', 
+    amber: '#f59e0b',
+    red: '#ef4444', 
+    purple: '#a78bfa',
     gradient: 'linear-gradient(135deg, #3b82f6 0%, #a78bfa 100%)',
   } : {
-    bg: '#f5f5f4', surface: '#ffffff', surface2: '#fafaf9',
-    border: '#e5e5e5', border2: '#d4d4d4',
-    text: '#111111', textMid: '#737373', textDim: '#a3a3a3', accent: '#111111',
-    blue: '#2563eb', green: '#16a34a', amber: '#d97706',
-    red: '#dc2626', purple: '#7c3aed',
+    bg: '#f5f5f4', 
+    surface: '#ffffff', 
+    surface2: '#fafaf9',
+    border: '#e5e5e5', 
+    border2: '#d4d4d4',
+    text: '#111111', 
+    textMid: '#737373', 
+    textDim: '#a3a3a3', 
+    accent: '#111111',
+    blue: '#2563eb', 
+    green: '#16a34a', 
+    amber: '#d97706',
+    red: '#dc2626', 
+    purple: '#7c3aed',
     gradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
   }
 }
@@ -261,6 +314,7 @@ function MetricCard({ label, value, sub, subColor, t }) {
 }
 
 // ── Form Builder (React) ──────────────────────────────────────
+// TODO: Changed to FontAwsome icons
 const FIELD_TYPES = [
   { type: 'counter', icon: '🔢', name: 'Counter', desc: '+/− integer value', color: '#3b82f6' },
   { type: 'slider', icon: '🎚', name: 'Slider', desc: 'Range with min/max', color: '#22c55e' },
@@ -273,7 +327,7 @@ const FIELD_TYPES = [
 ]
 
 function mkField(type) {
-  const base = { id: uid(), type, varName: `new_${type}`, label: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`, required: false, adminFillable: true }
+  const base = { id: uid(), type, varName: `new_${type}`, label: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`, required: false, adminFillable: true, displayInTable: true, useForTraining: false }
   switch (type) {
     case 'counter': return { ...base, min: 0, max: 10, step: 1, color: 'blue' }
     case 'slider': return { ...base, min: 0, max: 10, step: 1 }
@@ -287,6 +341,7 @@ function mkField(type) {
   }
 }
 
+// TODO: Convert to fontawsome icons
 function FieldInspector({ field, secId, sections, onUpdate, onUpdateSection, t }) {
   if (!field) return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: t.textDim, gap: 10 }}>
@@ -407,6 +462,14 @@ function FieldInspector({ field, secId, sections, onUpdate, onUpdateSection, t }
           <span style={{ fontSize: 12, color: t.textMid }}>Admin can fill remotely</span>
           <Toggle on={field.adminFillable !== false} onChange={v => upd('adminFillable', v)} t={t} />
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 12, color: t.textMid }}>Display in tables</span>
+          <Toggle on={field.displayInTable !== false} onChange={v => upd('displayInTable', v)} t={t} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 12, color: t.textMid }}>Use for ML training</span>
+          <Toggle on={!!field.useForTraining} onChange={v => upd('useForTraining', v)} t={t} />
+        </div>
       </div>
     </div>
   )
@@ -415,7 +478,7 @@ function FieldInspector({ field, secId, sections, onUpdate, onUpdateSection, t }
 function FormBuilder({ schema, onSchemaChange, t }) {
   const [sections, setSections] = useState(schema?.sections || [])
   const [selectedId, setSelectedId] = useState(null) // { fieldId, secId }
-  const [activeTab, setActiveTab] = useState('fields')
+  //const [activeTab, setActiveTab] = useState('fields')
 
   useEffect(() => {
     if (schema?.sections) setSections(schema.sections)
@@ -591,8 +654,9 @@ function CollectionPointsEditor({ points, onChange, t }) {
 }
 
 // ── Field Scouting Editor ─────────────────────────────────────
-const FS_COLORS_FS = ['blue', 'green', 'purple', 'pink', 'orange', 'teal', 'red', 'yellow']
-const FS_COLOR_HEX_FS = { blue: '#3b82f6', green: '#22c55e', purple: '#a78bfa', pink: '#f43f5e', orange: '#f97316', teal: '#06b6d4', red: '#ef4444', yellow: '#eab308' }
+const FS_COLORS_FS = ['blue', 'green', 'purple', 'pink', 'orange', 'teal', 'red', 'yellow', 'gray']
+const FS_COLOR_HEX_FS = { blue: '#3b82f6', green: '#22c55e', purple: '#a78bfa', pink: '#f43f5e', orange: '#f97316', teal: '#06b6d4', red: '#ef4444', yellow: '#eab308', gray: '#6b7280' }
+// TODO: Convert to fontawsome icons if possible
 const FS_ICONS_FS = {
   'Arrows': ['⬆', '⬇', '⬅', '➡', '↗', '↘', '↙', '↖', '↑', '↓', '←', '→', '⟳', '⟲', '↺', '↻'],
   'Game': ['🎯', '🏆', '⭐', '💥', '🔥', '⚡', '✅', '❌', '🚀', '🎮', '🏅', '🎖', '⚽', '🏀', '🏈', '🎱'],
@@ -671,6 +735,7 @@ function FieldScoutingEditor({ fieldSchema, onChange, initialImage, t }) {
   function patchBtn(id, key, val) { setSchema(s => ({ ...s, buttons: s.buttons.map(b => b.id === id ? { ...b, [key]: val } : b) })) }
 
   // Mouse drag for zones/buttons
+  // Is this really needed?
   const onZoneMouseDown = useCallback((e, id, type) => {
     if (e.target.dataset.action) return
     e.preventDefault()
@@ -944,46 +1009,135 @@ function FieldScoutingEditor({ fieldSchema, onChange, initialImage, t }) {
 }
 
 // ── Formulas editor ───────────────────────────────────────────
-function FormulasEditor({ formulas, collectionPoints, onChange, t }) {
-  const [form, setForm] = useState({ name: '', expression: '', description: '' })
+function FormulasEditor({ formulas, collectionPoints, schema, onChange, t }) {
+  const [form, setForm] = useState({ label: '', varName: '', formula: '', description: '' })
+  const [activeSuggestion, setActiveSuggestion] = useState(0)
+  const [query, setQuery] = useState('')
+  const [wordStart, setWordStart] = useState(null)
+  const textareaRef = useRef(null)
   const inp = { padding: '7px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${t.border2}`, background: t.surface2, color: t.text, fontFamily: 'inherit', outline: 'none' }
 
-  function add() {
-    if (!form.name || !form.expression) return
-    onChange([...formulas, { id: uid(), name: form.name, expression: form.expression, description: form.description }])
-    setForm({ name: '', expression: '', description: '' })
+  const schemaVars = (schema?.sections || []).flatMap(s => (s.fields || []).map(f => f.varName)).filter(Boolean)
+  const pointVars = (collectionPoints || []).map(p => sanitizeVarName(p.name)).filter(Boolean)
+  const formulaVars = (formulas || []).map(f => f.varName).filter(Boolean)
+  const allVars = [...new Set([...schemaVars, ...pointVars, ...formulaVars])]
+
+  const matches = query
+    ? allVars.filter(v => v.startsWith(query.toLowerCase())).slice(0, 8)
+    : []
+
+  useEffect(() => {
+    if (activeSuggestion >= matches.length) setActiveSuggestion(0)
+  }, [matches.length, activeSuggestion])
+
+  function updateComposerFormula(nextFormula, caretPos) {
+    setForm(p => ({ ...p, formula: nextFormula }))
+    const left = nextFormula.slice(0, caretPos)
+    const match = left.match(/[a-zA-Z_][a-zA-Z0-9_]*$/)
+    if (!match) {
+      setQuery('')
+      setWordStart(null)
+      return
+    }
+    setQuery(match[0].toLowerCase())
+    setWordStart(caretPos - match[0].length)
   }
 
-  const varNames = collectionPoints.map(p => p.name.toLowerCase().replace(/\s+/g, '_'))
+  function insertSuggestion(varName) {
+    const ta = textareaRef.current
+    if (!ta || wordStart == null) return
+    const start = wordStart
+    const end = ta.selectionStart
+    const next = form.formula.slice(0, start) + varName + form.formula.slice(end)
+    const nextCaret = start + varName.length
+    setForm(p => ({ ...p, formula: next }))
+    setQuery('')
+    setWordStart(null)
+    requestAnimationFrame(() => {
+      ta.focus()
+      ta.setSelectionRange(nextCaret, nextCaret)
+    })
+  }
+
+  function add() {
+    const cleanVar = sanitizeVarName(form.varName || form.label)
+    if (!form.label.trim() || !cleanVar || !form.formula.trim()) return
+    onChange([...formulas, {
+      id: uid(),
+      label: form.label.trim(),
+      varName: cleanVar,
+      formula: form.formula.trim(),
+      description: form.description.trim(),
+    }])
+    setForm({ label: '', varName: '', formula: '', description: '' })
+    setQuery('')
+    setWordStart(null)
+  }
 
   return (
     <div>
       <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 9, background: `${t.blue}12`, border: `1px solid ${t.blue}30` }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: t.blue, marginBottom: 4 }}>Available variables from Collection Points</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: t.blue, marginBottom: 4 }}>Detected variables from form + points + formulas</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-          {varNames.length === 0 && <span style={{ fontSize: 11, color: t.textDim }}>None yet — add collection points first</span>}
-          {varNames.map(v => <code key={v} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 5, background: t.surface2, border: `1px solid ${t.border2}`, color: t.green, fontFamily: "'JetBrains Mono', monospace" }}>{v}</code>)}
+          {allVars.length === 0 && <span style={{ fontSize: 11, color: t.textDim }}>None yet - add form fields or collection points first</span>}
+          {allVars.map(v => <code key={v} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 5, background: t.surface2, border: `1px solid ${t.border2}`, color: t.green, fontFamily: "'JetBrains Mono', monospace" }}>{v}</code>)}
         </div>
-        <div style={{ fontSize: 10, color: t.textDim, marginTop: 6 }}>Use these in expressions. Example: <code style={{ fontFamily: "'JetBrains Mono', monospace", color: t.purple }}>auto_high * 4 + tele_high * 2</code></div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 8, marginBottom: 8 }}>
-        <input style={inp} placeholder="Formula name (e.g. OPR estimate)" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
-        <input style={{ ...inp, fontFamily: "'JetBrains Mono', monospace", color: t.purple }} placeholder="Expression (e.g. auto_high * 4 + tele_high * 2)" value={form.expression} onChange={e => setForm(p => ({ ...p, expression: e.target.value }))} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+        <input style={inp} placeholder="Formula label (e.g. Auto Score)" value={form.label} onChange={e => setForm(p => ({ ...p, label: e.target.value, varName: p.varName || sanitizeVarName(e.target.value) }))} />
+        <input style={{ ...inp, fontFamily: "'JetBrains Mono', monospace", color: t.green }} placeholder="Output variable (e.g. auto_score)" value={form.varName} onChange={e => setForm(p => ({ ...p, varName: sanitizeVarName(e.target.value) }))} />
       </div>
+
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: t.textDim, marginBottom: 6 }}>Equation editor</div>
+        <div style={{ position: 'relative' }}>
+          <textarea
+            ref={textareaRef}
+            style={{ ...inp, width: '100%', minHeight: 96, resize: 'vertical', fontFamily: "'JetBrains Mono', monospace", color: t.purple, lineHeight: 1.5 }}
+            placeholder={'Type equation... Example:\n(auto_high * 4) + (tele_cubes * 2)'}
+            value={form.formula}
+            onChange={e => updateComposerFormula(e.target.value, e.target.selectionStart)}
+            onClick={e => updateComposerFormula(form.formula, e.target.selectionStart)}
+            onKeyUp={e => updateComposerFormula(form.formula, e.currentTarget.selectionStart)}
+            onKeyDown={e => {
+              if (!matches.length) return
+              if (e.key === 'ArrowDown') { e.preventDefault(); setActiveSuggestion(i => (i + 1) % matches.length) }
+              else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveSuggestion(i => (i - 1 + matches.length) % matches.length) }
+              else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertSuggestion(matches[activeSuggestion]) }
+              else if (e.key === 'Escape') { setQuery(''); setWordStart(null) }
+            }}
+          />
+          {matches.length > 0 && (
+            <div style={{ position: 'absolute', left: 8, right: 8, bottom: 8, background: t.surface, border: `1px solid ${t.border2}`, borderRadius: 8, boxShadow: '0 8px 20px rgba(0,0,0,0.25)', overflow: 'hidden', maxHeight: 180, overflowY: 'auto' }}>
+              {matches.map((m, idx) => (
+                <div
+                  key={m}
+                  onMouseDown={e => { e.preventDefault(); insertSuggestion(m) }}
+                  style={{ padding: '6px 10px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: idx === activeSuggestion ? t.blue : t.textMid, background: idx === activeSuggestion ? `${t.blue}14` : 'transparent', cursor: 'pointer' }}
+                >
+                  {m}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input style={{ ...inp, flex: 1 }} placeholder="Description (optional)" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
         <button onClick={add} style={{ padding: '7px 14px', background: t.purple, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>+ Add Formula</button>
       </div>
 
-      {formulas.length === 0 && <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: t.textDim, border: `1px dashed ${t.border2}`, borderRadius: 8 }}>No formulas yet. Build scoring calculations from your collection points.</div>}
+      {formulas.length === 0 && <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: t.textDim, border: `1px dashed ${t.border2}`, borderRadius: 8 }}>No formulas yet. Build scoring calculations from your configured form fields.</div>}
       {formulas.map(f => (
         <div key={f.id} style={{ padding: '10px 12px', borderRadius: 9, background: t.surface2, border: `1px solid ${t.border}`, marginBottom: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: f.description ? 4 : 0 }}>
-            <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: t.text }}>{f.name}</div>
-            <code style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: t.purple, background: `${t.purple}15`, padding: '2px 8px', borderRadius: 5 }}>{f.expression}</code>
+            <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: t.text }}>{f.label}</div>
+            <code style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: t.green, background: `${t.green}15`, padding: '2px 8px', borderRadius: 5 }}>{f.varName}</code>
             <button onClick={() => onChange(formulas.filter(x => x.id !== f.id))} style={{ background: 'none', border: 'none', color: t.red, cursor: 'pointer', fontSize: 14, padding: '0 4px', opacity: 0.7 }}>✕</button>
           </div>
+          <code style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: t.purple, display: 'block', marginBottom: f.description ? 4 : 0 }}>{f.formula}</code>
           {f.description && <div style={{ fontSize: 11.5, color: t.textDim }}>{f.description}</div>}
         </div>
       ))}
@@ -996,7 +1150,7 @@ function GameEditor({ game, onClose, onSave, t }) {
   const { isBackend, backendUrl } = useBackend()
   const [tab, setTab] = useState('form')
   const [schema, setSchema] = useState(game.formSchema || { sections: [], version: 1 })
-  const [formulas, setFormulas] = useState(game.formulas || [])
+  const [formulas, setFormulas] = useState((game.formulas || []).map(ensureFormulaModel))
   const [collectionPoints, setCollectionPoints] = useState(game.collectionPoints || [])
   const [fieldImage, setFieldImage] = useState(game.fieldImage || null)
   const [fieldSchema, setFieldSchema] = useState(game.fieldSchema || { imageDataUrl: game.fieldImage || null, imageW: 0, imageH: 0, zones: [], buttons: [] })
@@ -1014,13 +1168,23 @@ function GameEditor({ game, onClose, onSave, t }) {
           varName: f.varName, label: f.label, type: f.type,
           min: f.min, max: f.max, step: f.step, group: s.name,
           options: f.options, onLabel: f.onLabel, offLabel: f.offLabel,
+          displayInTable: f.displayInTable !== false,
+          useForTraining: !!f.useForTraining,
         })))
-        const reqs = [
-          apiFetch(backendUrl, '/api/schema', { method: 'PUT', body: JSON.stringify({ version: schema.version, fields: flatFields }) }),
-          apiFetch(backendUrl, '/api/field-schema', { method: 'PUT', body: JSON.stringify({ ...fieldSchema, imageDataUrl: imgUrl }) }),
-        ]
-        if (formulas.length) reqs.push(apiFetch(backendUrl, '/api/equations', { method: 'PUT', body: JSON.stringify(formulas) }))
-        await Promise.all(reqs)
+        const backendEquations = formulas.map(f => ({
+          id: f.id,
+          varName: f.varName,
+          label: f.label,
+          formula: f.formula,
+        }))
+        await apiFetch(backendUrl, '/api/sync', {
+          method: 'POST',
+          body: JSON.stringify({
+            schema: { version: schema.version, fields: flatFields },
+            equations: backendEquations,
+            fieldSchema: { ...fieldSchema, imageDataUrl: imgUrl },
+          })
+        })
         setSyncMsg('✓ Synced to RPi'); setTimeout(() => setSyncMsg(null), 3000)
       } catch (e) {
         setSyncMsg('⚠ Sync failed: ' + e.message); setTimeout(() => setSyncMsg(null), 4000)
@@ -1087,7 +1251,7 @@ function GameEditor({ game, onClose, onSave, t }) {
           <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginBottom: 4 }}>Scoring Formulas</div>
             <div style={{ fontSize: 12, color: t.textMid, marginBottom: 16 }}>Build calculated metrics from your collection point variables. Formulas are evaluated per match during analytics.</div>
-            <FormulasEditor formulas={formulas} collectionPoints={collectionPoints} onChange={setFormulas} t={t} />
+            <FormulasEditor formulas={formulas} schema={schema} collectionPoints={collectionPoints} onChange={setFormulas} t={t} />
           </div>
         )}
       </div>
@@ -1099,8 +1263,8 @@ function GameEditor({ game, onClose, onSave, t }) {
 function GameModal({ onClose, onCreate, t }) {
   const backend = useBackend();
 
-const backendUrl = backend?.backendUrl;
-const isBackend = backend?.isBackend;
+  const backendUrl = backend?.backendUrl;
+  const isBackend = backend?.isBackend;
   const [name, setName] = useState('')
   const [year, setYear] = useState(new Date().getFullYear())
   const [fieldImage, setFieldImage] = useState(null)
@@ -1349,35 +1513,17 @@ function PageDashboard({ users, data, onOpenModal, onSwitchPage, t }) {
   )
 }
 
-function PageGames({ onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }) {
-  const { isBackend, backendUrl } = useBackend()
-  const [games, setGames] = useState([]);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+function PageGames({ data, onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }) {
+  const games = data?.games || []
+  const [confirmDelete, setConfirmDelete] = useState(null)
 
-  // Load games from backend
-  useEffect(() => {
-    loadGames();
-  }, [backendUrl]);
-
-  async function loadGames() {
-    try {
-      const res = await apiFetch(backendUrl, '/api/main');
-      setGames(Array.isArray(res) ? res : []);
-    } catch (err) {
-      console.error('Failed to load games:', err);
-      setGames([]);
-    }
-  }
-
-  // Handle delete + refresh
   async function handleDelete(id) {
     try {
-      await onDeleteGame(id); // your existing delete logic (calls API)
-      await loadGames();      // refresh from backend
+      await onDeleteGame(id)
     } catch (err) {
-      console.error('Delete failed:', err);
+      console.error('Delete failed:', err)
     } finally {
-      setConfirmDelete(null);
+      setConfirmDelete(null)
     }
   }
 
@@ -1474,7 +1620,7 @@ function PageGames({ onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }
 
             {/* Edit */}
             <button
-              onClick={() => onEditGame(g.id)}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditGame(g.id) }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -1496,7 +1642,7 @@ function PageGames({ onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }
             {/* Set Active */}
             {g.status !== 'active' && (
               <button
-                onClick={() => onSetActiveGame(g.id)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSetActiveGame(g.id) }}
                 style={{
                   padding: '5px 11px',
                   background: 'transparent',
@@ -1517,7 +1663,7 @@ function PageGames({ onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }
               <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                 <span style={{ fontSize: 11, color: t.red }}>Delete?</span>
                 <button
-                  onClick={() => handleDelete(g.id)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(g.id) }}
                   style={{
                     padding: '4px 10px',
                     background: `${t.red}20`,
@@ -1533,7 +1679,7 @@ function PageGames({ onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }
                   Yes
                 </button>
                 <button
-                  onClick={() => setConfirmDelete(null)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmDelete(null) }}
                   style={{
                     padding: '4px 10px',
                     background: t.surface2,
@@ -1550,7 +1696,7 @@ function PageGames({ onOpenModal, onSetActiveGame, onEditGame, onDeleteGame, t }
               </div>
             ) : (
               <button
-                onClick={() => setConfirmDelete(g.id)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmDelete(g.id) }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1658,13 +1804,14 @@ function PageSettings({ settings, onSave, t }) {
   const [perUser, setPerUser] = useState(!!settings.perUserDashboard)
   const [rpiEnabled, setRpiEnabled] = useState(!!settings.rpiEnabled)
   const [backendUrl, setBackendUrl] = useState(settings.backendUrl || 'http://localhost:3000')
+  const [mlBetaEnabled, setMlBetaEnabled] = useState(!!settings.mlBetaEnabled)
   const [saved, setSaved] = useState(false)
   const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
   const inputStyle = { padding: '8px 12px', fontSize: 13, borderRadius: 9, border: `1px solid ${t.border2}`, background: t.surface2, color: t.text, outline: 'none', fontFamily: 'inherit', minWidth: 180 }
 
   function toggleRole(r) { setAdminRoles(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r]) }
   function handleSave() {
-    onSave({ ...settings, teamNumber, teamName, adminRoles, perUserDashboard: perUser, rpiEnabled, backendUrl })
+    onSave({ ...settings, teamNumber, teamName, adminRoles, perUserDashboard: perUser, rpiEnabled, backendUrl, mlBetaEnabled })
     setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
@@ -1787,6 +1934,9 @@ function PageSettings({ settings, onSave, t }) {
         </Section>
 
         <Section title="Data management" sub="Export or import your NorthStar data">
+          <Row label="ML (Beta)" sub="Enable data pipelines, prediction tools, and data chat in Drive view">
+            <Toggle on={mlBetaEnabled} onChange={setMlBetaEnabled} t={t} />
+          </Row>
           <Row label="Export all data" sub="Downloads games, users, and settings as JSON" last>
             <button onClick={() => downloadJSON({ settings, users: 'see separate export', games: 'see localStorage' }, 'northstar-export.json')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 9, fontSize: 12, color: t.textMid, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Icon name="download" size={14} color={t.textMid} /> Export JSON
@@ -1848,10 +1998,13 @@ function PageComp({ users, data, t }) {
   const [sortKey, setSortKey] = useState('rank')
   const [searchTerm, setSearchTerm] = useState('')
   const [toast, setToast] = useState(null)
+  const [selectedSubmission, setSelectedSubmission] = useState(null)
   const chatEndRef = useRef(null)
 
   const activeGame = data.games.find(g => g.status === 'active')
   const schemaFields = activeGame?.formSchema?.sections?.flatMap(s => s.fields) || []
+  const visibleTableFields = schemaFields.filter(f => f.displayInTable !== false)
+  const hiddenTableFields = schemaFields.filter(f => f.displayInTable === false)
   const me = users.members[0]
 
   function showToast(msg, color) {
@@ -2012,7 +2165,7 @@ function PageComp({ users, data, t }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 16px', borderRadius: 10, background: t.surface, border: `1px solid ${t.border}` }}>
               <span style={{ fontSize: 12.5, fontWeight: 600, color: t.text }}>Match Control</span>
               <input type="number" value={matchInput} onChange={e => setMatchInput(e.target.value)} style={{ ...inp, width: 70, textAlign: 'center', fontWeight: 700 }} min={1} max={200} />
-              <button onClick={setCurrentMatch} style={{ padding: '7px 14px', background: t.blue, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Set Match</button>
+              <button type="button" onClick={setCurrentMatch} style={{ padding: '7px 14px', background: t.blue, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Set Match</button>
               <span style={{ fontSize: 11.5, color: t.textDim }}>Current: Match {currentMatch} · broadcasts to all scouters</span>
             </div>
 
@@ -2037,7 +2190,7 @@ function PageComp({ users, data, t }) {
                     </div>
                     <div style={{ fontSize: 10.5, color: t.textDim, marginTop: 2, textAlign: 'right' }}>{s.pct || 0}%</div>
                   </div>
-                  <button onClick={() => openAdminFill(s.scouter_id, s.fieldValues)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: `${t.blue}18`, border: `1px solid ${t.blue}40`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: t.blue, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                  <button type="button" onClick={() => openAdminFill(s.scouter_id, s.fieldValues)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: `${t.blue}18`, border: `1px solid ${t.blue}40`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: t.blue, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
                     ✦ Fill
                   </button>
                 </div>
@@ -2049,7 +2202,7 @@ function PageComp({ users, data, t }) {
             <div style={{ borderRadius: 10, border: `1px solid ${t.border}`, overflow: 'hidden', background: t.surface }}>
               {matchData.length === 0 && <div style={{ padding: 20, fontSize: 12.5, color: t.textDim, textAlign: 'center' }}>No submissions yet.</div>}
               {matchData.slice(-5).reverse().map((row, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: i < Math.min(matchData.length, 5) - 1 ? `1px solid ${t.border}` : 'none' }}>
+                <div key={i} onClick={() => setSelectedSubmission(row)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: i < Math.min(matchData.length, 5) - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
                   <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: row.alliance === 'red' ? `${t.red}20` : `${t.blue}20`, color: row.alliance === 'red' ? t.red : t.blue }}>{row.alliance || '?'}</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: t.text }}>Team {row.team}</span>
                   <span style={{ fontSize: 12, color: t.textDim }}>Match {row.match}</span>
@@ -2066,7 +2219,7 @@ function PageComp({ users, data, t }) {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '12px 24px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, background: t.surface }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: t.text }}>{matchData.length} submissions</span>
-              <button onClick={() => downloadJSON(matchData, 'match-data.json')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 8, fontSize: 12, color: t.textMid, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button type="button" onClick={() => downloadJSON(matchData, 'match-data.json')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 8, fontSize: 12, color: t.textMid, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <Icon name="download" size={13} color={t.textMid} /> Export JSON
               </button>
             </div>
@@ -2077,14 +2230,14 @@ function PageComp({ users, data, t }) {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead style={{ position: 'sticky', top: 0, background: t.surface, zIndex: 1 }}>
                     <tr>
-                      {['#', 'Team', 'Match', 'Alliance', 'Scouter', ...schemaFields.map(f => f.label), 'Notes', ''].map((h, i) => (
+                      {['#', 'Team', 'Match', 'Alliance', 'Scouter', ...schemaFields.map(f => f.label), ''].map((h, i) => (
                         <th key={i} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10.5, fontWeight: 700, color: t.textDim, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: `1px solid ${t.border}`, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {matchData.map((row, idx) => (
-                      <tr key={idx} style={{ borderBottom: `1px solid ${t.border}` }}>
+                      <tr key={idx} style={{ borderBottom: `1px solid ${t.border}`, cursor: 'pointer' }} onClick={() => setSelectedSubmission(row)}>
                         <td style={{ padding: '9px 12px', color: t.textDim, fontSize: 11 }}>{idx + 1}</td>
                         <td style={{ padding: '9px 12px', fontWeight: 700, color: t.text }}>{row.team}</td>
                         <td style={{ padding: '9px 12px', color: t.textMid }}>{row.match}</td>
@@ -2093,11 +2246,12 @@ function PageComp({ users, data, t }) {
                         </td>
                         <td style={{ padding: '9px 12px', color: t.textDim, fontSize: 11 }}>{row.scouter_id}</td>
                         {schemaFields.map(f => (
-                          <td key={f.varName} style={{ padding: '9px 12px', color: t.text, fontVariantNumeric: 'tabular-nums' }}>{row[f.varName] ?? '—'}</td>
+                          <td key={f.varName} style={{ padding: '9px 12px', color: t.text, fontVariantNumeric: 'tabular-nums' }}>
+                            {f.displayInTable === false ? '...' : (row[f.varName] ?? '—')}
+                          </td>
                         ))}
-                        <td style={{ padding: '9px 12px', color: t.textDim, fontSize: 11, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.notes || '—'}</td>
                         <td style={{ padding: '9px 12px' }}>
-                          <button onClick={() => { if (confirm('Delete this submission?')) deleteSubmission(idx) }} style={{ background: 'none', border: 'none', color: t.red, cursor: 'pointer', opacity: 0.6, padding: '2px 4px' }}>
+                          <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirm('Delete this submission?')) deleteSubmission(idx) }} style={{ background: 'none', border: 'none', color: t.red, cursor: 'pointer', opacity: 0.6, padding: '2px 4px' }}>
                             <Icon name="trash" size={13} color={t.red} />
                           </button>
                         </td>
@@ -2198,6 +2352,49 @@ function PageComp({ users, data, t }) {
         )}
       </div>
 
+      {/* ── Submission Detail Modal ── */}
+      {selectedSubmission && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 780 }} onClick={() => setSelectedSubmission(null)}>
+          <div style={{ background: t.surface, border: `1px solid ${t.border2}`, borderRadius: 14, width: '100%', maxWidth: 760, maxHeight: '82vh', overflow: 'auto', padding: 20 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 16, fontFamily: "'Instrument Serif', serif", color: t.text }}>Submission Detail</div>
+                <div style={{ fontSize: 12, color: t.textMid }}>Team {selectedSubmission.team || '—'} · Match {selectedSubmission.match || '—'} · {selectedSubmission.scouter_id || 'Unknown'}</div>
+              </div>
+              <button onClick={() => setSelectedSubmission(null)} style={{ width: 28, height: 28, borderRadius: '50%', background: t.surface2, border: `1px solid ${t.border}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="x" size={14} color={t.textMid} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: t.textDim, textTransform: 'uppercase', marginBottom: 8 }}>Shown In Table</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 }}>
+                {visibleTableFields.map(f => (
+                  <div key={f.varName} style={{ border: `1px solid ${t.border}`, borderRadius: 8, background: t.surface2, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 10.5, color: t.textDim, marginBottom: 2 }}>{f.label}</div>
+                    <div style={{ fontSize: 12.5, color: t.text }}>{String(selectedSubmission[f.varName] ?? '—')}</div>
+                  </div>
+                ))}
+                {visibleTableFields.length === 0 && <div style={{ fontSize: 12, color: t.textDim }}>No fields configured for table display.</div>}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: t.textDim, textTransform: 'uppercase', marginBottom: 8 }}>Hidden In Table (Detailed View)</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 }}>
+                {hiddenTableFields.map(f => (
+                  <div key={f.varName} style={{ border: `1px solid ${t.border}`, borderRadius: 8, background: t.surface2, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 10.5, color: t.textDim, marginBottom: 2 }}>{f.label}</div>
+                    <div style={{ fontSize: 12.5, color: t.text }}>{String(selectedSubmission[f.varName] ?? '—')}</div>
+                  </div>
+                ))}
+                {hiddenTableFields.length === 0 && <div style={{ fontSize: 12, color: t.textDim }}>No hidden fields.</div>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Admin Fill Modal ── */}
       {adminFillScouter && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 800 }}>
@@ -2284,16 +2481,16 @@ export default function AdminView({ onLogout }) {
     return stored?.data || DEFAULT_DATA
   })
 
-    const onDeleteGame = async (id, e) => {
-      if (e) e.preventDefault()
-      // Update local state immediately (no reload)
-      setData(d => ({ ...d, games: d.games.filter(g => g.id !== id) }))
-      if (editGameId === id) setEditGameId(null)
-      // Also sync to backend if connected
-      try {
-        await apiFetch(settings.backendUrl || 'http://localhost:3000', `/api/main/${id}`, { method: 'DELETE' })
-      } catch { /* backend not required */ }
-    }
+  const onDeleteGame = async (id, e) => {
+    if (e) e.preventDefault()
+    // Update local state immediately (no reload)
+    setData(d => ({ ...d, games: d.games.filter(g => g.id !== id) }))
+    if (editGameId === id) setEditGameId(null)
+    // Also sync to backend if connected
+    try {
+      await apiFetch(settings.backendUrl || 'http://localhost:3000', `/api/main/${id}`, { method: 'DELETE' })
+    } catch { /* backend not required */ }
+  }
   // Auto-save on any state change
   useEffect(() => {
     saveToStorage({ settings, users, data })

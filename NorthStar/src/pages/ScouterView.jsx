@@ -71,66 +71,6 @@ const Icon = ({ name, size = 16, color = 'currentColor' }) => {
   )
 }
 
-// ── IFrame viewer ─────────────────────────────────────────────
-function ScoutingIFrame({ url, label, onClose, dark }) {
-  const t = tokens(dark)
-  const [closing, setClosing] = useState(false)
-
-  function handleClose() {
-    setClosing(true)
-    setTimeout(onClose, 220)
-  }
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 900,
-      background: t.bg,
-      animation: closing ? 'fadeOut 0.22s ease forwards' : 'fadeIn 0.18s ease forwards',
-    }}>
-      <style>{`
-        @keyframes fadeIn  { from { opacity: 0; transform: scale(0.98) } to { opacity: 1; transform: scale(1) } }
-        @keyframes fadeOut { from { opacity: 1; transform: scale(1) } to { opacity: 0; transform: scale(0.98) } }
-      `}</style>
-
-      {/* Minimal floating close strip — pinned to top-right, out of the way */}
-      <div style={{
-        position: 'absolute', top: 12, right: 14, zIndex: 910,
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '5px 10px 5px 12px',
-          background: dark ? 'rgba(17,17,17,0.88)' : 'rgba(255,255,255,0.88)',
-          backdropFilter: 'blur(12px)',
-          border: `1px solid ${t.border}`,
-          borderRadius: 99,
-          boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: t.textDim, letterSpacing: '0.04em', userSelect: 'none' }}>{label}</span>
-          <div style={{ width: 1, height: 14, background: t.border }} />
-          <button
-            onClick={handleClose}
-            style={{
-              width: 22, height: 22, borderRadius: '50%',
-              background: `${t.red}22`, border: `1px solid ${t.red}40`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: t.red, flexShrink: 0,
-            }}
-          >
-            <Icon name="x" size={11} color={t.red} />
-          </button>
-        </div>
-      </div>
-
-      <iframe
-        src={url}
-        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-        title={label}
-      />
-    </div>
-  )
-}
-
 // ── Stat pill ─────────────────────────────────────────────────
 function StatPill({ icon, label, value, t }) {
   return (
@@ -238,9 +178,9 @@ function SessionRow({ session, t }) {
 export default function ScouterView({ user, dark: initialDark = true, onLogout }) {
   const [dark, setDark] = useState(initialDark)
   const t = tokens(dark)
-  const [iframeMode, setIframeMode] = useState(null) // null | 'match' | 'pit'
 
   const currentUser = user || { name: 'Casey Rivera', role: 'scouter', mins: 198, matches: 15 }
+  const launch = (url) => { window.location.href = url }
 
   const recentSessions = [
     { type: 'match', label: 'Team 254 — Qualification 38', time: '12 min ago' },
@@ -324,7 +264,7 @@ export default function ScouterView({ user, dark: initialDark = true, onLogout }
               description="Log field actions, auto & teleop scoring, endgame results, and driver ratings during live matches."
               accentColor={t.blue}
               badgeLabel="Active"
-              onClick={() => setIframeMode('match')}
+              onClick={() => launch('http://localhost:3000/scout.html')}
               t={t}
             />
             <LaunchCard
@@ -333,7 +273,7 @@ export default function ScouterView({ user, dark: initialDark = true, onLogout }
               subtitle="Inspect robots in the pits"
               description="Record robot specs, drivetrain type, capabilities, and team notes between matches in the pit area."
               accentColor={t.purple}
-              onClick={() => setIframeMode('pit')}
+              onClick={() => launch('http://localhost:3000')}
               t={t}
             />
           </div>
@@ -352,23 +292,6 @@ export default function ScouterView({ user, dark: initialDark = true, onLogout }
         </div>
       </div>
 
-      {/* IFrame overlays */}
-      {iframeMode === 'match' && (
-        <ScoutingIFrame
-          url="http://localhost:3000/scout.html"
-          label="Match Scouting"
-          onClose={() => setIframeMode(null)}
-          dark={dark}
-        />
-      )}
-      {iframeMode === 'pit' && (
-        <ScoutingIFrame
-          url="http://localhost:3000"
-          label="Pit Scouting"
-          onClose={() => setIframeMode(null)}
-          dark={dark}
-        />
-      )}
     </>
   )
 }

@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "x92f9ml",
+    "varName": "n",
+    "label": "Test",
+    "formula": "new_counter+new_slider"
+  }
+]

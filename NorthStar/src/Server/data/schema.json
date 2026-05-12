@@ -1,4 +1,59 @@
 {
-  "version": 7,
-  "fields": []
+  "version": 29,
+  "fields": [
+    {
+      "varName": "scout_name",
+      "label": "Name",
+      "type": "text",
+      "group": "Section 1",
+      "displayInTable": true
+    },
+    {
+      "varName": "new_rating",
+      "label": "New Rating",
+      "type": "rating",
+      "max": 5,
+      "group": "Section 1",
+      "displayInTable": true
+    },
+    {
+      "varName": "new_toggle",
+      "label": "New Toggle",
+      "type": "toggle",
+      "group": "Section 1",
+      "onLabel": "Yes",
+      "offLabel": "No",
+      "displayInTable": true
+    },
+    {
+      "varName": "new_text",
+      "label": "New Text",
+      "type": "text",
+      "group": "Section 1",
+      "displayInTable": true
+    },
+    {
+      "varName": "new_dropdown",
+      "label": "New Dropdown",
+      "type": "dropdown",
+      "group": "Section 1",
+      "options": [
+        "Option A",
+        "Option B"
+      ],
+      "displayInTable": true
+    },
+    {
+      "varName": "new_checkboxes",
+      "label": "New Checkboxes",
+      "type": "checkboxes",
+      "group": "Section 1",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C"
+      ],
+      "displayInTable": true
+    }
+  ]
 }

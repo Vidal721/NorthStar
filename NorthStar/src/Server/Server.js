@@ -30,16 +30,16 @@ const dirs = [__dirname, path.join(__dirname, 'public'), path.join(__dirname, '.
 app.get('/admin', (req, res) => sendFirst(res, ...dirs.map(d => path.join(d, 'index.html'))));
 app.get('/scout', (req, res) => sendFirst(res, ...dirs.map(d => path.join(d, 'scout.html'))));
 
-const DATA_FILE         = path.join(__dirname, 'data/scouting_database.json');
-const SCHEMA_FILE       = path.join(__dirname, 'data/schema.json');
-const EQUATIONS_FILE    = path.join(__dirname, 'data/equations.json');
+const DATA_FILE = path.join(__dirname, 'data/scouting_database.json');
+const SCHEMA_FILE = path.join(__dirname, 'data/schema.json');
+const EQUATIONS_FILE = path.join(__dirname, 'data/equations.json');
 const FIELD_SCHEMA_FILE = path.join(__dirname, 'data/field_schema.json');
-const MAIN_DATA         = path.join(__dirname, 'data/main.json');
+const MAIN_DATA = path.join(__dirname, 'data/main.json');
 
 // ── In-Memory Real-Time State ────────────────────────────
 const scouterProgress = {};  // scouter_id → { match, team, alliance, pct, fieldValues, lastSeen }
-const pendingFills    = {};  // scouter_id → { varName: value, ... }
-const chatLog         = [];  // [{ role, from, text, time }]  — last 100 msgs
+const pendingFills = {};  // scouter_id → { varName: value, ... }
+const chatLog = [];  // [{ role, from, text, time }]  — last 100 msgs
 
 // ── Helpers ──────────────────────────────────────────────
 function readJSON(file, fallback = []) {
@@ -86,7 +86,7 @@ app.get('/api/field-schema', (req, res) => {
 
 app.put('/api/field-schema', (req, res) => {
   writeJSON(FIELD_SCHEMA_FILE, req.body);
-  console.log(`[FIELD-SCHEMA] Saved: ${(req.body.zones||[]).length} zones, ${(req.body.buttons||[]).length} buttons`);
+  console.log(`[FIELD-SCHEMA] Saved: ${(req.body.zones || []).length} zones, ${(req.body.buttons || []).length} buttons`);
   res.json({ ok: true });
 });
 
@@ -96,12 +96,12 @@ app.get('/api/schema', (req, res) => {
   const schema = readJSON(SCHEMA_FILE, {
     version: 1,
     fields: [
-      { varName: 'auto_high',      label: 'Auto High Goals',   type: 'counter', min: 0, max: 6,  group: 'Autonomous' },
-      { varName: 'auto_low',       label: 'Auto Low Goals',    type: 'counter', min: 0, max: 6,  group: 'Autonomous' },
-      { varName: 'tele_cubes',     label: 'Teleop Cubes',      type: 'counter', min: 0, max: 20, group: 'Teleop' },
-      { varName: 'tele_cones',     label: 'Teleop Cones',      type: 'counter', min: 0, max: 20, group: 'Teleop' },
-      { varName: 'climb_level',    label: 'Climb Level (0–3)', type: 'counter', min: 0, max: 3,  group: 'Endgame' },
-      { varName: 'defense_rating', label: 'Defense Rating',    type: 'slider',  min: 0, max: 5,  group: 'Teleop' },
+      { varName: 'auto_high', label: 'Auto High Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
+      { varName: 'auto_low', label: 'Auto Low Goals', type: 'counter', min: 0, max: 6, group: 'Autonomous' },
+      { varName: 'tele_cubes', label: 'Teleop Cubes', type: 'counter', min: 0, max: 20, group: 'Teleop' },
+      { varName: 'tele_cones', label: 'Teleop Cones', type: 'counter', min: 0, max: 20, group: 'Teleop' },
+      { varName: 'climb_level', label: 'Climb Level (0–3)', type: 'counter', min: 0, max: 3, group: 'Endgame' },
+      { varName: 'defense_rating', label: 'Defense Rating', type: 'slider', min: 0, max: 5, group: 'Teleop' },
     ]
   });
   res.json(schema);
@@ -110,12 +110,12 @@ app.get('/api/schema', (req, res) => {
 app.put('/api/schema', (req, res) => {
   const newSchema = req.body;
   const oldSchema = readJSON(SCHEMA_FILE, { fields: [] });
-  const rawData   = readJSON(DATA_FILE, []);
+  const rawData = readJSON(DATA_FILE, []);
 
   const oldFields = new Set(oldSchema.fields.map(f => f.varName));
   const newFields = new Set(newSchema.fields.map(f => f.varName));
-  const removed   = [...oldFields].filter(v => !newFields.has(v));
-  const added     = newSchema.fields.filter(f => !oldFields.has(f.varName));
+  const removed = [...oldFields].filter(v => !newFields.has(v));
+  const added = newSchema.fields.filter(f => !oldFields.has(f.varName));
 
   const migrated = rawData.map(row => {
     const updated = { ...row };
@@ -128,17 +128,17 @@ app.put('/api/schema', (req, res) => {
   writeJSON(SCHEMA_FILE, newSchema);
   writeJSON(DATA_FILE, migrated);
 
-  console.log(`Schema → v${newSchema.version}. Removed: [${removed.join(', ')}] Added: [${added.map(f=>f.varName).join(', ')}]`);
-  res.json({ ok: true, version: newSchema.version, removed, added: added.map(f=>f.varName), rowsUpdated: migrated.length });
+  console.log(`Schema → v${newSchema.version}. Removed: [${removed.join(', ')}] Added: [${added.map(f => f.varName).join(', ')}]`);
+  res.json({ ok: true, version: newSchema.version, removed, added: added.map(f => f.varName), rowsUpdated: migrated.length });
 });
 
 // ── Equations API ────────────────────────────────────────
 
 app.get('/api/equations', (req, res) => {
   res.json(readJSON(EQUATIONS_FILE, [
-    { id: 'eq1', varName: 'total_score',  label: 'Total Score',  formula: '(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)' },
-    { id: 'eq2', varName: 'climb_pts',   label: 'Climb Points', formula: 'climb_level * 6' },
-    { id: 'eq3', varName: 'climb_status',label: 'Climb Status', formula: 'if (climb_level === 0) return "None"; if (climb_level === 1) return "Low"; if (climb_level === 2) return "Mid"; return "High";' },
+    { id: 'eq1', varName: 'total_score', label: 'Total Score', formula: '(auto_high * 4) + (auto_low * 2) + (tele_cubes * 2) + (tele_cones * 1)' },
+    { id: 'eq2', varName: 'climb_pts', label: 'Climb Points', formula: 'climb_level * 6' },
+    { id: 'eq3', varName: 'climb_status', label: 'Climb Status', formula: 'if (climb_level === 0) return "None"; if (climb_level === 1) return "Low"; if (climb_level === 2) return "Mid"; return "High";' },
   ]));
 });
 
@@ -233,14 +233,14 @@ app.delete('/api/main/:id', (req, res) => {
 // ── Scouting Data API ────────────────────────────────────
 
 app.get('/api/data', (req, res) => {
-  const raw       = readJSON(DATA_FILE, []);
+  const raw = readJSON(DATA_FILE, []);
   const equations = readJSON(EQUATIONS_FILE, []);
   res.json(raw.map(row => applyEquations(row, equations)));
 });
 
 app.post('/api/data', (req, res) => {
-  const raw        = readJSON(DATA_FILE, []);
-  const schema     = readJSON(SCHEMA_FILE, { fields: [] });
+  const raw = readJSON(DATA_FILE, []);
+  const schema = readJSON(SCHEMA_FILE, { fields: [] });
   const submission = req.body;
 
   const validFields = new Set(['team', 'match', 'alliance', 'notes', 'scouter_id', ...schema.fields.map(f => f.varName)]);
@@ -256,7 +256,7 @@ app.post('/api/data', (req, res) => {
 // DELETE a single submission by index
 app.delete('/api/data/:id', (req, res) => {
   const raw = readJSON(DATA_FILE, []);
-  const id  = parseInt(req.params.id);
+  const id = parseInt(req.params.id);
   if (isNaN(id) || id < 0 || id >= raw.length) return res.status(404).json({ error: 'Not found' });
   raw.splice(id, 1);
   writeJSON(DATA_FILE, raw);
@@ -266,8 +266,8 @@ app.delete('/api/data/:id', (req, res) => {
 // ── Picklist API ─────────────────────────────────────────
 
 app.get('/api/picklist', (req, res) => {
-  const raw            = readJSON(DATA_FILE, []);
-  const equations      = readJSON(EQUATIONS_FILE, []);
+  const raw = readJSON(DATA_FILE, []);
+  const equations = readJSON(EQUATIONS_FILE, []);
   const equations_list = equations;
 
   const teamMap = {};
@@ -298,9 +298,9 @@ app.get('/api/picklist', (req, res) => {
 
 // ── Per-team match history ───────────────────────────────
 app.get('/api/team/:team/history', (req, res) => {
-  const raw       = readJSON(DATA_FILE, []);
+  const raw = readJSON(DATA_FILE, []);
   const equations = readJSON(EQUATIONS_FILE, []);
-  const teamRows  = raw
+  const teamRows = raw
     .filter(r => String(r.team) === String(req.params.team))
     .map(r => applyEquations(r, equations))
     .sort((a, b) => a.match - b.match);
@@ -397,7 +397,7 @@ app.get('/api/health', (req, res) => {
 
 // ── Server ───────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n  ╔══════════════════════════════════════╗`);
   console.log(`  ║   NorthStar · Team 935 Scout Hub     ║`);
   console.log(`  ║   http://localhost:${PORT}              ║`);
