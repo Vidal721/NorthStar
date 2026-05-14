@@ -1,299 +1,614 @@
+"""
+bumper_detector.py  —  FRC Robot Tracker with Claude Vision Bumper ID
+======================================================================
+
+Key design:
+  • Every frame: darken the full image, then draw bright bounding boxes
+    around each detected robot — nothing else is bright.
+  • Each robot crop is sent to Claude Vision (claude-sonnet-4-20250514) to
+    read the bumper number.  Calls are rate-limited to once every N frames
+    per robot so the API isn't hammered.
+  • Global registry: max 6 robots.  Identity is first established by bumper
+    number (1-9999); if no number is readable the robot gets an auto-ID
+    (A, B, C …).  When a new detection doesn't match any live robot by
+    position+appearance AND we're under the cap, a new slot is created.
+  • Across frames, robots are matched with Hungarian assignment using a
+    combined spatial + visual-embedding cost (same as before, but simplified
+    and documented).
+
+Controls
+--------
+  Q          quit
+  Space      pause / resume
+  C          clear all tracks
+  P          print registry summary to console
+
+Requirements
+------------
+  pip install opencv-python ultralytics filterpy scipy anthropic numpy
+  export ANTHROPIC_API_KEY=sk-ant-...
+"""
+
+import os
 import cv2
+import time
+import base64
+import threading
 import numpy as np
 from ultralytics import YOLO
 from filterpy.kalman import KalmanFilter
 from scipy.optimize import linear_sum_assignment
+from collections import deque
+'''import anthropic'''
 
-# =====================
+# ──────────────────────────────────────────────────────────────
 # CONFIG
-# =====================
-MODEL_PATH   = "best.pt"
-VIDEO_PATH   = "video.mp4"
-FIELD_IMAGE  = "field.png"
+# ──────────────────────────────────────────────────────────────
+MODEL_PATH  = "best.pt"
+VIDEO_PATH  = "video.mp4"
 
-CONF           = 0.15
-MAX_DET        = 10
-MIN_HITS       = 3
-TRAIL_LEN      = 90
-MAX_MISSING    = 30
-MATCH_DISTANCE = 90
-MAX_ROBOTS     = 6
+CONF        = 0.15
+MAX_DET     = 12
+MIN_HITS    = 3        # frames before a new track is "confirmed"
+MAX_MISSING = 45       # frames a confirmed robot can be invisible before removal
+MAX_ROBOTS  = 6        # hard cap — FRC has exactly 6
 
-BLIND_ZONE_COLOR = (0, 80, 200)
-BLIND_ZONE_ALPHA = 0.25
+MATCH_DISTANCE = 100   # spatial gate (pixels at native resolution)
+SPATIAL_GATE   = MATCH_DISTANCE * 2.0
 
-# =====================
-# LOAD
-# =====================
-model = YOLO(MODEL_PATH)
+# Cost matrix weights (distance + appearance; must sum to 1.0)
+COST_DIST_W = 0.35
+COST_EMB_W  = 0.65
 
-field = cv2.imread(FIELD_IMAGE)
-if field is None:
-    field = np.zeros((800, 1200, 3), dtype=np.uint8)
-field_h, field_w = field.shape[:2]
+# Embedding EMA
+EMBED_DIM        = 48
+EMB_EMA_ALPHA    = 0.10
+EMB_UPDATE_MINSIM = 0.72
 
-# =====================
+# Re-ID (after full loss)
+REID_MIN_OBS   = 5
+REID_ACCEPT    = 0.45
+
+# Claude Vision bumper-read rate limiting
+VISION_INTERVAL_FRAMES = 15   # query Claude every N frames per robot
+VISION_TIMEOUT_SEC     = 3.0  # max wait for API response
+
+# Display
+DISPLAY_H     = 720
+DARKEN_ALPHA  = 0.82   # how much to darken the background (0=black, 1=unchanged)
+BOX_THICKNESS = 2
+
+# Alliance HSV ranges
+ALLIANCE_HSV = {
+    "red":  [(0,   100,  80), (10,  255, 255)],
+    "red2": [(160, 100,  80), (180, 255, 255)],
+    "blue": [(100, 100,  60), (130, 255, 255)],
+}
+
+# ──────────────────────────────────────────────────────────────
 # GLOBALS
-# =====================
-video_pts   = []
-field_pts   = []
-H           = None
-H_inv       = None
+# ──────────────────────────────────────────────────────────────
+_next_auto_id  = 0         # counter for auto-IDs (A, B, C …)
+frame_count    = 0
+robots         = {}        # {internal_int_id: RobotTrack}
+portfolio_reg  = {}        # {internal_int_id: RobotPortfolio}  — persists after loss
+_next_track_id = 1
 
-next_robot_id = 1
-frame_count   = 0
-robots        = {}
+paused = False
 
-blind_zones  = []   # list of np.array (N,2) full-res polys
-active_zone  = []   # points being drawn right now
-drawing_zone = False
+anthropic_client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-pending_id_request = None   # dict when disambiguation needed, else None
-paused             = False
-_active_det_idx    = None   # which detection box the user clicked last
+# ──────────────────────────────────────────────────────────────
+# AUTO-ID GENERATOR
+# ──────────────────────────────────────────────────────────────
+def _next_auto_label() -> str:
+    global _next_auto_id
+    label = chr(ord('A') + _next_auto_id % 26)
+    _next_auto_id += 1
+    return label
 
-# =====================
-# ROBOT CLASS
-# =====================
+
+# ──────────────────────────────────────────────────────────────
+# CLAUDE VISION — BUMPER NUMBER READER
+# ──────────────────────────────────────────────────────────────
+def _encode_crop(crop: np.ndarray) -> str:
+    """Encode a BGR crop as base64 JPEG."""
+    _, buf = cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    return base64.standard_b64encode(buf).decode("utf-8")
+
+
+def read_bumper_number_async(crop: np.ndarray, callback):
+    """
+    Fire-and-forget: ask Claude Vision to read the bumper number on the robot.
+    `callback(number_str_or_None)` is called from a background thread when done.
+    number_str_or_None is e.g. "1234" or None if unreadable.
+    """
+    def _run():
+        try:
+            b64 = _encode_crop(crop)
+            resp = anthropic_client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=64,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type":       "base64",
+                                "media_type": "image/jpeg",
+                                "data":       b64,
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": (
+                                "This is a cropped image of an FRC (FIRST Robotics Competition) robot. "
+                                "Look for a bumper number — a 1-4 digit team number printed or displayed "
+                                "on the robot's foam bumpers (usually around the perimeter). "
+                                "If you can read a bumper number, reply with ONLY that number and nothing else. "
+                                "If you cannot clearly see a bumper number, reply with exactly: NONE"
+                            ),
+                        },
+                    ],
+                }],
+            )
+            text = resp.content[0].text.strip().upper()
+            if text == "NONE" or not text.isdigit():
+                callback(None)
+            else:
+                callback(text)
+        except Exception as e:
+            print(f"[Vision] error: {e}")
+            callback(None)
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+
+# ──────────────────────────────────────────────────────────────
+# VISUAL EMBEDDING
+# ──────────────────────────────────────────────────────────────
+def extract_embedding(frame: np.ndarray, x1, y1, x2, y2) -> np.ndarray | None:
+    """
+    48-d descriptor: HSV histogram (32-d) + gradient orientation (8-d) + texture (8-d).
+    L2-normalised so cosine_sim == dot product.
+    """
+    ix1 = max(0, int(x1)); iy1 = max(0, int(y1))
+    ix2 = min(frame.shape[1]-1, int(x2)); iy2 = min(frame.shape[0]-1, int(y2))
+    if ix2-ix1 < 8 or iy2-iy1 < 8:
+        return None
+
+    crop = cv2.resize(frame[iy1:iy2, ix1:ix2], (32, 32))
+    hsv  = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+
+    def nhist(ch, bins, rng):
+        h = cv2.calcHist([hsv], [ch], None, [bins], rng).flatten()
+        s = h.sum(); return h/s if s > 0 else h
+
+    colour = np.concatenate([nhist(0,16,[0,180]), nhist(1,8,[0,256]), nhist(2,8,[0,256])])
+
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    gx   = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3)
+    gy   = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3)
+    mag  = np.hypot(gx, gy)
+    ang  = (np.arctan2(gy, gx) + np.pi) / (2*np.pi)
+    grad = np.array([mag[(ang>=i/8)&(ang<(i+1)/8)].sum() for i in range(8)], np.float32)
+    s = grad.sum(); grad = grad/s if s > 0 else grad
+
+    tex = []
+    for qy in range(2):
+        for qx in range(2):
+            q = gray[qy*16:(qy+1)*16, qx*16:(qx+1)*16]
+            tex += [float(np.var(q)), float(np.mean(q)/255.0)]
+    tex = np.array(tex, np.float32)
+    s = tex.sum(); tex = tex/s if s > 0 else tex
+
+    vec  = np.concatenate([colour, grad, tex])[:EMBED_DIM]
+    norm = np.linalg.norm(vec)
+    return vec/norm if norm > 1e-8 else vec
+
+
+def cosine_sim(a, b) -> float:
+    return float(np.clip(np.dot(a, b), 0.0, 1.0))
+
+
+# ──────────────────────────────────────────────────────────────
+# ALLIANCE DETECTOR
+# ──────────────────────────────────────────────────────────────
+def detect_alliance(frame, x1, y1, x2, y2) -> str:
+    ix1 = max(0, int(x1)); iy1 = max(0, int(y1))
+    ix2 = min(frame.shape[1]-1, int(x2)); iy2 = min(frame.shape[0]-1, int(y2))
+    if ix2-ix1 < 6 or iy2-iy1 < 6:
+        return "unknown"
+    h = iy2-iy1
+
+    def vote(crop):
+        if crop.size == 0: return "unknown", 0.0
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        sat = (hsv[:,:,1] > 80).astype(np.uint8)
+        tot = max(1, int(sat.sum()))
+        def px(lo, hi):
+            return int((cv2.inRange(hsv, np.array(lo,np.uint8), np.array(hi,np.uint8))//255*sat).sum())
+        r = (px(*ALLIANCE_HSV["red"]) + px(*ALLIANCE_HSV["red2"])) / tot
+        b = px(*ALLIANCE_HSV["blue"]) / tot
+        if r > b and r > 0.25: return "red",  r
+        if b > r and b > 0.25: return "blue", b
+        return "unknown", max(r, b)
+
+    r1, c1 = vote(frame[iy1+int(h*0.60):iy2,              ix1:ix2])
+    r2, c2 = vote(frame[iy1+int(h*0.45):iy1+int(h*0.62), ix1:ix2])
+
+    if r1 == r2 and r1 != "unknown": return r1
+    if r1 != "unknown" and c1 > 0.40: return r1
+    if r2 != "unknown" and c2 > 0.40: return r2
+    return "unknown"
+
+
+# ──────────────────────────────────────────────────────────────
+# ROBOT PORTFOLIO  (persistent identity)
+# ──────────────────────────────────────────────────────────────
+class RobotPortfolio:
+    """
+    Persistent identity record for one robot.
+    Survives disappearance; used for re-ID.
+
+    display_id  — what we show on screen:
+                  a bumper number string like "1234" if known,
+                  else an auto-label like "A", "B" …
+    """
+    def __init__(self, track_id: int):
+        self.track_id            = track_id
+        self.display_id: str     = _next_auto_label()   # overwritten when bumper is read
+        self.bumper_number: str | None = None           # e.g. "1234"
+
+        self.confirmed_embedding = None
+        self._alliances          = deque(maxlen=30)
+        self.observation_count   = 0
+        self.snapshot            = None   # frozen when robot goes missing
+
+        # Vision query rate-limiting
+        self._last_vision_frame  = -VISION_INTERVAL_FRAMES  # force first query immediately
+        self._vision_pending     = False
+
+    # ── bumper number ──────────────────────────────────────────
+    def register_bumper(self, number: str | None):
+        """Called from the background vision thread via callback."""
+        if number is None:
+            return
+        if self.bumper_number == number:
+            return  # already known, nothing to do
+        # New or changed number — check for conflicts
+        existing = [p for p in portfolio_reg.values()
+                    if p is not self and p.bumper_number == number]
+        if existing:
+            # Merge: point the old track's display_id to the one that already has it
+            # (keep the richer embedding — whichever has more obs)
+            winner = max(existing, key=lambda p: p.observation_count)
+            print(f"[Registry] Bumper #{number} conflict: "
+                  f"track {self.track_id} vs {winner.track_id} — "
+                  f"keeping track {winner.track_id}")
+            return
+        self.bumper_number = number
+        self.display_id    = number
+        print(f"[Registry] Track {self.track_id} → bumper #{number}")
+
+    def request_vision_if_due(self, frame: np.ndarray, x1, y1, x2, y2):
+        """Queue a Claude Vision call if enough frames have passed."""
+        if self._vision_pending:
+            return
+        if frame_count - self._last_vision_frame < VISION_INTERVAL_FRAMES:
+            return
+        # Extract crop from the ORIGINAL (undarkened) frame
+        ix1 = max(0, int(x1)); iy1 = max(0, int(y1))
+        ix2 = min(frame.shape[1]-1, int(x2)); iy2 = min(frame.shape[0]-1, int(y2))
+        if ix2-ix1 < 20 or iy2-iy1 < 20:
+            return
+        crop = frame[iy1:iy2, ix1:ix2].copy()
+        self._vision_pending    = True
+        self._last_vision_frame = frame_count
+
+        def _cb(number):
+            self.register_bumper(number)
+            self._vision_pending = False
+
+        read_bumper_number_async(crop, _cb)
+
+    # ── appearance embedding ───────────────────────────────────
+    def feed(self, frame, x1, y1, x2, y2):
+        emb = extract_embedding(frame, x1, y1, x2, y2)
+        if emb is not None:
+            self._update_embedding(emb)
+        self._alliances.append(detect_alliance(frame, x1, y1, x2, y2))
+        self.observation_count += 1
+
+    def _update_embedding(self, emb):
+        if self.confirmed_embedding is None:
+            self.confirmed_embedding = emb.copy(); return
+        sim = cosine_sim(emb, self.confirmed_embedding)
+        if sim >= EMB_UPDATE_MINSIM:
+            self.confirmed_embedding = ((1-EMB_EMA_ALPHA)*self.confirmed_embedding
+                                        + EMB_EMA_ALPHA*emb)
+            norm = np.linalg.norm(self.confirmed_embedding)
+            if norm > 1e-8: self.confirmed_embedding /= norm
+
+    def get_alliance(self) -> str:
+        votes = list(self._alliances)
+        if not votes: return "unknown"
+        for label in ("red", "blue"):
+            if votes.count(label) > len(votes)*0.4: return label
+        return "unknown"
+
+    def freeze(self, pos, vel, fno):
+        self.snapshot = {
+            "embedding":  self.confirmed_embedding.copy() if self.confirmed_embedding is not None else None,
+            "alliance":   self.get_alliance(),
+            "last_pos":   pos,
+            "last_vel":   vel,
+            "last_frame": fno,
+            "obs":        self.observation_count,
+        }
+
+    def summary(self) -> str:
+        return (f"  Track {self.track_id} | display={self.display_id} | "
+                f"bumper={self.bumper_number} | alliance={self.get_alliance()} | "
+                f"obs={self.observation_count}")
+
+
+# ──────────────────────────────────────────────────────────────
+# ROBOT TRACK  (live Kalman state)
+# ──────────────────────────────────────────────────────────────
 class RobotTrack:
-    def __init__(self, robot_id, x, y, color):
-        self.id             = robot_id
+    def __init__(self, track_id: int, x: float, y: float, color: tuple):
+        self.id             = track_id
         self.color          = color
-        self.trail_video    = []
-        self.trail_field    = []
         self.missing_frames = 0
         self.visible        = True
         self.hit_count      = 0
         self.confirmed      = False
-        self.in_blind_zone  = False
+        self.reid_flash     = 0
+        self.trail: list    = []
 
         self.kf   = KalmanFilter(dim_x=4, dim_z=2)
         dt        = 1.0
-        self.kf.F = np.array([[1,0,dt,0],[0,1,0,dt],[0,0,1,0],[0,0,0,1]], dtype=float)
-        self.kf.H = np.array([[1,0,0,0],[0,1,0,0]], dtype=float)
-        self.kf.P *= 100
-        self.kf.R *= 5
-        self.kf.Q *= 0.1
-        self.kf.x = np.array([x, y, 0, 0], dtype=float).reshape(4, 1)
+        self.kf.F = np.array([[1,0,dt,0],[0,1,0,dt],[0,0,1,0],[0,0,0,1]], float)
+        self.kf.H = np.array([[1,0,0,0],[0,1,0,0]], float)
+        self.kf.P *= 100; self.kf.R *= 5; self.kf.Q *= 0.1
+        self.kf.x = np.array([x, y, 0, 0], float).reshape(4, 1)
+
+        if track_id not in portfolio_reg:
+            portfolio_reg[track_id] = RobotPortfolio(track_id)
+        self.portfolio: RobotPortfolio = portfolio_reg[track_id]
 
     def predict(self):
         self.kf.predict()
-        return int(self.kf.x[0, 0]), int(self.kf.x[1, 0])
 
     def update(self, x, y):
-        self.kf.update(np.array([x, y], dtype=float))
+        self.kf.update(np.array([x, y], float))
         self.missing_frames = 0
         self.visible        = True
-        self.in_blind_zone  = False
         self.hit_count     += 1
         if self.hit_count >= MIN_HITS:
             self.confirmed = True
+        if self.reid_flash > 0:
+            self.reid_flash -= 1
 
-    def get_position(self):
-        return int(self.kf.x[0, 0]), int(self.kf.x[1, 0])
+    def feed_portfolio(self, frame, x1, y1, x2, y2):
+        if not self.confirmed: return
+        self.portfolio.feed(frame, x1, y1, x2, y2)
+        self.portfolio.request_vision_if_due(frame, x1, y1, x2, y2)
 
-    def get_velocity(self):
-        return float(self.kf.x[2, 0]), float(self.kf.x[3, 0])
+    def freeze_portfolio(self):
+        vx, vy = self.get_vel()
+        self.portfolio.freeze(self.get_pos(), (vx, vy), frame_count)
+
+    def get_pos(self):
+        return int(self.kf.x[0,0]), int(self.kf.x[1,0])
+
+    def get_vel(self):
+        return float(self.kf.x[2,0]), float(self.kf.x[3,0])
 
     def confidence(self):
-        return max(0.0, 1.0 - self.missing_frames / MAX_MISSING)
+        return max(0.0, 1.0 - self.missing_frames/MAX_MISSING)
 
-# =====================
+
+# ──────────────────────────────────────────────────────────────
 # HELPERS
-# =====================
-def id_color(tid):
-    np.random.seed(int(tid) * 137 + 42)
-    return tuple(int(c) for c in np.random.randint(80, 255, 3))
+# ──────────────────────────────────────────────────────────────
+def id_color(tid: int) -> tuple:
+    np.random.seed(int(tid)*137 + 42)
+    return tuple(int(c) for c in np.random.randint(100, 255, 3))
 
-def map_point(H_mat, x, y):
-    pt  = np.array([[[float(x), float(y)]]], dtype=np.float32)
-    out = cv2.perspectiveTransform(pt, H_mat)
-    return int(out[0][0][0]), int(out[0][0][1])
 
 def draw_trail(img, trail, color, ghost=False):
-    if len(trail) < 2:
-        return
+    if len(trail) < 2: return
     for i in range(1, len(trail)):
-        alpha = i / len(trail)
-        c     = tuple(int(v * (0.35 if ghost else 1.0) * alpha) for v in color)
-        cv2.line(img, trail[i-1], trail[i], c, max(1, int(2 * alpha)))
+        a = i/len(trail)
+        c = tuple(int(v*(0.35 if ghost else 1.0)*a) for v in color)
+        cv2.line(img, trail[i-1], trail[i], c, max(1, int(2*a)))
+
 
 def draw_velocity_arrow(img, x, y, vx, vy, color, scale=4.0):
-    if np.hypot(vx, vy) < 0.5:
-        return
-    cv2.arrowedLine(img, (x, y), (int(x + vx*scale), int(y + vy*scale)), color, 2, tipLength=0.3)
+    if np.hypot(vx, vy) < 0.5: return
+    cv2.arrowedLine(img, (x,y), (int(x+vx*scale), int(y+vy*scale)), color, 2, tipLength=0.3)
 
-def draw_decay_circle(img, x, y, color, conf):
-    cv2.circle(img, (x, y), int(8 + 16 * conf), tuple(int(v * conf) for v in color), 1)
 
-def point_in_any_zone(x, y):
-    for zi, zone in enumerate(blind_zones):
-        if len(zone) >= 3:
-            if cv2.pointPolygonTest(zone.astype(np.float32), (float(x), float(y)), False) >= 0:
-                return zi
-    return -1
+# ──────────────────────────────────────────────────────────────
+# COST MATRIX
+# ──────────────────────────────────────────────────────────────
+def build_cost_matrix(tracks, detections, det_embeddings, det_alliances):
+    INF  = 1e6
+    cost = np.full((len(tracks), len(detections)), INF, np.float32)
 
-def draw_blind_zones(img, scale=1.0):
-    overlay = img.copy()
-    for zone in blind_zones:
-        if len(zone) < 2:
-            continue
-        scaled = (zone * scale).astype(np.int32)
-        if len(zone) >= 3:
-            cv2.fillPoly(overlay, [scaled], BLIND_ZONE_COLOR)
-        cv2.polylines(overlay, [scaled], isClosed=(len(zone) >= 3), color=(0, 140, 255), thickness=2)
-    cv2.addWeighted(overlay, BLIND_ZONE_ALPHA, img, 1 - BLIND_ZONE_ALPHA, 0, img)
-
-    if active_zone:
-        scaled = (np.array(active_zone, dtype=np.float32) * scale).astype(np.int32)
-        for pt in scaled:
-            cv2.circle(img, tuple(pt), 5, (0, 200, 255), -1)
-        if len(active_zone) >= 2:
-            cv2.polylines(img, [scaled], isClosed=False, color=(0, 200, 255), thickness=1)
-
-def create_assignment_cost(tracks, detections):
-    cost = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     for i, track in enumerate(tracks):
-        tx, ty = track.get_position()
-        for j, (dx, dy) in enumerate(detections):
-            cost[i, j] = np.linalg.norm([tx - dx, ty - dy])
+        tx, ty     = track.get_pos()
+        track_alln = track.portfolio.get_alliance() if track.confirmed else "unknown"
+        track_emb  = track.portfolio.confirmed_embedding
+        slack      = min(track.missing_frames * 3, MATCH_DISTANCE)
+        gate       = SPATIAL_GATE + slack
+
+        for j, det in enumerate(detections):
+            dx, dy = det[0], det[1]
+            dist   = float(np.hypot(tx-dx, ty-dy))
+            if dist >= gate: continue
+
+            det_alln = det_alliances[j]
+            if (track_alln in ("red","blue") and
+                    det_alln in ("red","blue") and
+                    track_alln != det_alln):
+                continue
+
+            dist_norm = dist / gate
+            if track_emb is not None and det_embeddings[j] is not None:
+                emb_cost = 1.0 - cosine_sim(track_emb, det_embeddings[j])
+            else:
+                emb_cost = 0.5
+
+            cost[i, j] = COST_DIST_W*dist_norm + COST_EMB_W*emb_cost
+
     return cost
 
-# =====================
-# DISAMBIGUATION UI
-# =====================
-def draw_id_request(img, req):
-    h, w = img.shape[:2]
 
-    overlay = img.copy()
-    cv2.rectangle(overlay, (0, 0), (w, h), (0, 0, 0), -1)
-    cv2.addWeighted(overlay, 0.55, img, 0.45, 0, img)
+# ──────────────────────────────────────────────────────────────
+# RE-ID ENGINE
+# ──────────────────────────────────────────────────────────────
+def find_best_reid_match(det_emb, det_alliance, cx, cy, candidate_ids, force=False):
+    best_id, best_score = None, -1.0
+    for rid in candidate_ids:
+        p = portfolio_reg.get(rid)
+        if p is None or p.snapshot is None: continue
+        snap = p.snapshot
+        if snap.get("obs", 0) < REID_MIN_OBS: continue
+        ref_emb = snap.get("embedding")
+        if ref_emb is None: continue
+        ref_alln = snap.get("alliance", "unknown")
+        if (det_alliance in ("red","blue") and
+                ref_alln in ("red","blue") and
+                det_alliance != ref_alln):
+            continue
+        emb_sim  = cosine_sim(det_emb, ref_emb) if det_emb is not None else 0.0
+        last_pos = snap.get("last_pos", (cx,cy))
+        last_vel = snap.get("last_vel", (0,0))
+        dt       = max(1, frame_count - snap.get("last_frame", frame_count))
+        pred     = (last_pos[0]+last_vel[0]*dt, last_pos[1]+last_vel[1]*dt)
+        dist     = float(np.hypot(cx-pred[0], cy-pred[1]))
+        pos_score = float(np.exp(-dist/350.0))
+        score     = 0.70*emb_sim + 0.30*pos_score
+        if score > best_score:
+            best_score = score; best_id = rid
+    if force and best_id is not None:
+        return best_id, best_score
+    if best_id is not None and best_score >= REID_ACCEPT:
+        return best_id, best_score
+    return None, best_score
 
-    dets  = req["detections"]
-    cands = req["candidates"]
-    sel   = req["selected"]
 
-    cv2.putText(img, "BLIND ZONE EXIT — Identify robots", (w//2 - 220, 40),
-                cv2.FONT_HERSHEY_DUPLEX, 0.9, (255, 255, 255), 2)
+# ──────────────────────────────────────────────────────────────
+# DISPLAY — DARKENED FRAME + BOUNDING BOXES
+# ──────────────────────────────────────────────────────────────
+def render_frame(original_frame: np.ndarray,
+                 robot_boxes: list,   # [(track_id, x1,y1,x2,y2, robot_obj)]
+                 ) -> np.ndarray:
+    """
+    Darken the entire frame, then for each robot:
+      • paste the original (bright) crop back inside the bounding box
+      • draw a coloured box border
+      • draw label with display_id, alliance, obs count
+    """
+    # Start from a darkened version of the original
+    dark = (original_frame * (1.0 - DARKEN_ALPHA)).astype(np.uint8)
 
-    for di, det in enumerate(dets):
-        cx, cy, x1, y1, x2, y2 = det
-        sx1, sy1 = int(x1 * video_scale), int(y1 * video_scale)
-        sx2, sy2 = int(x2 * video_scale), int(y2 * video_scale)
-        assigned_rid = sel.get(di)
-        box_color    = id_color(assigned_rid) if assigned_rid else (200, 200, 200)
-        cv2.rectangle(img, (sx1, sy1), (sx2, sy2), box_color, 3)
-        label = f"Robot #{assigned_rid}" if assigned_rid else f"Det {di+1} — click to select"
-        cv2.putText(img, label, (sx1, sy1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, box_color, 2)
+    for (tid, x1, y1, x2, y2, robot) in robot_boxes:
+        ix1 = max(0, int(x1)); iy1 = max(0, int(y1))
+        ix2 = min(original_frame.shape[1]-1, int(x2))
+        iy2 = min(original_frame.shape[0]-1, int(y2))
 
-    panel_x = w - 230
-    cv2.rectangle(img, (panel_x - 10, 60), (w - 10, 60 + len(cands)*60 + 20), (40, 40, 40), -1)
-    cv2.putText(img, "Parked robots:", (panel_x, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (180, 180, 180), 1)
+        # Restore original brightness inside the robot's bounding box
+        dark[iy1:iy2, ix1:ix2] = original_frame[iy1:iy2, ix1:ix2]
 
-    req["button_rects"] = []
-    for bi, rid in enumerate(cands):
-        bx1, by1 = panel_x, 100 + bi * 60
-        bx2, by2 = w - 20, by1 + 45
-        taken     = rid in sel.values()
-        btn_color = id_color(rid) if not taken else (60, 60, 60)
-        cv2.rectangle(img, (bx1, by1), (bx2, by2), btn_color, -1)
-        cv2.putText(img, f"Robot #{rid}", (bx1 + 10, by1 + 28),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
-        req["button_rects"].append((bx1, by1, bx2, by2, rid))
+        col   = robot.color
+        alln  = robot.portfolio.get_alliance()
+        disp  = robot.portfolio.display_id
+        obs   = robot.portfolio.observation_count
+        bumper_known = robot.portfolio.bumper_number is not None
 
-    all_assigned  = len(sel) == len(dets)
-    confirm_color = (0, 200, 80) if all_assigned else (60, 60, 60)
-    cy1 = h - 80
-    cv2.rectangle(img, (w//2 - 100, cy1), (w//2 + 100, cy1 + 50), confirm_color, -1)
-    cv2.putText(img, "CONFIRM", (w//2 - 55, cy1 + 33),
-                cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 2)
-    req["confirm_rect"] = (w//2 - 100, cy1, w//2 + 100, cy1 + 50)
+        # Alliance tint on box border
+        box_col = {"red": (60,60,220), "blue": (200,80,40)}.get(alln, col)
 
-    cv2.putText(img, "1. Click a detection box  2. Click a robot button  3. Confirm",
-                (20, h - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (160, 160, 160), 1)
-    return img
+        # Box border — thicker + white flash on re-ID
+        bw     = BOX_THICKNESS + (2 if robot.reid_flash > 0 else 0)
+        border = (255,255,255) if robot.reid_flash > 0 else box_col
+        cv2.rectangle(dark, (ix1, iy1), (ix2, iy2), border, bw)
 
-def handle_disambiguation_click(x, y, req):
-    global _active_det_idx, pending_id_request, paused
+        # Corner accent in robot's own colour
+        corner = 10
+        for sx, sy, ex, ey in [
+            (ix1, iy1, ix1+corner, iy1), (ix1, iy1, ix1, iy1+corner),
+            (ix2, iy1, ix2-corner, iy1), (ix2, iy1, ix2, iy1+corner),
+            (ix1, iy2, ix1+corner, iy2), (ix1, iy2, ix1, iy2-corner),
+            (ix2, iy2, ix2-corner, iy2), (ix2, iy2, ix2, iy2-corner),
+        ]:
+            cv2.line(dark, (sx,sy), (ex,ey), col, 2)
 
-    cx1, cy1, cx2, cy2 = req["confirm_rect"]
-    if cx1 <= x <= cx2 and cy1 <= y <= cy2:
-        if len(req["selected"]) == len(req["detections"]):
-            for det_idx, rid in req["selected"].items():
-                det      = req["detections"][det_idx]
-                dcx, dcy = det[0], det[1]
-                if rid in robots:
-                    robots[rid].update(dcx, dcy)
-            pending_id_request = None
-            paused             = False
-            _active_det_idx    = None
-        return
+        # Label — bumper number (or auto-ID), alliance, obs
+        bumper_str = f"#{disp}" if bumper_known else f"[{disp}]"
+        alln_str   = alln[0].upper() if alln != "unknown" else "?"
+        label      = f"{bumper_str} {alln_str} {obs}obs"
+        lx, ly     = ix1+4, max(iy1+18, iy1+4)
+        cv2.putText(dark, label, (lx, ly),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0,0,0),   3)
+        cv2.putText(dark, label, (lx, ly),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.52, border,    1)
 
-    for di, det in enumerate(req["detections"]):
-        _, _, x1, y1, x2, y2 = det
-        sx1, sy1 = int(x1 * video_scale), int(y1 * video_scale)
-        sx2, sy2 = int(x2 * video_scale), int(y2 * video_scale)
-        if sx1 <= x <= sx2 and sy1 <= y <= sy2:
-            _active_det_idx = di
-            return
+        # Trail
+        draw_trail(dark, robot.trail, col)
 
-    if _active_det_idx is not None:
-        for bx1, by1, bx2, by2, rid in req["button_rects"]:
-            if bx1 <= x <= bx2 and by1 <= y <= by2:
-                if rid not in req["selected"].values():
-                    req["selected"][_active_det_idx] = rid
-                    _active_det_idx = None
-                return
+        # Velocity arrow from centre of box
+        cx_b = (ix1+ix2)//2; cy_b = (iy1+iy2)//2
+        vx, vy = robot.get_vel()
+        draw_velocity_arrow(dark, cx_b, cy_b, vx, vy, col)
 
-# =====================
-# MOUSE CALLBACKS
-# =====================
-def mouse_video(event, x, y, flags, param):
-    global drawing_zone, active_zone
+    return dark
 
-    if pending_id_request is not None and event == cv2.EVENT_LBUTTONDOWN:
-        handle_disambiguation_click(x, y, pending_id_request)
-        return
 
-    ctrl_held = bool(flags & cv2.EVENT_FLAG_CTRLKEY)
+def render_ghost_robots(display: np.ndarray):
+    """Draw Kalman-predicted positions for robots not currently visible."""
+    for rid, robot in robots.items():
+        if not robot.confirmed or robot.visible:
+            continue
+        px, py = robot.get_pos()
+        conf   = robot.confidence()
+        col    = robot.color
+        gc     = tuple(int(v*conf) for v in col)
+        disp   = robot.portfolio.display_id
+        draw_trail(display, robot.trail, col, ghost=True)
+        cv2.circle(display, (px,py), int(8+16*conf), gc, 1)
+        cv2.line(display, (px-6,py-6), (px+6,py+6), gc, 2)
+        cv2.line(display, (px+6,py-6), (px-6,py+6), gc, 2)
+        cv2.putText(display, f"[{disp}]?", (px+10,py-8),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, gc, 1)
 
-    if event == cv2.EVENT_LBUTTONDOWN:
-        if ctrl_held:
-            active_zone.append([int(x / video_scale), int(y / video_scale)])
-            drawing_zone = True
-        elif not drawing_zone and len(video_pts) < 4:
-            video_pts.append([int(x / video_scale), int(y / video_scale)])
 
-def mouse_field(event, x, y, flags, param):
-    if event == cv2.EVENT_LBUTTONDOWN and len(field_pts) < 4:
-        field_pts.append([int(x / field_scale_disp), int(y / field_scale_disp)])
+# ──────────────────────────────────────────────────────────────
+# LOAD MODEL + VIDEO
+# ──────────────────────────────────────────────────────────────
+model = YOLO(MODEL_PATH)
 
-# =====================
-# CAPTURE + DISPLAY SCALE
-# =====================
-cap = cv2.VideoCapture(VIDEO_PATH)
-ret, _first = cap.read()
+cap     = cv2.VideoCapture(VIDEO_PATH)
+ret, _f = cap.read()
 if not ret:
-    raise RuntimeError("Could not read video")
-frame_h, frame_w = _first.shape[:2]
+    raise RuntimeError(f"Cannot open video: {VIDEO_PATH}")
+frame_h, frame_w = _f.shape[:2]
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-DISPLAY_H        = 720
-video_scale      = DISPLAY_H / frame_h
-DISPLAY_W        = int(frame_w * video_scale)
+video_scale = DISPLAY_H / frame_h
+DISPLAY_W   = int(frame_w * video_scale)
 
-FIELD_DISPLAY_H  = 600
-field_scale_disp = FIELD_DISPLAY_H / field_h
-FIELD_DISPLAY_W  = int(field_w * field_scale_disp)
+cv2.namedWindow("Robot Tracker")
 
-cv2.namedWindow("Video")
-cv2.namedWindow("Field")
-cv2.setMouseCallback("Video", mouse_video)
-cv2.setMouseCallback("Field", mouse_field)
-
-# =====================
+# ──────────────────────────────────────────────────────────────
 # MAIN LOOP
-# =====================
+# ──────────────────────────────────────────────────────────────
 while True:
     if not paused:
         ret, frame = cap.read()
@@ -302,328 +617,162 @@ while True:
             continue
         frame_count += 1
 
-    display_video = frame.copy()
-    display_field = field.copy()
+    # ── Kalman predict ───────────────────────────────────────
+    for robot in robots.values():
+        robot.predict()
+        robot.visible = False
 
-    # --- Homography ---
-    if len(video_pts) == 4 and len(field_pts) == 4 and H is None:
-        src      = np.array(video_pts, dtype=np.float32)
-        dst      = np.array(field_pts, dtype=np.float32)
-        H, _     = cv2.findHomography(src, dst)
-        H_inv, _ = cv2.findHomography(dst, src)
-        print("Homography ready")
+    # ── YOLO inference ──────────────────────────────────────
+    detections     = []  # (cx, cy, x1, y1, x2, y2)
+    det_alliances  = []
+    det_embeddings = []
 
-    # --- Draw blind zones ---
-    draw_blind_zones(display_video, scale=1.0)
+    results = model.predict(frame, conf=CONF, max_det=MAX_DET, verbose=False)[0]
+    if results.boxes is not None:
+        for i in range(len(results.boxes)):
+            x1, y1, x2, y2 = results.boxes.xyxy[i].cpu().numpy()
+            cx, cy = int((x1+x2)/2), int(y2)
+            detections.append((cx, cy, x1, y1, x2, y2))
+            det_alliances.append(detect_alliance(frame, x1, y1, x2, y2))
+            det_embeddings.append(extract_embedding(frame, x1, y1, x2, y2))
 
-    # --- Calibration overlays ---
-    for pt in video_pts:
-        cv2.circle(display_video, tuple(pt), 6, (0, 255, 255), -1)
-    for pt in field_pts:
-        cv2.circle(display_field, tuple(pt), 6, (0, 255, 255), -1)
-    if len(video_pts) == 4:
-        cv2.polylines(display_video, [np.array(video_pts, dtype=np.int32)],
-                      isClosed=True, color=(0, 255, 0), thickness=2)
-    if len(video_pts) < 4:
-        cv2.putText(display_video, f"Click {4-len(video_pts)} more point(s) on video",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-    if len(field_pts) < 4:
-        cv2.putText(display_field, f"Click {4-len(field_pts)} more point(s) on field",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-    if drawing_zone:
-        cv2.putText(display_video, f"Blind zone: {len(active_zone)} pts — Enter to close, Esc to cancel",
-                    (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 200, 255), 2)
+    # ── Hungarian assignment ─────────────────────────────────
+    assigned_dets = set()
+    if robots and detections:
+        robot_list  = list(robots.values())
+        cost_matrix = build_cost_matrix(robot_list, detections, det_embeddings, det_alliances)
+        rows, cols  = linear_sum_assignment(cost_matrix)
+        for r, c in zip(rows, cols):
+            if cost_matrix[r, c] >= 1e5: continue
+            robot = robot_list[r]
+            cx, cy, x1, y1, x2, y2 = detections[c]
+            robot.update(cx, cy)
+            robot.feed_portfolio(frame, x1, y1, x2, y2)
+            assigned_dets.add(c)
 
-    # --- Predict ---
-    if not paused:
-        for robot in robots.values():
-            robot.predict()
-            robot.visible = False
+    # ── Unassigned detections: re-ID or spawn ────────────────
+    # Prune stale unconfirmed ghosts
+    stale = [rid for rid, r in robots.items()
+             if not r.confirmed and r.missing_frames > MIN_HITS*2]
+    for rid in stale:
+        del robots[rid]
 
-    # --- YOLO + ByteTrack ---
-    detections = []
-    if not paused:
-        results = model.track(frame, persist=True, conf=CONF,
-                              max_det=MAX_DET, tracker="bytetrack.yaml")[0]
-        if results.boxes is not None:
-            for i in range(len(results.boxes)):
-                x1, y1, x2, y2 = results.boxes.xyxy[i].cpu().numpy()
-                cx, cy = int((x1+x2)/2), int(y2)
-                if len(video_pts) == 4:
-                    poly = np.array(video_pts, dtype=np.float32)
-                    if cv2.pointPolygonTest(poly, (float(cx), float(cy)), False) < 0:
-                        continue
-                detections.append((cx, cy, x1, y1, x2, y2))
+    confirmed_count = sum(1 for r in robots.values() if r.confirmed)
 
-    # --- Assign detections ---
-    if not paused:
-        robot_list    = list(robots.values())
-        assigned_dets = set()
+    for idx in range(len(detections)):
+        if idx in assigned_dets: continue
+        cx, cy, x1, y1, x2, y2 = detections[idx]
+        det_emb  = det_embeddings[idx]
+        det_alln = det_alliances[idx]
 
-        if robot_list and detections:
-            det_pos     = [(d[0], d[1]) for d in detections]
-            cost_matrix = create_assignment_cost(robot_list, det_pos)
-            rows, cols  = linear_sum_assignment(cost_matrix)
+        # Skip duplicates overlapping a live track
+        if any(np.hypot(cx - r.get_pos()[0], cy - r.get_pos()[1]) < MATCH_DISTANCE*0.7
+               for r in robots.values() if r.visible):
+            continue
 
-            for r, c in zip(rows, cols):
-                robot = robot_list[r]
-                # Adaptive gate: expands as track has been missing longer
-                adaptive_gate = MATCH_DISTANCE + robot.missing_frames * 4
-                if cost_matrix[r, c] >= adaptive_gate:
-                    continue
-                cx, cy, x1, y1, x2, y2 = detections[c]
+        # Try re-ID from frozen portfolios
+        active_ids = set(robots.keys())
+        lost_ids   = [rid for rid, p in portfolio_reg.items()
+                      if rid not in active_ids and p.snapshot is not None]
+
+        if lost_ids and det_emb is not None:
+            best_id, score = find_best_reid_match(
+                det_emb, det_alln, cx, cy, lost_ids,
+                force=(confirmed_count >= MAX_ROBOTS))
+            if best_id is not None:
+                robot = RobotTrack(best_id, cx, cy, id_color(best_id))
+                robots[best_id]  = robot
                 robot.update(cx, cy)
-                assigned_dets.add(c)
+                robot.reid_flash = 12
+                confirmed_count  = sum(1 for r in robots.values() if r.confirmed)
+                continue
 
-                if not robot.confirmed:
-                    continue
+        # At cap — force-assign to nearest missing confirmed robot
+        if confirmed_count >= MAX_ROBOTS:
+            missing = [r for r in robots.values() if r.confirmed and not r.visible]
+            if missing:
+                closest = min(missing, key=lambda r: np.hypot(
+                    cx-r.get_pos()[0], cy-r.get_pos()[1]))
+                closest.update(cx, cy)
+                closest.reid_flash = 8
+            continue
 
-                robot.trail_video.append((cx, cy))
-                robot.trail_video = robot.trail_video[-TRAIL_LEN:]
-                draw_trail(display_video, robot.trail_video, robot.color)
-                vx, vy = robot.get_velocity()
-                draw_velocity_arrow(display_video, cx, cy, vx, vy, robot.color)
-                cv2.rectangle(display_video, (int(x1),int(y1)), (int(x2),int(y2)), robot.color, 2)
-                cv2.putText(display_video, f"Robot #{robot.id}",
-                            (int(x1), int(y1)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, robot.color, 2)
-
-                if H is not None:
-                    mx, my = map_point(H, cx, cy)
-                    if 0 <= mx < field_w and 0 <= my < field_h:
-                        robot.trail_field.append((mx, my))
-                        robot.trail_field = robot.trail_field[-TRAIL_LEN:]
-                        draw_trail(display_field, robot.trail_field, robot.color)
-                        cv2.circle(display_field, (mx, my), 10, robot.color, -1)
-                        cv2.putText(display_field, f"#{robot.id}", (mx+14, my+4),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, robot.color, 2)
-                        draw_velocity_arrow(display_field, mx, my, vx, vy, robot.color, scale=3.0)
-
-        # --- Unassigned detections: blind zone exit or new robot ---
-        unassigned = [detections[i] for i in range(len(detections)) if i not in assigned_dets]
-
-        # Purge unconfirmed tracks that have been missing too long
-        stale_unconfirmed = [rid for rid, r in robots.items()
-                             if not r.confirmed and r.missing_frames > MIN_HITS * 2]
-        for rid in stale_unconfirmed:
-            del robots[rid]
-
-        if unassigned:
+        # Spawn new track (only if under cap)
+        if len([r for r in robots.values() if r.confirmed]) < MAX_ROBOTS:
+            tid   = _next_track_id
+            _next_track_id_ref = [_next_track_id]  # workaround for nonlocal in loop
+            robot = RobotTrack(tid, cx, cy, id_color(tid))
+            robots[tid] = robot
+            # increment global
+            globals()['_next_track_id'] += 1
             confirmed_count = sum(1 for r in robots.values() if r.confirmed)
 
-            # Blind zone parked robots take priority
-            parked = [r for r in robots.values() if r.in_blind_zone and r.confirmed]
+    # ── Lost track management ────────────────────────────────
+    remove_ids = []
+    for rid, robot in robots.items():
+        if not robot.visible:
+            robot.missing_frames += 1
+        if not robot.confirmed and robot.missing_frames > MIN_HITS*2:
+            remove_ids.append(rid); continue
+        if robot.confirmed and robot.missing_frames >= MAX_MISSING:
+            if robot.missing_frames == MAX_MISSING:
+                robot.freeze_portfolio()
+            remove_ids.append(rid)
+    for rid in remove_ids:
+        del robots[rid]
 
-            for det in unassigned:
-                cx, cy = det[0], det[1]
+    # ── Build list of visible robots + their boxes for rendering ──
+    robot_boxes = []
+    for rid, robot in robots.items():
+        if not robot.confirmed or not robot.visible:
+            continue
+        px, py = robot.get_pos()
+        # Recover bounding box from the best-matching detection
+        best_det = min(
+            [(i, detections[i]) for i in assigned_dets],
+            key=lambda t: np.hypot(px - t[1][0], py - t[1][1]),
+            default=(None, None)
+        )
+        if best_det[0] is None:
+            continue
+        _, (cx, cy, x1, y1, x2, y2) = best_det
+        robot.trail.append((px, py))
+        robot.trail = robot.trail[-90:]
+        robot_boxes.append((rid, x1, y1, x2, y2, robot))
 
-                # --- Step 1: try to match to a blind-zone parked robot by proximity ---
-                if parked:
-                    parked_by_dist = sorted(
-                        parked,
-                        key=lambda r: np.linalg.norm([cx - r.get_position()[0], cy - r.get_position()[1]])
-                    )
-                    best = parked_by_dist[0]
-                    second_best_dist = (
-                        np.linalg.norm([cx - parked_by_dist[1].get_position()[0],
-                                        cx - parked_by_dist[1].get_position()[1]])
-                        if len(parked_by_dist) > 1 else 9999
-                    )
-                    best_dist = np.linalg.norm([cx - best.get_position()[0], cy - best.get_position()[1]])
+    # ── Render ──────────────────────────────────────────────
+    display = render_frame(frame, robot_boxes)
+    render_ghost_robots(display)
 
-                    if len(parked) == 1 or second_best_dist > best_dist * 1.5:
-                        # Clear winner — auto reassign
-                        best.update(cx, cy)
-                        parked.remove(best)
-                        print(f"Auto-reassigned Robot #{best.id} from blind zone")
-                        continue
-                    else:
-                        # Ambiguous blind zone exit — ask user
-                        pending_id_request = {
-                            "detections": [det],
-                            "candidates": [r.id for r in parked_by_dist[:2]],
-                            "selected":   {},
-                            "button_rects": [],
-                            "confirm_rect": (0,0,0,0),
-                        }
-                        paused = True
-                        continue
-
-                # --- Step 2: if at robot cap, match to nearest missing confirmed track ---
-                if confirmed_count >= MAX_ROBOTS:
-                    missing = [r for r in robots.values() if r.confirmed and not r.visible]
-                    if missing:
-                        nearest = min(missing, key=lambda r: np.linalg.norm(
-                            [cx - r.get_position()[0], cy - r.get_position()[1]]))
-                        nearest_dist = np.linalg.norm(
-                            [cx - nearest.get_position()[0], cy - nearest.get_position()[1]])
-
-                        # Find second nearest to check ambiguity
-                        second_dist = min(
-                            (np.linalg.norm([cx - r.get_position()[0], cy - r.get_position()[1]])
-                             for r in missing if r.id != nearest.id),
-                            default=9999
-                        )
-
-                        if second_dist > nearest_dist * 1.5:
-                            # Confident — general zone reassign
-                            nearest.update(cx, cy)
-                            print(f"General zone reassign: Robot #{nearest.id}")
-                        else:
-                            # Two missing robots nearby — ask user
-                            top2 = sorted(missing, key=lambda r: np.linalg.norm(
-                                [cx - r.get_position()[0], cy - r.get_position()[1]]))[:2]
-                            pending_id_request = {
-                                "detections": [det],
-                                "candidates": [r.id for r in top2],
-                                "selected":   {},
-                                "button_rects": [],
-                                "confirm_rect": (0,0,0,0),
-                            }
-                            paused = True
-                    # Never spawn — we know there are exactly MAX_ROBOTS robots
-                    continue
-
-                # --- Step 3: genuinely new robot (we have fewer than MAX_ROBOTS confirmed) ---
-                # Only if this detection is far from all existing tracks
-                min_dist_existing = min(
-                    (np.linalg.norm([cx - r.get_position()[0], cy - r.get_position()[1]])
-                     for r in robots.values()),
-                    default=9999
-                )
-                if min_dist_existing < MATCH_DISTANCE * 1.5:
-                    continue  # Too close to an existing track — noise or occlusion
-
-                robot = RobotTrack(next_robot_id, cx, cy, id_color(next_robot_id))
-                robots[next_robot_id] = robot
-                next_robot_id += 1
-                confirmed_count = sum(1 for r in robots.values() if r.confirmed)
-
-        # --- Lost tracks ---
-        remove_ids = []
-
-        for rid, robot in robots.items():
-            if not robot.visible and not robot.in_blind_zone:
-                robot.missing_frames += 1
-                px, py = robot.get_position()
-                if point_in_any_zone(px, py) >= 0:
-                    robot.in_blind_zone = True
-                    print(f"Robot #{rid} entered blind zone")
-
-            # Unconfirmed tracks expire quickly
-            if not robot.confirmed and robot.missing_frames > MIN_HITS * 2:
-                remove_ids.append(rid)
-                continue
-
-            # Confirmed tracks expire only if not blind-zone parked
-            if robot.confirmed and robot.missing_frames > MAX_MISSING and not robot.in_blind_zone:
-                remove_ids.append(rid)
-                continue
-
-            if not robot.confirmed or robot.visible:
-                continue
-
-            px, py = robot.get_position()
-            vx, vy = robot.get_velocity()
-
-            if robot.in_blind_zone:
-                # Static marker — no decay
-                cv2.circle(display_video, (px, py), 14, robot.color, 2)
-                cv2.circle(display_video, (px, py), 5,  robot.color, -1)
-                cv2.putText(display_video, f"#{rid} [BLIND]", (px+16, py+4),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, robot.color, 2)
-                draw_trail(display_video, robot.trail_video, robot.color, ghost=True)
-
-                if H is not None:
-                    try:
-                        mx, my = map_point(H, px, py)
-                        if 0 <= mx < field_w and 0 <= my < field_h:
-                            cv2.circle(display_field, (mx, my), 12, robot.color, 2)
-                            cv2.putText(display_field, f"#{rid}?", (mx+14, my+4),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, robot.color, 1)
-                    except Exception:
-                        pass
-            else:
-                # Normal ghost + decay
-                conf = robot.confidence()
-                robot.trail_video.append((px, py))
-                robot.trail_video = robot.trail_video[-TRAIL_LEN:]
-                draw_trail(display_video, robot.trail_video, robot.color, ghost=True)
-                draw_decay_circle(display_video, px, py, robot.color, conf)
-                gc = tuple(int(v * conf) for v in robot.color)
-                cv2.line(display_video, (px-6, py-6), (px+6, py+6), gc, 2)
-                cv2.line(display_video, (px+6, py-6), (px-6, py+6), gc, 2)
-                draw_velocity_arrow(display_video, px, py, vx*conf, vy*conf, gc)
-                cv2.putText(display_video, f"#{rid}?", (px+10, py-8),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, gc, 1)
-
-                if H is not None:
-                    try:
-                        mx, my = map_point(H, px, py)
-                        if 0 <= mx < field_w and 0 <= my < field_h:
-                            robot.trail_field.append((mx, my))
-                            robot.trail_field = robot.trail_field[-TRAIL_LEN:]
-                            draw_trail(display_field, robot.trail_field, robot.color, ghost=True)
-                            draw_decay_circle(display_field, mx, my, robot.color, conf)
-                            cv2.circle(display_field, (mx, my), 6,
-                                       tuple(int(v*conf) for v in robot.color), 2)
-                    except Exception:
-                        pass
-
-        for rid in remove_ids:
-            del robots[rid]
-
-    # --- Disambiguation overlay ---
-    if pending_id_request is not None:
-        display_video = draw_id_request(display_video, pending_id_request)
-
-    # --- HUD ---
+    # ── HUD ─────────────────────────────────────────────────
     confirmed_count = sum(1 for r in robots.values() if r.confirmed)
-    blind_count     = sum(1 for r in robots.values() if r.in_blind_zone)
-    hud = f"Robots: {confirmed_count}/{MAX_ROBOTS}  Blind: {blind_count}  Frame: {frame_count}"
-    if paused:
-        hud += "  [PAUSED — identify robots]"
-    cv2.putText(display_video, hud,
-                (10, display_video.shape[0] - 32),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
-    cv2.putText(display_video, "Ctrl+Click: blind zone pt | Enter: close zone | Z: undo zone",
-                (10, display_video.shape[0] - 12),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.42, (140, 140, 140), 1)
+    known_bumpers   = sum(1 for p in portfolio_reg.values() if p.bumper_number)
+    pending_vision  = sum(1 for p in portfolio_reg.values() if p._vision_pending)
 
-    status = f"Calibrating... V:{len(video_pts)}/4  F:{len(field_pts)}/4" if H is None else "Tracking"
-    cv2.putText(display_field, status, (10, field_h-12),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 200, 200), 1)
-    cv2.putText(display_field, f"Blind zones: {len(blind_zones)}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 140, 255), 1)
+    hud = (f"Robots: {confirmed_count}/{MAX_ROBOTS}  "
+           f"Bumpers ID'd: {known_bumpers}  "
+           f"Vision pending: {pending_vision}  "
+           f"Frame: {frame_count}")
+    if paused: hud += "  [PAUSED]"
+    cv2.putText(display, hud, (10, display.shape[0]-32),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.46, (200,200,200), 1)
+    cv2.putText(display, "Space: pause | C: clear | P: registry | Q: quit",
+                (10, display.shape[0]-12),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.38, (140,140,140), 1)
 
-    # --- Show ---
-    cv2.imshow("Video", cv2.resize(display_video, (DISPLAY_W, DISPLAY_H)))
-    cv2.imshow("Field", cv2.resize(display_field, (FIELD_DISPLAY_W, FIELD_DISPLAY_H)))
+    cv2.imshow("Robot Tracker", cv2.resize(display, (DISPLAY_W, DISPLAY_H)))
 
     key = cv2.waitKey(1) & 0xFF
-
-    if key == ord('q'):
-        break
-    elif key == 13:   # Enter — close blind zone
-        if drawing_zone and len(active_zone) >= 3:
-            blind_zones.append(np.array(active_zone, dtype=np.int32))
-            print(f"Blind zone {len(blind_zones)} saved ({len(active_zone)} pts)")
-        active_zone  = []
-        drawing_zone = False
-    elif key == 27:   # Esc — cancel zone
-        active_zone  = []
-        drawing_zone = False
-    elif key == ord('z'):
-        if blind_zones:
-            blind_zones.pop()
-            print("Last blind zone removed")
-    elif key == ord('r'):
-        video_pts.clear(); field_pts.clear()
-        H = H_inv = None
-        print("Calibration reset")
+    if   key == ord('q'): break
+    elif key == ord(' '): paused = not paused
     elif key == ord('c'):
         robots.clear()
-        next_robot_id = 1
         print("Tracks cleared")
+    elif key == ord('p'):
+        print("\n=== PORTFOLIO REGISTRY ===")
+        for rid, p in sorted(portfolio_reg.items()):
+            print(p.summary())
+        print("==========================\n")
 
 cap.release()
 cv2.destroyAllWindows()
