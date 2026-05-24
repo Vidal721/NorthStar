@@ -323,6 +323,11 @@ app.post('/api/scout-progress', (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/sync', (req, res) => {
+  console.log('[SYNC]', req.body);
+  res.json({ ok: true });
+});
+
 // Admin fetches all active scouter states
 app.get('/api/scout-progress', (req, res) => {
   const now = Date.now();

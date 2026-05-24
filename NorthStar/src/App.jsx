@@ -26,7 +26,7 @@ const lightTokens = {
   text: "#111", textMid: "#737373", textDim: "#b0a89e",
   inputBg: "#f9f9f8", blue: "#2563eb",
 }
-
+//test commit
 const ROLE_META = {
   admin:   { label: "Admin panel",  badge: "Admin",   badgeColor: "#ef4444", badgeBg: "rgba(239,68,68,0.12)" },
   scouter: { label: "Scouter view", badge: "Scouter", badgeColor: "#22c55e", badgeBg: "rgba(34,197,94,0.12)" },
