@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import "./vis.css";
 
-// ── Constants ──────────────────────────────────────────────
+// Density Presets Map
 const DENSITY = {
-  tight:       { label: "Tight",       paddingV: "6px",  rowHeight: "38px" },
+  tight:       { label: "Tight",       paddingV: "6px",  rowHeight: "36px" },
   comfortable: { label: "Comfortable", paddingV: "10px", rowHeight: "48px" },
   loose:       { label: "Loose",       paddingV: "16px", rowHeight: "60px" },
 };
 
-// ── Settings Modal ─────────────────────────────────────────
+// ── Settings Modal Component ──
 function SettingsModal({ onClose, density, setDensity, freezeEnabled, setFreezeEnabled, frozenCols, toggleFreezeCol, columns }) {
   return (
     <div className="settings-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -22,7 +22,7 @@ function SettingsModal({ onClose, density, setDensity, freezeEnabled, setFreezeE
           </button>
         </div>
         <div className="settings-body">
-          {/* Row Density */}
+          {/* Row Density Selection */}
           <div>
             <div className="settings-section-label">Row Density</div>
             <div className="density-options">
@@ -38,7 +38,7 @@ function SettingsModal({ onClose, density, setDensity, freezeEnabled, setFreezeE
             </div>
           </div>
 
-          {/* Column Freeze */}
+          {/* Column Freeze Controls */}
           <div>
             <div className="freeze-toggle-row">
               <span>Column Freezing</span>
@@ -54,7 +54,7 @@ function SettingsModal({ onClose, density, setDensity, freezeEnabled, setFreezeE
             {freezeEnabled && columns.length > 0 && (
               <>
                 <div className="settings-section-label" style={{ marginBottom: 8 }}>
-                  Select columns to freeze (left-anchored)
+                  Select columns to freeze (Left Anchored)
                 </div>
                 <div className="freeze-columns-list">
                   {columns.map((col) => (
@@ -76,7 +76,7 @@ function SettingsModal({ onClose, density, setDensity, freezeEnabled, setFreezeE
   );
 }
 
-// ── Helpers ────────────────────────────────────────────────
+// ── Text Formatting Helpers ──
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
 }
@@ -119,19 +119,19 @@ function renderCellValue(value, columnName) {
   return String(value);
 }
 
-// ── App ────────────────────────────────────────────────────
+// ── Main Table View Implementation ──
 export default function App() {
-  const [data, setData]               = useState([]);
-  const [sortField, setSortField]     = useState("");
-  const [sortOrder, setSortOrder]     = useState("asc");
-  const [isLoading, setIsLoading]     = useState(true);
-  const [error, setError]             = useState(null);
+  const [data, setData] = useState([]);
+  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [density, setDensity]         = useState("comfortable");
+  const [density, setDensity] = useState("comfortable");
   const [freezeEnabled, setFreezeEnabled] = useState(false);
-  const [frozenCols, setFrozenCols]   = useState([]);
+  const [frozenCols, setFrozenCols] = useState([]);
 
-  // Compute frozen column left-offsets after render
+  // Setup DOM structural measurement tracking for sticky left positions
   const thRefs = useRef({});
   const [frozenOffsets, setFrozenOffsets] = useState({});
 
@@ -139,6 +139,7 @@ export default function App() {
     async function fetchData() {
       try {
         setIsLoading(true);
+        // Mocking client framework load sequence matching your local target route
         const res = await fetch("http://localhost:3000/users");
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
@@ -151,24 +152,30 @@ export default function App() {
     fetchData();
   }, []);
 
-  // Recalculate frozen column left-offsets whenever frozen list changes
+  // Compute sticky structural alignment metrics whenever freeze state shifts
   useEffect(() => {
-    if (!freezeEnabled || frozenCols.length === 0) { setFrozenOffsets({}); return; }
+    if (!freezeEnabled || frozenCols.length === 0) { 
+      setFrozenOffsets({}); 
+      return; 
+    }
     const offsets = {};
-    let acc = 0;
+    let currentAccumulatedOffset = 0;
+    
     for (const col of frozenCols) {
-      offsets[col] = acc;
-      const el = thRefs.current[col];
-      if (el) acc += el.offsetWidth;
+      offsets[col] = currentAccumulatedOffset;
+      const elementalHeadingNode = thRefs.current[col];
+      if (elementalHeadingNode) {
+        currentAccumulatedOffset += elementalHeadingNode.offsetWidth;
+      }
     }
     setFrozenOffsets(offsets);
   }, [frozenCols, freezeEnabled, data]);
 
-  // Apply density CSS vars to root
+  // Bind CSS token assignments directly onto layout root DOM variables
   useEffect(() => {
-    const d = DENSITY[density];
-    document.documentElement.style.setProperty("--row-padding-v", d.paddingV);
-    document.documentElement.style.setProperty("--row-height", d.rowHeight);
+    const activeDensityMetrics = DENSITY[density];
+    document.documentElement.style.setProperty("--row-padding-v", activeDensityMetrics.paddingV);
+    document.documentElement.style.setProperty("--row-height", activeDensityMetrics.rowHeight);
   }, [density]);
 
   const columns = data.length > 0
@@ -176,14 +183,14 @@ export default function App() {
     : [];
 
   const handleSort = (field) => {
-    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
+    const nextOrder = sortField === field && sortOrder === "asc" ? "desc" : "asc";
     setSortField(field);
-    setSortOrder(order);
+    setSortOrder(nextOrder);
     setData((prev) =>
       [...prev].sort((a, b) => {
-        const va = a[field] != null ? String(a[field]) : "";
-        const vb = b[field] != null ? String(b[field]) : "";
-        return va.localeCompare(vb, undefined, { numeric: true, sensitivity: "base" }) * (order === "asc" ? 1 : -1);
+        const valueA = a[field] != null ? String(a[field]) : "";
+        const valueB = b[field] != null ? String(b[field]) : "";
+        return valueA.localeCompare(valueB, undefined, { numeric: true, sensitivity: "base" }) * (nextOrder === "asc" ? 1 : -1);
       })
     );
   };
@@ -196,26 +203,31 @@ export default function App() {
 
   const isFrozen = (col) => freezeEnabled && frozenCols.includes(col);
 
-  const getStickyStyle = (col) =>
-    isFrozen(col) ? { position: "sticky", left: frozenOffsets[col] ?? 0, zIndex: 4 } : {};
+  const getStickyStyle = (col) => {
+    if (!isFrozen(col)) return {};
+    return {
+      position: "sticky",
+      left: `${frozenOffsets[col] ?? 0}px`
+    };
+  };
 
-  if (isLoading) return <div className="table-container message-box">Loading server data...</div>;
+  if (isLoading) return <div className="table-container message-box">Loading data grid telemetry...</div>;
   if (error)     return <div className="table-container message-box error">Error: {error}</div>;
 
   return (
     <>
-      {/* Team badge */}
-      <div className="team-badge">935</div>
+      {/* Team 935 Floating Badge */}
+      <div className="team-badge">TEAM 935</div>
 
-      {/* Settings trigger */}
-      <button className="settings-trigger" onClick={() => setShowSettings(true)} aria-label="Open settings">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="10" cy="10" r="2.5"/>
-          <path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.22 4.22l1.06 1.06M14.72 14.72l1.06 1.06M4.22 15.78l1.06-1.06M14.72 5.28l1.06-1.06"/>
+      {/* Floating Settings Gear Trigger */}
+      <button className="settings-trigger" onClick={() => setShowSettings(true)} aria-label="Open settings panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       </button>
 
-      {/* Settings modal */}
+      {/* Configuration Settings Modal Portal */}
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
@@ -229,7 +241,7 @@ export default function App() {
         />
       )}
 
-      {/* Table */}
+      {/* Main Container Wrapper */}
       <div className="table-wrapper">
         <div className="table-container">
           <table>
@@ -247,7 +259,6 @@ export default function App() {
                     onClick={() => handleSort(col)}
                   >
                     {formatHeader(col)}
-                    {/* Absolutely positioned — NEVER shifts column width */}
                     <span className="sort-indicator">
                       {sortField === col ? (sortOrder === "asc" ? "▲" : "▼") : "⇅"}
                     </span>
@@ -258,8 +269,8 @@ export default function App() {
             <tbody>
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length || 1} style={{ textAlign: "center", color: "#888" }}>
-                    No data available.
+                  <td colSpan={columns.length || 1} style={{ textAlign: "center", color: "var(--text-muted)" }}>
+                    No dataset fields available.
                   </td>
                 </tr>
               ) : (
