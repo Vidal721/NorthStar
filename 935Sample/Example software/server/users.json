@@ -1,17 +1,72 @@
 [
   {
-    "id": 1780110865826,
-    "name": "Austin",
-    "age": 16
-  },
-  {
-    "id": 1780111684283,
-    "name": "Silly Billy",
-    "age": 122
-  },
-  {
-    "id": 1780112192965,
-    "name": "CoolGuy",
-    "age": 1
+    "meta": {
+      "teamNumber": "",
+      "matchNumber": "",
+      "scoutName": "",
+      "timestamp": "2026-05-31T04:13:25.702Z",
+      "sampleData": true
+    },
+    "auto": {
+      "possessions": 3,
+      "fullScores": 1,
+      "partialScores": 0,
+      "failedCycles": 2,
+      "failures": 1
+    },
+    "teleop": {
+      "possessions": 9,
+      "fullScores": 5,
+      "partialScores": 3,
+      "failedCycles": 1,
+      "defendedCycles": 3,
+      "defendedFails": 1,
+      "failures": 1,
+      "offCollect": 5,
+      "offPush": 1,
+      "offShoot": 4,
+      "offDispense": 0,
+      "offDefend": 0,
+      "transitScore": 2,
+      "transitMiss": 1,
+      "transitCollect": 0,
+      "transitDefend": 0,
+      "transitWeScore": 2,
+      "transitNothing": 1,
+      "ourShiftSeconds": 64,
+      "offShiftSeconds": 40,
+      "transitSeconds": 12,
+      "shiftsCompleted": 4
+    },
+    "endgame": {
+      "climbSuccess": 0,
+      "climbFail": 1,
+      "failures": 0
+    },
+    "totals": {
+      "possessions": 12,
+      "fullScores": 6,
+      "partialScores": 3,
+      "failedCycles": 3,
+      "defendedCycles": 3,
+      "defendedFails": 1,
+      "failures": 2,
+      "climbSuccess": 0,
+      "climbFail": 1,
+      "totalCycles": 12,
+      "scoringCycles": 9,
+      "totalClimbs": 1,
+      "offActions": 10
+    },
+    "metrics": {
+      "csr": 0.625,
+      "quality": 0.6666666666666666,
+      "dr": 0.9,
+      "rs": 0.6,
+      "cr": 0,
+      "offUtil": 1
+    },
+    "fitScore": 69,
+    "id": 1780200805799
   }
 ]

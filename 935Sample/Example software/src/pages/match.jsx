@@ -260,13 +260,20 @@ function getRoles(metrics, stats) {
 const fmtTime = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 
 const initialStats = () => ({
+  // aggregate (used for fit score / metrics, unchanged)
   possessions: 0, fullScores: 0, partialScores: 0, failedCycles: 0,
   defendedCycles: 0, defendedFails: 0, failures: 0, climbSuccess: 0,
   climbFail: 0, ourShiftSeconds: 0, offShiftSeconds: 0, transitSeconds: 0,
   shiftsCompleted: 0, offCollect: 0, offPush: 0, offShoot: 0,
   offDispense: 0, offDefend: 0, transitScore: 0, transitMiss: 0,
   transitCollect: 0, transitDefend: 0, transitWeScore: 0, transitNothing: 0,
+  // per-phase breakdowns
+  auto: { possessions: 0, fullScores: 0, partialScores: 0, failedCycles: 0, failures: 0 },
+  teleop: { possessions: 0, fullScores: 0, partialScores: 0, failedCycles: 0, defendedCycles: 0, defendedFails: 0, failures: 0 },
+  endgame: { climbSuccess: 0, climbFail: 0, failures: 0 },
 });
+
+const initialMeta = () => ({ teamNumber: "", matchNumber: "", scoutName: "" });
 
 // ============================================================
 //  COMPONENTS
@@ -769,6 +776,31 @@ export default function App() {
 
   const [equations, setEquations] = useState(() => DEFAULT_EQUATIONS.map((e) => ({ ...e })));
   const [showEditor, setShowEditor] = useState(false);
+  const [matchMeta, setMatchMeta] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("scoutMeta") || "{}");
+      return {
+        teamNumber: saved.teamNumber || "",
+        matchNumber: saved.matchNumber || "",
+        scoutName: saved.scoutName || "",
+      };
+    } catch { return initialMeta(); }
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sampleProgress, setSampleProgress] = useState(null); // null | { pct: 0-100, label: "" }
+
+  // Persist teamNumber and scoutName to localStorage whenever they change
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("scoutMeta") || "{}");
+      localStorage.setItem("scoutMeta", JSON.stringify({
+        ...saved,
+        teamNumber: matchMeta.teamNumber,
+        scoutName: matchMeta.scoutName,
+        matchNumber: matchMeta.matchNumber,
+      }));
+    } catch {}
+  }, [matchMeta.teamNumber, matchMeta.scoutName, matchMeta.matchNumber]);
 
   const tick = useCallback(() => {
     matchTimeRef.current--;
@@ -850,17 +882,53 @@ export default function App() {
 
   const handleAction = (btn) => {
     const s = statsRef.current;
+    const ph = phaseRef.current; // "auto" | "transit" | "shift" | "endgame"
     switch (btn.action) {
-      case "startCycle":   if (activeCycle) return; setActiveCycle(true); cycleDefendedRef.current = false; s.possessions++; break;
-      case "finishFull":   if (!activeCycle) return; s.fullScores++;    setActiveCycle(false); cycleDefendedRef.current = false; break;
-      case "finishPartial":if (!activeCycle) return; s.partialScores++; setActiveCycle(false); cycleDefendedRef.current = false; break;
-      case "finishFail":   if (!activeCycle) return; s.failedCycles++;  if (cycleDefendedRef.current) s.defendedFails++; setActiveCycle(false); cycleDefendedRef.current = false; break;
-      case "defend":       if (!activeCycle) return; s.defendedCycles++; cycleDefendedRef.current = true; break;
-      case "breakdown":    s.failures++;   break;
-      case "climbOk":      s.climbSuccess++;break;
-      case "climbFail":    s.climbFail++;  break;
-      case "offStat":      s[btn.statKey]++;break;
-      case "transitStat":  s[btn.statKey]++;break;
+      case "startCycle":
+        if (activeCycle) return;
+        setActiveCycle(true);
+        cycleDefendedRef.current = false;
+        s.possessions++;
+        if (ph === "auto") s.auto.possessions++;
+        else if (ph === "shift" || ph === "transit") s.teleop.possessions++;
+        break;
+      case "finishFull":
+        if (!activeCycle) return;
+        s.fullScores++;
+        if (ph === "auto") s.auto.fullScores++;
+        else s.teleop.fullScores++;
+        setActiveCycle(false); cycleDefendedRef.current = false;
+        break;
+      case "finishPartial":
+        if (!activeCycle) return;
+        s.partialScores++;
+        if (ph === "auto") s.auto.partialScores++;
+        else s.teleop.partialScores++;
+        setActiveCycle(false); cycleDefendedRef.current = false;
+        break;
+      case "finishFail":
+        if (!activeCycle) return;
+        s.failedCycles++;
+        if (ph === "auto") s.auto.failedCycles++;
+        else s.teleop.failedCycles++;
+        if (cycleDefendedRef.current) { s.defendedFails++; s.teleop.defendedFails++; }
+        setActiveCycle(false); cycleDefendedRef.current = false;
+        break;
+      case "defend":
+        if (!activeCycle) return;
+        s.defendedCycles++; s.teleop.defendedCycles++;
+        cycleDefendedRef.current = true;
+        break;
+      case "breakdown":
+        s.failures++;
+        if (ph === "auto") s.auto.failures++;
+        else if (ph === "endgame") s.endgame.failures++;
+        else s.teleop.failures++;
+        break;
+      case "climbOk":   s.climbSuccess++; s.endgame.climbSuccess++; break;
+      case "climbFail": s.climbFail++;    s.endgame.climbFail++;    break;
+      case "offStat":      s[btn.statKey]++; break;
+      case "transitStat":  s[btn.statKey]++; break;
       default: break;
     }
     setStats({ ...s });
@@ -874,7 +942,7 @@ export default function App() {
     setScreen("results");
   };
 
-  const reset = () => {
+  const reset = (prevMeta) => {
     clearInterval(intervalRef.current);
     matchTimeRef.current = matchTotal;
     autoWinnerSetRef.current = false;
@@ -886,7 +954,233 @@ export default function App() {
     setMatchTime(matchTotal); setPhase("auto"); setCurrentShift(null);
     setShiftTimeLeft(0); setTransitTimeLeft(0); setActiveCycle(false);
     setShowAutoOverlay(false); setMatchOver(false); setStats(initialStats());
-    setMetrics(null); setScreen("start");
+    setMetrics(null);
+    // Keep scout name + team, increment match number
+    const meta = prevMeta || matchMeta;
+    const nextMatch = meta.matchNumber ? String(parseInt(meta.matchNumber, 10) + 1) : "";
+    setMatchMeta({ teamNumber: meta.teamNumber, scoutName: meta.scoutName, matchNumber: nextMatch });
+    setScreen("start");
+  };
+
+  const handleSubmit = async () => {
+    const s = statsRef.current;
+    const derived = buildDerivedVars(s);
+    const computedMetrics = {};
+    equations.forEach((eq) => { computedMetrics[eq.key] = evaluateFormula(eq.formula, s); });
+    const fitScore = computeFit(equations, s);
+
+    const matchData = {
+      meta: {
+        teamNumber: matchMeta.teamNumber,
+        matchNumber: matchMeta.matchNumber,
+        scoutName: matchMeta.scoutName,
+        timestamp: new Date().toISOString(),
+      },
+      auto: {
+        possessions:   s.auto.possessions,
+        fullScores:    s.auto.fullScores,
+        partialScores: s.auto.partialScores,
+        failedCycles:  s.auto.failedCycles,
+        failures:      s.auto.failures,
+      },
+      teleop: {
+        possessions:    s.teleop.possessions,
+        fullScores:     s.teleop.fullScores,
+        partialScores:  s.teleop.partialScores,
+        failedCycles:   s.teleop.failedCycles,
+        defendedCycles: s.teleop.defendedCycles,
+        defendedFails:  s.teleop.defendedFails,
+        failures:       s.teleop.failures,
+        offCollect:     s.offCollect,
+        offPush:        s.offPush,
+        offShoot:       s.offShoot,
+        offDispense:    s.offDispense,
+        offDefend:      s.offDefend,
+        transitScore:   s.transitScore,
+        transitMiss:    s.transitMiss,
+        transitCollect: s.transitCollect,
+        transitDefend:  s.transitDefend,
+        transitWeScore: s.transitWeScore,
+        transitNothing: s.transitNothing,
+        ourShiftSeconds:  s.ourShiftSeconds,
+        offShiftSeconds:  s.offShiftSeconds,
+        transitSeconds:   s.transitSeconds,
+        shiftsCompleted:  s.shiftsCompleted,
+      },
+      endgame: {
+        climbSuccess: s.endgame.climbSuccess,
+        climbFail:    s.endgame.climbFail,
+        failures:     s.endgame.failures,
+      },
+      totals: {
+        possessions:    s.possessions,
+        fullScores:     s.fullScores,
+        partialScores:  s.partialScores,
+        failedCycles:   s.failedCycles,
+        defendedCycles: s.defendedCycles,
+        defendedFails:  s.defendedFails,
+        failures:       s.failures,
+        climbSuccess:   s.climbSuccess,
+        climbFail:      s.climbFail,
+        totalCycles:    derived.totalCycles,
+        scoringCycles:  derived.scoringCycles,
+        totalClimbs:    derived.totalClimbs,
+        offActions:     derived.offActions,
+      },
+      metrics: computedMetrics,
+      fitScore,
+    };
+
+    setIsSubmitting(true);
+    const metaSnapshot = { ...matchMeta };
+    try {
+      await submitMatchData(matchData);
+    } finally {
+      setIsSubmitting(false);
+      reset(metaSnapshot);
+    }
+  };
+
+  const submitMatchData = async (matchData) => {
+    const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
+    console.log(`${label} — sending`, matchData);
+    try {
+      const res = await fetch("http://localhost:3000/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(matchData),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        console.error(`${label} — server error ${res.status}:`, err);
+      } else {
+        const saved = await res.json();
+        console.log(`${label} — saved OK, id=${saved.id}`, saved);
+      }
+    } catch (err) {
+      console.warn(`${label} — backend unreachable, data logged below. Start server with: node server.js`);
+      console.log("Unsaved match data:", JSON.stringify(matchData, null, 2));
+    }
+  };
+
+  const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+  const handleSampleData = async () => {
+    const steps = [
+      { pct: 10,  label: "Seeding autonomous phase…" },
+      { pct: 25,  label: "Simulating auto cycles…" },
+      { pct: 40,  label: "Running transition shift…" },
+      { pct: 55,  label: "Generating teleop actions…" },
+      { pct: 70,  label: "Recording off-shift activity…" },
+      { pct: 82,  label: "Simulating endgame climb…" },
+      { pct: 92,  label: "Computing metrics & fit score…" },
+      { pct: 100, label: "Packaging match data…" },
+    ];
+
+    for (const step of steps) {
+      setSampleProgress(step);
+      await new Promise((r) => setTimeout(r, 280));
+    }
+
+    // Build realistic random stats
+    const autoFull    = rand(1, 4);
+    const autoPartial = rand(0, 2);
+    const autoFail    = rand(0, 2);
+    const telFull     = rand(2, 8);
+    const telPartial  = rand(1, 5);
+    const telFail     = rand(0, 4);
+    const telDefCyc   = rand(0, 3);
+    const telDefFail  = rand(0, Math.min(telDefCyc, 2));
+    const climbOk     = rand(0, 1);
+    const climbFail   = climbOk === 1 ? 0 : rand(0, 1);
+
+    const s = initialStats();
+    // auto
+    s.auto.possessions  = autoFull + autoPartial + autoFail;
+    s.auto.fullScores   = autoFull;
+    s.auto.partialScores= autoPartial;
+    s.auto.failedCycles = autoFail;
+    s.auto.failures     = rand(0, 1);
+    // teleop
+    s.teleop.possessions   = telFull + telPartial + telFail;
+    s.teleop.fullScores    = telFull;
+    s.teleop.partialScores = telPartial;
+    s.teleop.failedCycles  = telFail;
+    s.teleop.defendedCycles= telDefCyc;
+    s.teleop.defendedFails = telDefFail;
+    s.teleop.failures      = rand(0, 2);
+    // endgame
+    s.endgame.climbSuccess = climbOk;
+    s.endgame.climbFail    = climbFail;
+    // off-shift / transit
+    s.offCollect   = rand(0, 5); s.offPush = rand(0, 3); s.offShoot = rand(0, 4);
+    s.offDispense  = rand(0, 2); s.offDefend = rand(0, 3);
+    s.transitScore = rand(0, 3); s.transitMiss = rand(0, 3);
+    s.transitCollect = rand(0, 2); s.transitDefend = rand(0, 2);
+    s.transitWeScore = rand(0, 2); s.transitNothing = rand(0, 1);
+    s.ourShiftSeconds  = rand(40, 70); s.offShiftSeconds = rand(40, 70);
+    s.transitSeconds   = rand(8, 12);  s.shiftsCompleted = rand(3, 6);
+    // aggregate totals
+    s.possessions    = s.auto.possessions + s.teleop.possessions;
+    s.fullScores     = autoFull + telFull;
+    s.partialScores  = autoPartial + telPartial;
+    s.failedCycles   = autoFail + telFail;
+    s.defendedCycles = telDefCyc;
+    s.defendedFails  = telDefFail;
+    s.failures       = s.auto.failures + s.teleop.failures + s.endgame.failures;
+    s.climbSuccess   = climbOk;
+    s.climbFail      = climbFail;
+
+    // Inject into refs/state directly (bypass live match flow)
+    statsRef.current = s;
+    setStats({ ...s });
+
+    const computed = {};
+    equations.forEach((eq) => { computed[eq.key] = evaluateFormula(eq.formula, s); });
+    setMetrics(computed);
+
+    const metaSnapshot = { ...matchMeta };
+
+    const derived = buildDerivedVars(s);
+    const computedMetrics2 = { ...computed };
+    const fitScore2 = computeFit(equations, s);
+
+    const matchData = {
+      meta: {
+        teamNumber: matchMeta.teamNumber,
+        matchNumber: matchMeta.matchNumber,
+        scoutName: matchMeta.scoutName,
+        timestamp: new Date().toISOString(),
+        sampleData: true,
+      },
+      auto: { possessions: s.auto.possessions, fullScores: s.auto.fullScores, partialScores: s.auto.partialScores, failedCycles: s.auto.failedCycles, failures: s.auto.failures },
+      teleop: {
+        possessions: s.teleop.possessions, fullScores: s.teleop.fullScores, partialScores: s.teleop.partialScores,
+        failedCycles: s.teleop.failedCycles, defendedCycles: s.teleop.defendedCycles, defendedFails: s.teleop.defendedFails,
+        failures: s.teleop.failures, offCollect: s.offCollect, offPush: s.offPush, offShoot: s.offShoot,
+        offDispense: s.offDispense, offDefend: s.offDefend, transitScore: s.transitScore, transitMiss: s.transitMiss,
+        transitCollect: s.transitCollect, transitDefend: s.transitDefend, transitWeScore: s.transitWeScore,
+        transitNothing: s.transitNothing, ourShiftSeconds: s.ourShiftSeconds, offShiftSeconds: s.offShiftSeconds,
+        transitSeconds: s.transitSeconds, shiftsCompleted: s.shiftsCompleted,
+      },
+      endgame: { climbSuccess: s.endgame.climbSuccess, climbFail: s.endgame.climbFail, failures: s.endgame.failures },
+      totals: {
+        possessions: s.possessions, fullScores: s.fullScores, partialScores: s.partialScores,
+        failedCycles: s.failedCycles, defendedCycles: s.defendedCycles, defendedFails: s.defendedFails,
+        failures: s.failures, climbSuccess: s.climbSuccess, climbFail: s.climbFail,
+        totalCycles: derived.totalCycles, scoringCycles: derived.scoringCycles,
+        totalClimbs: derived.totalClimbs, offActions: derived.offActions,
+      },
+      metrics: computedMetrics2,
+      fitScore: fitScore2,
+    };
+
+    setSampleProgress(null);
+    try {
+      await submitMatchData(matchData);
+    } finally {
+      reset(metaSnapshot);
+    }
   };
 
   const activeGroupKey = (() => {
@@ -923,7 +1217,7 @@ export default function App() {
   }
 
   return (
-    <div className="scout-root">
+    <div className="scout-root" style={{ position: "fixed", inset: 0, overflow: "hidden" }}>
 
       {/* ── START ─────────────────────────────────────────────── */}
       <div
@@ -950,6 +1244,54 @@ export default function App() {
           <div style={{ fontSize: 13, color: "var(--scout-text-faint)", marginBottom: 44, fontWeight: 500 }}>
             REBUILT · Real-time match tracker
           </div>
+          {/* Match metadata */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24, textAlign: "left" }}>
+            <div>
+              <div className="scout-overline" style={{ marginBottom: 4 }}>Team Number</div>
+              <input
+                className="scout-input"
+                type="number"
+                placeholder="e.g. 935"
+                value={matchMeta.teamNumber}
+                onFocus={() => setMatchMeta((m) => ({ ...m, teamNumber: "" }))}
+                onChange={(e) => setMatchMeta((m) => ({ ...m, teamNumber: e.target.value }))}
+              />
+            </div>
+            <div>
+              <div className="scout-overline" style={{ marginBottom: 4 }}>Match Number</div>
+              <input
+                className="scout-input"
+                type="number"
+                placeholder="e.g. 12"
+                value={matchMeta.matchNumber}
+                onFocus={() => setMatchMeta((m) => ({ ...m, matchNumber: "" }))}
+                onChange={(e) => setMatchMeta((m) => ({ ...m, matchNumber: e.target.value }))}
+              />
+            </div>
+            <div>
+              <div className="scout-overline" style={{ marginBottom: 4 }}>Scout Name</div>
+              <input
+                className="scout-input"
+                placeholder="Your name"
+                value={matchMeta.scoutName}
+                onFocus={() => setMatchMeta((m) => ({ ...m, scoutName: "" }))}
+                onChange={(e) => setMatchMeta((m) => ({ ...m, scoutName: e.target.value }))}
+              />
+            </div>
+          </div>
+          {/* Sample data progress overlay */}
+          {sampleProgress && (
+            <div style={{ marginBottom: 18, background: "var(--scout-bg-card)", border: "1px solid var(--scout-border-card)", borderRadius: 14, padding: "16px 18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--scout-indigo-soft)", letterSpacing: "0.1em" }}>GENERATING SAMPLE DATA</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--scout-text-faint)" }}>{sampleProgress.pct}%</span>
+              </div>
+              <div className="scout-progress-track" style={{ height: 6, marginBottom: 8 }}>
+                <div style={{ height: "100%", borderRadius: 999, width: `${sampleProgress.pct}%`, background: "linear-gradient(90deg, var(--scout-indigo), #7c3aed)", transition: "width 0.25s ease" }} />
+              </div>
+              <div style={{ fontSize: 11, color: "var(--scout-text-faint)", fontStyle: "italic" }}>{sampleProgress.label}</div>
+            </div>
+          )}
           <button
             onClick={startMatch}
             style={{
@@ -965,9 +1307,18 @@ export default function App() {
           <button
             onClick={() => setShowEditor(true)}
             className="scout-btn-ghost"
-            style={{ borderRadius: 14, padding: "12px 52px", fontSize: 13, letterSpacing: "0.04em", WebkitTapHighlightColor: "transparent", width: "100%" }}
+            style={{ borderRadius: 14, padding: "12px 52px", fontSize: 13, letterSpacing: "0.04em", WebkitTapHighlightColor: "transparent", width: "100%", marginBottom: 10 }}
           >
             ⚙ FORMULA EDITOR
+          </button>
+          <button
+            id="sampleDataSubmit"
+            onClick={handleSampleData}
+            disabled={!!sampleProgress}
+            className="scout-btn-ghost"
+            style={{ borderRadius: 14, padding: "12px 52px", fontSize: 13, letterSpacing: "0.04em", WebkitTapHighlightColor: "transparent", width: "100%", opacity: sampleProgress ? 0.5 : 1, border: "1px dashed var(--scout-indigo)", color: "var(--scout-indigo-soft)" }}
+          >
+            ⚡ SAMPLE DATA SUBMIT
           </button>
         </div>
       </div>
@@ -1251,8 +1602,8 @@ export default function App() {
         })()}
 
         <div style={{ padding: "0 14px 36px", flexShrink: 0 }}>
-          <button onClick={reset} className="scout-btn-primary">
-            SUBMIT &amp; SCOUT NEXT MATCH
+          <button onClick={handleSubmit} disabled={isSubmitting} className="scout-btn-primary">
+            {isSubmitting ? "SUBMITTING…" : "SUBMIT & SCOUT NEXT MATCH"}
           </button>
         </div>
       </div>
