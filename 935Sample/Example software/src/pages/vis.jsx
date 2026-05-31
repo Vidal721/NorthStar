@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import "./vis.css";
 
-// ── Constants ──────────────────────────────────────────────
 const DENSITY = {
   tight:       { label: "Tight",       paddingV: "6px",  rowHeight: "38px" },
   comfortable: { label: "Comfortable", paddingV: "10px", rowHeight: "48px" },
   loose:       { label: "Loose",       paddingV: "16px", rowHeight: "60px" },
 };
 
-// Default section colors — user-customizable
 const DEFAULT_SECTION_COLORS = {
   meta:     "#8b5cf6",
   auto:     "#ef4444",
@@ -19,7 +17,8 @@ const DEFAULT_SECTION_COLORS = {
   _flat:    "#6b7280",
 };
 
-// ── Helpers ────────────────────────────────────────────────
+const DEFAULT_SUMMARY_COLS = [];
+
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
 }
@@ -45,12 +44,10 @@ function renderCellValue(value, colKey) {
       </div>
     );
   if (colKey === "id" && String(value).length > 8) return `…${String(value).slice(-6)}`;
-  if (typeof value === "number" && !Number.isInteger(value)) return value.toFixed(3);
+  if (typeof value === "number" && !Number.isInteger(value)) return value.toFixed(1);
   return String(value);
 }
 
-// Given a raw data row, produce flat column list with section metadata
-// Returns: [{ flatKey, section, subKey, label }]
 function buildColumnDefs(rows) {
   if (!rows || rows.length === 0) return [];
   const seen = new Set();
@@ -58,7 +55,6 @@ function buildColumnDefs(rows) {
   for (const row of rows) {
     for (const [topKey, topVal] of Object.entries(row)) {
       if (topVal !== null && typeof topVal === "object" && !Array.isArray(topVal)) {
-        // Nested section
         for (const subKey of Object.keys(topVal)) {
           const flatKey = `${topKey}.${subKey}`;
           if (!seen.has(flatKey)) {
@@ -83,32 +79,78 @@ function getCellValue(row, def) {
   return row[def.section]?.[def.subKey];
 }
 
-// ── Section Detail Modal ───────────────────────────────────
-function SectionModal({ section, rowData, colDefs, color, onClose }) {
-  const sectionDefs = colDefs.filter(d => d.section === section);
-  const sectionData = rowData[section] ?? rowData; // flat fields live on row directly
+// ── Team Overview Modal ────────────────────────────────────
+function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
+  const [showAll, setShowAll] = useState(false);
+
+  // Find identifier — first _flat col that looks like a team/name
+  const teamId = teamRows[0]?.team ?? teamRows[0]?.id ?? teamRows[0]?.[Object.keys(teamRows[0])[0]];
+
+  const displayDefs = showAll
+    ? colDefs
+    : summaryCols.length > 0
+      ? colDefs.filter(d => summaryCols.includes(d.flatKey))
+      : colDefs.slice(0, 8);
 
   return (
     <div className="settings-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="section-modal" style={{ "--section-color": color }}>
-        <div className="section-modal-header">
-          <span className="section-modal-tag" style={{ background: color }}>{section.toUpperCase()}</span>
-          <button className="settings-close" onClick={onClose}>
-            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
-            </svg>
-          </button>
+      <div className="team-modal">
+        <div className="team-modal-header">
+          <div className="team-modal-title">
+            <span className="team-modal-number">Team {teamId}</span>
+            <span className="team-modal-subtitle">{teamRows.length} match{teamRows.length !== 1 ? "es" : ""}</span>
+          </div>
+          <div className="team-modal-actions">
+            <button
+              className={`team-modal-toggle${showAll ? " active" : ""}`}
+              onClick={() => setShowAll(v => !v)}
+            >
+              {showAll ? "Summary" : "All Data"}
+            </button>
+            <button className="settings-close" onClick={onClose}>
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="section-modal-grid">
-          {sectionDefs.map(def => {
-            const val = section === "_flat" ? rowData[def.subKey] : rowData[def.section]?.[def.subKey];
-            return (
-              <div key={def.flatKey} className="section-kv">
-                <div className="section-kv-key">{def.label}</div>
-                <div className="section-kv-val">{renderCellValue(val, def.subKey)}</div>
-              </div>
-            );
-          })}
+
+        {teamRows.length > 1 && (
+          <div className="team-modal-matches">
+            {teamRows.map((r, i) => {
+              const matchVal = r.match ?? r.matchNumber ?? `#${i + 1}`;
+              return (
+                <span key={i} className="team-match-chip">Match {matchVal}</span>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="team-modal-body">
+          {displayDefs.length === 0 ? (
+            <div className="team-modal-empty">No summary columns selected. Configure in Settings → Summary Columns.</div>
+          ) : (
+            <div className="team-kv-grid">
+              {displayDefs.map(def => {
+                const color = sectionColors[def.section] || "#888";
+                // If multiple rows, show all values
+                const vals = teamRows.map(r => getCellValue(r, def));
+                return (
+                  <div key={def.flatKey} className="team-kv-card" style={{ "--card-color": color }}>
+                    <div className="team-kv-section" style={{ color }}>
+                      {def.section === "_flat" ? "Info" : def.section.toUpperCase()}
+                    </div>
+                    <div className="team-kv-key">{def.label}</div>
+                    <div className="team-kv-vals">
+                      {vals.map((v, i) => (
+                        <span key={i} className="team-kv-val">{renderCellValue(v, def.subKey)}</span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -120,7 +162,19 @@ function SettingsModal({
   onClose, density, setDensity,
   freezeEnabled, setFreezeEnabled, frozenCols, toggleFreezeCol,
   columns, sectionColors, setSectionColors, knownSections,
+  summaryCols, setSummaryCols,
 }) {
+  const toggleSummaryCol = (fk) =>
+    setSummaryCols(prev => prev.includes(fk) ? prev.filter(c => c !== fk) : [...prev, fk]);
+
+  // Group columns by section for display
+  const grouped = columns.reduce((acc, col) => {
+    const sec = col.section === "_flat" ? "Info" : col.section;
+    if (!acc[sec]) acc[sec] = [];
+    acc[sec].push(col);
+    return acc;
+  }, {});
+
   return (
     <div className="settings-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="settings-modal">
@@ -165,6 +219,33 @@ function SettingsModal({
             </div>
           </div>
 
+          {/* Summary Columns */}
+          <div>
+            <div className="settings-section-label">Summary Columns</div>
+            <p className="settings-hint">These appear in the team overview. Click to toggle.</p>
+            <div className="summary-col-sections">
+              {Object.entries(grouped).map(([sec, cols]) => {
+                const color = sectionColors[cols[0].section] || "#888";
+                return (
+                  <div key={sec} className="summary-col-group">
+                    <div className="summary-col-group-label" style={{ color }}>{sec}</div>
+                    <div className="freeze-columns-list">
+                      {cols.map(col => (
+                        <button
+                          key={col.flatKey}
+                          className={`freeze-col-chip${summaryCols.includes(col.flatKey) ? " frozen" : ""}`}
+                          onClick={() => toggleSummaryCol(col.flatKey)}
+                        >
+                          {col.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Column Freeze */}
           <div>
             <div className="freeze-toggle-row">
@@ -205,8 +286,8 @@ export default function App() {
   const [freezeEnabled, setFreezeEnabled] = useState(false);
   const [frozenCols, setFrozenCols]   = useState([]);
   const [sectionColors, setSectionColors] = useState(DEFAULT_SECTION_COLORS);
-  // { section, rowData } or null
-  const [sectionFocus, setSectionFocus] = useState(null);
+  const [summaryCols, setSummaryCols] = useState(DEFAULT_SUMMARY_COLS);
+  const [teamFocus, setTeamFocus]     = useState(null); // { teamId, rows }
 
   const thRefs = useRef({});
   const [frozenOffsets, setFrozenOffsets] = useState({});
@@ -215,7 +296,7 @@ export default function App() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch("http://localhost:3000/users");
+        const res = await fetch("https://gardening-consecutive-frequencies-comparative.trycloudflare.com//users");
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
       } catch (err) { setError(err.message); }
@@ -226,7 +307,6 @@ export default function App() {
 
   const colDefs = buildColumnDefs(data);
 
-  // Grouped sections for header row
   const sectionGroups = colDefs.reduce((acc, def) => {
     if (!acc[def.section]) acc[def.section] = [];
     acc[def.section].push(def);
@@ -272,6 +352,19 @@ export default function App() {
   const isFrozen = fk => freezeEnabled && frozenCols.includes(fk);
   const getStickyStyle = fk => isFrozen(fk) ? { position: "sticky", left: frozenOffsets[fk] ?? 0, zIndex: 4 } : {};
 
+  // Find team column — look for a _flat col named "team" or first _flat col
+  const teamColDef = colDefs.find(d => d.section === "_flat" && d.subKey.toLowerCase() === "team")
+    ?? colDefs.find(d => d.section === "_flat");
+
+  const handleTeamClick = (e, row) => {
+    e.stopPropagation();
+    if (!teamColDef) return;
+    const teamId = getCellValue(row, teamColDef);
+    // Gather all rows for this team
+    const teamRows = data.filter(r => getCellValue(r, teamColDef) === teamId);
+    setTeamFocus({ teamId, rows: teamRows });
+  };
+
   if (isLoading) return <div className="table-container message-box">Loading server data...</div>;
   if (error)     return <div className="table-container message-box error">Error: {error}</div>;
 
@@ -295,16 +388,17 @@ export default function App() {
           columns={colDefs}
           sectionColors={sectionColors} setSectionColors={setSectionColors}
           knownSections={knownSections}
+          summaryCols={summaryCols} setSummaryCols={setSummaryCols}
         />
       )}
 
-      {sectionFocus && (
-        <SectionModal
-          section={sectionFocus.section}
-          rowData={sectionFocus.rowData}
+      {teamFocus && (
+        <TeamModal
+          teamRows={teamFocus.rows}
           colDefs={colDefs}
-          color={sectionColors[sectionFocus.section] || "#888"}
-          onClose={() => setSectionFocus(null)}
+          sectionColors={sectionColors}
+          summaryCols={summaryCols}
+          onClose={() => setTeamFocus(null)}
         />
       )}
 
@@ -323,7 +417,6 @@ export default function App() {
                       colSpan={count}
                       className="section-group-th"
                       style={{ "--sec-color": color }}
-                      title={`Click any row to expand ${sec}`}
                     >
                       <span className="section-group-label">
                         {sec === "_flat" ? "Info" : sec.toUpperCase()}
@@ -347,7 +440,6 @@ export default function App() {
                       style={{
                         ...getStickyStyle(def.flatKey),
                         "--sec-color": color,
-                        borderTop: `3px solid ${color}`,
                       }}
                       onClick={() => handleSort(def.flatKey)}
                     >
@@ -369,26 +461,33 @@ export default function App() {
                     {colDefs.map(def => {
                       const color = sectionColors[def.section] || "#888";
                       const val = getCellValue(row, def);
-                      // Determine if this is first/last col in section for bracket border
                       const secDefs = sectionGroups[def.section];
                       const isFirst = secDefs[0].flatKey === def.flatKey;
                       const isLast  = secDefs[secDefs.length - 1].flatKey === def.flatKey;
+                      const isTeamCol = def === teamColDef;
+
                       return (
                         <td
                           key={def.flatKey}
                           className={[
                             "sectioned-cell",
                             isFrozen(def.flatKey) ? "frozen" : "",
+                            isTeamCol ? "team-cell" : "",
                           ].filter(Boolean).join(" ")}
                           style={{
                             ...getStickyStyle(def.flatKey),
                             "--sec-color": color,
-                            borderLeft:  isFirst ? `2px solid ${color}` : undefined,
-                            borderRight: isLast  ? `2px solid ${color}` : undefined,
+                            borderLeft:  isFirst ? `2px solid ${color}20` : undefined,
+                            borderRight: isLast  ? `2px solid ${color}20` : undefined,
                           }}
-                          onClick={() => setSectionFocus({ section: def.section, rowData: row })}
                         >
-                          {renderCellValue(val, def.subKey)}
+                          {isTeamCol ? (
+                            <button className="team-link" onClick={(e) => handleTeamClick(e, row)}>
+                              {renderCellValue(val, def.subKey)}
+                            </button>
+                          ) : (
+                            renderCellValue(val, def.subKey)
+                          )}
                         </td>
                       );
                     })}
