@@ -68,5 +68,145 @@
     },
     "fitScore": 69,
     "id": 1780200805799
+  },
+  {
+    "meta": {
+      "teamNumber": "",
+      "matchNumber": "",
+      "scoutName": "",
+      "timestamp": "2026-05-31T04:24:47.065Z",
+      "sampleData": true
+    },
+    "auto": {
+      "possessions": 2,
+      "fullScores": 1,
+      "partialScores": 0,
+      "failedCycles": 1,
+      "failures": 0
+    },
+    "teleop": {
+      "possessions": 5,
+      "fullScores": 3,
+      "partialScores": 2,
+      "failedCycles": 0,
+      "defendedCycles": 3,
+      "defendedFails": 0,
+      "failures": 2,
+      "offCollect": 3,
+      "offPush": 1,
+      "offShoot": 2,
+      "offDispense": 1,
+      "offDefend": 2,
+      "transitScore": 3,
+      "transitMiss": 1,
+      "transitCollect": 0,
+      "transitDefend": 0,
+      "transitWeScore": 0,
+      "transitNothing": 0,
+      "ourShiftSeconds": 60,
+      "offShiftSeconds": 64,
+      "transitSeconds": 12,
+      "shiftsCompleted": 6
+    },
+    "endgame": {
+      "climbSuccess": 0,
+      "climbFail": 0,
+      "failures": 0
+    },
+    "totals": {
+      "possessions": 7,
+      "fullScores": 4,
+      "partialScores": 2,
+      "failedCycles": 1,
+      "defendedCycles": 3,
+      "defendedFails": 0,
+      "failures": 2,
+      "climbSuccess": 0,
+      "climbFail": 0,
+      "totalCycles": 7,
+      "scoringCycles": 6,
+      "totalClimbs": 0,
+      "offActions": 9
+    },
+    "metrics": {
+      "csr": 0.7142857142857143,
+      "quality": 0.6666666666666666,
+      "dr": 1,
+      "rs": 0.7142857142857143,
+      "cr": 0,
+      "offUtil": 1
+    },
+    "fitScore": 75,
+    "id": 1780201487072
+  },
+  {
+    "meta": {
+      "teamNumber": "",
+      "matchNumber": "",
+      "scoutName": "",
+      "timestamp": "2026-05-31T04:24:58.481Z",
+      "sampleData": true
+    },
+    "auto": {
+      "possessions": 5,
+      "fullScores": 1,
+      "partialScores": 2,
+      "failedCycles": 2,
+      "failures": 0
+    },
+    "teleop": {
+      "possessions": 12,
+      "fullScores": 8,
+      "partialScores": 2,
+      "failedCycles": 2,
+      "defendedCycles": 3,
+      "defendedFails": 2,
+      "failures": 1,
+      "offCollect": 0,
+      "offPush": 1,
+      "offShoot": 1,
+      "offDispense": 1,
+      "offDefend": 3,
+      "transitScore": 2,
+      "transitMiss": 2,
+      "transitCollect": 1,
+      "transitDefend": 1,
+      "transitWeScore": 2,
+      "transitNothing": 0,
+      "ourShiftSeconds": 56,
+      "offShiftSeconds": 66,
+      "transitSeconds": 8,
+      "shiftsCompleted": 5
+    },
+    "endgame": {
+      "climbSuccess": 0,
+      "climbFail": 0,
+      "failures": 0
+    },
+    "totals": {
+      "possessions": 17,
+      "fullScores": 9,
+      "partialScores": 4,
+      "failedCycles": 4,
+      "defendedCycles": 3,
+      "defendedFails": 2,
+      "failures": 1,
+      "climbSuccess": 0,
+      "climbFail": 0,
+      "totalCycles": 17,
+      "scoringCycles": 13,
+      "totalClimbs": 0,
+      "offActions": 6
+    },
+    "metrics": {
+      "csr": 0.6470588235294118,
+      "quality": 0.6923076923076923,
+      "dr": 0.8666666666666667,
+      "rs": 0.8333333333333334,
+      "cr": 0,
+      "offUtil": 1
+    },
+    "fitScore": 72,
+    "id": 1780201498490
   }
 ]

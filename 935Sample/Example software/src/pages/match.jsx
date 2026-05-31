@@ -969,6 +969,8 @@ export default function App() {
     equations.forEach((eq) => { computedMetrics[eq.key] = evaluateFormula(eq.formula, s); });
     const fitScore = computeFit(equations, s);
 
+    console.log(equations)
+
     const matchData = {
       meta: {
         teamNumber: matchMeta.teamNumber,
