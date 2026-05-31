@@ -1,30 +1,29 @@
 /* ============================================================
    VIS TABLE — Team 935 Edition
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
 
 :root {
   --accent: #f5c400;
   --accent-dark: #c9a000;
   --accent-light: #fff8d6;
-  --bg: #f4f4f2;
+  --bg: #f0f0ee;
   --surface: #ffffff;
   --border: #e2e2e0;
   --text-head: #1a1a1a;
   --text-body: #444444;
   --text-muted: #888888;
-  --row-even: #f9f9f7;
+  --row-even: #f7f7f5;
   --row-hover: #fffbea;
-  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow: 0 4px 20px rgba(0,0,0,0.09);
   --radius: 10px;
   --font: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "DM Mono", "Fira Code", monospace;
-
-  /* Row density variables driven by React */
   --row-padding-v: 10px;
   --row-height: 48px;
 }
-
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -34,32 +33,28 @@ body {
   align-items: flex-start;
   min-height: 100vh;
   margin: 0;
-  padding: 80px 20px 60px; /* Extra top padding to make room for pinned items */
+  padding: 32px 20px 60px;
   background-color: var(--bg);
   font-family: var(--font);
 }
 
-/* ── Team Tag (Pinned Top-Left) ── */
+/* ── Team Badge ── */
 .team-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--accent);
-  color: #1a1a1a;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  padding: 6px 12px;
-  border-radius: 20px;
   position: fixed;
   top: 18px;
   left: 18px;
   z-index: 200;
+  background: var(--accent);
+  color: #1a1a1a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 3px 10px;
+  border-radius: 6px;
   font-family: var(--font-mono);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ── Settings Button (Pinned Top-Right) ── */
+/* ── Settings Trigger ── */
 .settings-trigger {
   position: fixed;
   top: 18px;
@@ -75,20 +70,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, transform 0.15s;
+  transition: background 0.15s, transform 0.2s;
   color: var(--text-head);
 }
 .settings-trigger:hover {
   background: var(--accent-light);
-  transform: rotate(45deg);
+  transform: rotate(30deg);
 }
-.settings-trigger svg {
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
-}
+.settings-trigger svg { width: 18px; height: 18px; pointer-events: none; }
 
-/* ── Settings Overlay & Modal ── */
+/* ── Overlays ── */
 .settings-overlay {
   position: fixed;
   inset: 0;
@@ -99,25 +90,19 @@ body {
   justify-content: center;
   animation: fadeIn 0.15s ease;
 }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
+/* ── Settings Modal ── */
 .settings-modal {
   background: var(--surface);
   border-radius: 14px;
-  width: 420px;
+  width: 460px;
   max-width: calc(100vw - 32px);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
-  overflow: hidden;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   animation: slideUp 0.18s ease;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(12px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
 }
 
 .settings-header {
@@ -127,29 +112,29 @@ body {
   padding: 18px 22px 14px;
   border-bottom: 2px solid var(--accent);
   background: var(--accent-light);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
-
 .settings-header h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-head);
   letter-spacing: 0.01em;
 }
-
 .settings-close {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 4px;
   color: var(--text-muted);
   border-radius: 6px;
   display: flex;
   align-items: center;
-  justify-content: center;
   transition: background 0.12s;
 }
-.settings-close:hover { background: rgba(0,0,0,0.05); color: var(--text-head); }
+.settings-close:hover { background: #e8e8e8; color: var(--text-head); }
 
 .settings-body {
   padding: 20px 22px 24px;
@@ -159,22 +144,19 @@ body {
 }
 
 .settings-section-label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 10px;
 }
 
-/* Density Controls */
-.density-options {
-  display: flex;
-  gap: 8px;
-}
+/* Density */
+.density-options { display: flex; gap: 8px; }
 .density-btn {
   flex: 1;
-  padding: 10px 0;
+  padding: 8px 0;
   border-radius: 8px;
   border: 2px solid var(--border);
   background: var(--surface);
@@ -183,18 +165,40 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-body);
-  transition: all 0.15s ease;
+  transition: border-color 0.15s, background 0.15s;
   text-align: center;
 }
 .density-btn:hover { border-color: var(--accent); background: var(--accent-light); }
-.density-btn.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #1a1a1a;
-  font-weight: 700;
-}
+.density-btn.active { border-color: var(--accent); background: var(--accent); color: #1a1a1a; font-weight: 700; }
 
-/* Freeze Toggle Switch */
+/* Section Colors */
+.section-color-list { display: flex; flex-direction: column; gap: 8px; }
+.section-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+.section-color-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+.color-swatch-input {
+  width: 36px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+.color-swatch-input::-webkit-color-swatch-wrapper { padding: 2px; }
+.color-swatch-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+/* Freeze */
 .freeze-toggle-row {
   display: flex;
   align-items: center;
@@ -202,64 +206,102 @@ body {
   margin-bottom: 12px;
 }
 .freeze-toggle-row span { font-size: 13px; font-weight: 500; color: var(--text-body); }
-
-.toggle-switch {
-  position: relative;
-  width: 44px;
-  height: 24px;
-}
+.toggle-switch { position: relative; width: 40px; height: 22px; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
-  position: absolute;
-  inset: 0;
-  background: #d0d0d0;
-  border-radius: 22px;
-  cursor: pointer;
+  position: absolute; inset: 0;
+  background: #d0d0d0; border-radius: 22px; cursor: pointer;
   transition: background 0.2s;
 }
 .toggle-slider::before {
-  content: "";
-  position: absolute;
-  width: 18px; height: 18px;
-  left: 3px; top: 3px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  content: ""; position: absolute;
+  width: 16px; height: 16px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
 
-.freeze-columns-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
+.freeze-columns-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .freeze-col-chip {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 2px solid var(--border);
-  background: var(--surface);
-  cursor: pointer;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-body);
-  transition: all 0.12s ease;
+  padding: 5px 10px; border-radius: 8px;
+  border: 2px solid var(--border); background: var(--surface);
+  cursor: pointer; font-family: var(--font); font-size: 12px;
+  font-weight: 500; color: var(--text-body);
+  transition: border-color 0.12s, background 0.12s;
 }
 .freeze-col-chip:hover { border-color: var(--accent); background: var(--accent-light); }
-.freeze-col-chip.frozen {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #1a1a1a;
-  font-weight: 700;
+.freeze-col-chip.frozen { border-color: var(--accent); background: var(--accent); color: #1a1a1a; font-weight: 700; }
+
+/* ── Section Detail Modal ── */
+.section-modal {
+  background: var(--surface);
+  border-radius: 14px;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+  animation: slideUp 0.18s ease;
+  border-top: 4px solid var(--section-color, #888);
 }
 
-/* ── Table Infrastructure ── */
+.section-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.section-modal-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+
+.section-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
+}
+
+.section-kv {
+  background: var(--surface);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: default;
+  transition: background 0.12s;
+}
+.section-kv:hover { background: color-mix(in srgb, var(--section-color, #888) 6%, var(--surface)); }
+
+.section-kv-key {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.section-kv-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-head);
+  font-family: var(--font-mono);
+}
+
+/* ── Table Wrapper ── */
 .table-wrapper {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
+  margin-top: 56px;
 }
 
 .table-container {
@@ -272,27 +314,69 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* ── Table ── */
 table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-family: var(--font);
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
-/* ── Sticky Header Layout ── */
-thead tr {
+/* ── Section Group Header Row ── */
+.section-header-row {
   position: sticky;
   top: 0;
-  z-index: 20; /* Ensures headers sit comfortably above frozen body columns */
+  z-index: 12;
+}
+
+.section-group-th {
+  padding: 6px 12px 5px;
+  text-align: left;
+  background: var(--surface);
+  border-bottom: none;
+  border-top: 3px solid var(--sec-color, #888);
+  /* left+right border brackets */
+  border-left: 2px solid var(--sec-color, #888);
+  border-right: 2px solid var(--sec-color, #888);
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+
+.section-group-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sec-color, #888);
+  font-family: var(--font-mono);
+}
+
+/* ── Col Header Row ── */
+.col-header-row {
+  position: sticky;
+  top: 29px; /* height of section group row */
+  z-index: 11;
+  background: var(--surface);
+}
+
+/* thin yellow underline across the full col header row */
+.col-header-row::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  pointer-events: none;
 }
 
 th {
-  padding: 14px 34px 14px 20px; /* Added right padding cushion to isolate the sort icon layout shift */
+  padding: 9px 18px;
   text-align: left;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-head);
   white-space: nowrap;
@@ -300,69 +384,66 @@ th {
   user-select: none;
   background: var(--surface);
   border-bottom: 2px solid var(--accent);
-  transition: background 0.15s;
   position: relative;
+  transition: background 0.15s;
 }
 th:hover { background: var(--accent-light); }
 
-/* Sort Indicator Pinpoint */
+/* Sort indicator — absolute so it never shifts column width */
 .sort-indicator {
   position: absolute;
-  right: 12px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 11px;
+  font-size: 9px;
   color: var(--accent-dark);
-  opacity: 0.25;
+  opacity: 0;
   transition: opacity 0.15s;
 }
-th:hover .sort-indicator { opacity: 0.6; }
-th.sort-active .sort-indicator { opacity: 1; font-weight: 900; }
+th:hover .sort-indicator { opacity: 0.45; }
+th.sort-active .sort-indicator { opacity: 1; }
 
-/* ── Alternating Rows & Frozen States ── */
-tbody tr:nth-child(odd)  { background-color: var(--surface); }
+/* Frozen */
+th.frozen, td.frozen {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: inherit;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.07);
+}
+th.frozen { z-index: 15; background: var(--surface); }
+
+/* ── Rows ── */
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  height: var(--row-height);
+  cursor: pointer;
+}
+tbody tr:last-child { border-bottom: none; }
 tbody tr:nth-child(even) { background-color: var(--row-even); }
-
-/* Standard Row Hover Row Background Override */
-tbody tr:hover { background-color: var(--row-hover); }
+tbody tr:nth-child(odd)  { background-color: var(--surface); }
+tbody tr:hover { background-color: var(--row-hover) !important; }
 
 td {
-  padding: var(--row-padding-v) 20px;
+  padding: var(--row-padding-v) 18px;
   text-align: left;
   color: var(--text-body);
   white-space: nowrap;
   height: var(--row-height);
   box-sizing: border-box;
-  transition: background-color 0.1s;
+  background: inherit;
+  transition: background 0.1s;
 }
 
-/* Concrete backgrounds for Frozen items so underlying text stays hidden */
-th.frozen {
-  z-index: 25; /* Higher tier stack for frozen header intercept points */
-  background: var(--surface);
-  box-shadow: 2px 0 4px rgba(0,0,0,0.04);
-}
-th.frozen:hover { background: var(--accent-light); }
-
-td.frozen {
-  position: sticky;
-  z-index: 15;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.04);
-}
-
-/* Maintain proper alternate striped row assignments even when columns are frozen */
-tbody tr:nth-child(odd) td.frozen  { background-color: var(--surface); }
-tbody tr:nth-child(even) td.frozen { background-color: var(--row-even); }
-tbody tr:hover td.frozen           { background-color: var(--row-hover); }
-
-/* ── UI Element Data Components ── */
+/* ── Pills / Badges ── */
 .pill-container {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   gap: 5px;
+  overflow: hidden;
 }
-
 .tag-pill {
   display: inline-flex;
   align-items: center;
@@ -374,13 +455,13 @@ tbody tr:hover td.frozen           { background-color: var(--row-hover); }
   font-size: 11px;
   font-weight: 600;
   border: 1px solid rgba(26,115,232,0.15);
+  white-space: nowrap;
 }
 .tag-pill.object-pill {
-  background-color: #f1f3f4;
+  background: #f1f3f4;
   color: #3c4043;
   border: 1px solid #dadce0;
 }
-
 .badge {
   display: inline-block;
   padding: 2px 9px;
@@ -388,12 +469,11 @@ tbody tr:hover td.frozen           { background-color: var(--row-hover); }
   border-radius: 10px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.03em;
 }
 .badge.true  { background: #e6f4ea; color: #137333; }
 .badge.false { background: #fce8e6; color: #c5221f; }
 
-/* Status Notifications */
+/* ── Status / Error ── */
 .table-container.message-box {
   padding: 48px 24px;
   text-align: center;
@@ -407,33 +487,15 @@ tbody tr:hover td.frozen           { background-color: var(--row-hover); }
   background: #fdf3f4;
 }
 
-/* ── Mobile Layout Adjustments ── */
+/* ── Mobile ── */
 @media (max-width: 640px) {
-  body { padding: 70px 0 48px; }
-
-  .table-container {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-
-  .settings-trigger {
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
-  }
-
-  .team-badge {
-    top: 12px;
-    left: 12px;
-    font-size: 10px;
-    padding: 4px 10px;
-  }
-
-  th { font-size: 10px; padding: 10px 24px 10px 12px; }
-  td { font-size: 12px; padding: var(--row-padding-v) 12px; }
-  
-  .sort-indicator { right: 6px; }
-  .settings-modal { width: calc(100vw - 16px); }
+  body { padding: 16px 0 48px; }
+  .table-wrapper { max-width: 100%; margin-top: 48px; }
+  .table-container { border-radius: 0; border-left: none; border-right: none; }
+  .settings-trigger { top: 12px; right: 12px; width: 36px; height: 36px; }
+  .team-badge { top: 12px; left: 12px; font-size: 9px; }
+  th { font-size: 9.5px; padding: 7px 12px; }
+  td { font-size: 12px; padding: 6px 12px; }
+  .settings-modal, .section-modal { width: calc(100vw - 24px); }
+  .section-modal-grid { grid-template-columns: repeat(2, 1fr); }
 }
