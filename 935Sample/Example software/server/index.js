@@ -1,12 +1,41 @@
 import express from "express";
 import fs from "fs";
 import cors from "cors";
+import dotenv from "dotenv";
+import { exec } from "child_process";
 
 const app = express();
 const PORT = 3000;
 
+dotenv.config();
+
 app.use(express.json());
 app.use(cors());
+
+console.log("Deploy key:", process.env.DEPLOY_KEY);
+
+app.post("/deploy", (req, res) => {
+  if (req.query.key !== process.env.DEPLOY_KEY) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  console.log("[deploy] Updating server...");
+
+  exec(
+    "git pull origin main",
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).send("Deploy failed");
+      }
+
+      console.log(stdout);
+      console.error(stderr);
+
+      res.send("Deploy successful");
+    }
+  );
+});
 
 function getMatch() {
   return JSON.parse(fs.readFileSync("matchData.json", "utf8"));
