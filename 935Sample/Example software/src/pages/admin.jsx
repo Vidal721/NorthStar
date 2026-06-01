@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/admin/data";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/admin/data";
 const LOCAL_URL = "http://localhost:3000/admin/data";
 
 export default function AdminDashboard() {

@@ -19,7 +19,7 @@ const DEFAULT_SECTION_COLORS = {
 
 const DEFAULT_SUMMARY_COLS = [];
 
-const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/users";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/users";
 const LOCAL_URL = "http://localhost:3000/users";
 
 function formatHeader(key) {

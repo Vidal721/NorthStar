@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import "../App.css";
 
-const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/api/upload";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/api/upload";
 const LOCAL_URL = "http://localhost:3000/api/upload";
 
 // ============================================================
