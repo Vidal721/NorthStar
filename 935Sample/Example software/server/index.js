@@ -16,6 +16,10 @@ function getPit() {
   return JSON.parse(fs.readFileSync("pitData.json", "utf8"));
 }
 
+function getAdmin() {
+  return JSON.parse(fs.readFileSync("adminData.json", "utf8"));
+}
+
 app.get("/users/:id", (req, res) => {
   const id = Number(req.params.id);
   const user = getMatch().find((user) => user.id === id);
@@ -69,6 +73,10 @@ app.post("/pit/upload", (req, res) => {
     console.error("[upload] Failed to save match data:", err.message);
     res.status(500).json({ error: "Failed to save match data", detail: err.message });
   }
+});
+
+app.get("/admin/data", (req, res) => {
+  res.json(getAdmin());
 });
 
 app.listen(PORT, () => {
