@@ -4,73 +4,28 @@
   "event": "Silicon Valley Regional",
   "sections": [
     {
-      "label": "Team Info",
+      "label": "Pre scout",
       "fields": [
         {
-          "id": "team_number",
+          "id": "text_30679",
+          "label": "Your Name",
+          "type": "text",
+          "required": true,
+          "placeholder": "Enter value..."
+        },
+        {
+          "id": "text_50391",
+          "label": "Team Name",
+          "type": "text",
+          "required": false,
+          "placeholder": "eg. RaileRobotics"
+        },
+        {
+          "id": "number_74095",
           "label": "Team Number",
           "type": "number",
-          "placeholder": "e.g. 254",
-          "required": true
-        },
-        {
-          "id": "drive_team_experience",
-          "label": "Drive Team Experience",
-          "type": "select",
-          "options": [
-            { "value": "rookie", "label": "Rookie Year" },
-            { "value": "1_2_years", "label": "1-2 Years" },
-            { "value": "3_plus", "label": "3+ Years" }
-          ],
-          "required": false
-        }
-      ]
-    },
-    {
-      "label": "Robot Architecture",
-      "fields": [
-        {
-          "id": "drive_train",
-          "label": "Drivetrain Type",
-          "type": "radio",
-          "options": [
-            { "value": "swerve", "label": "Swerve" },
-            { "value": "west_coast", "label": "West Coast" },
-            { "value": "mecanum", "label": "Mecanum" },
-            { "value": "other", "label": "Other" }
-          ],
-          "required": true
-        },
-        {
-          "id": "mechanisms",
-          "label": "Active Mechanisms",
-          "type": "checkbox",
-          "options": [
-            { "value": "ground_intake", "label": "Ground Intake" },
-            { "value": "elevator", "label": "Elevator Lift" },
-            { "value": "turret_shooter", "label": "Turreted Shooter" },
-            { "value": "climber", "label": "Endgame Climber" }
-          ],
-          "required": false
-        }
-      ]
-    },
-    {
-      "label": "Strategy & Notes",
-      "fields": [
-        {
-          "id": "auto_capability",
-          "label": "Autonomous Strategy Notes",
-          "type": "text",
-          "placeholder": "e.g. 3-piece leave right side",
-          "required": false
-        },
-        {
-          "id": "pit_notes",
-          "label": "General Pit Notes",
-          "type": "textarea",
-          "placeholder": "Enter build quality notes, bottlenecks, or repair states...",
-          "required": false
+          "required": false,
+          "placeholder": "eg. 935"
         }
       ]
     }

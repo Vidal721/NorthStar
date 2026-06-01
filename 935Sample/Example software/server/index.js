@@ -151,6 +151,23 @@ app.post("/admin/upload", (req, res) => {
   }
 });
 
+app.post('/api/save-form-schema', (req, res) => {
+  const schema = req.body;
+
+  if (!schema || !schema.id) {
+    return res.status(400).json({ error: 'Invalid schema — missing id' });
+  }
+
+  try {
+    fs.writeFileSync('pitForm.json', JSON.stringify(schema, null, 2), 'utf-8');
+    console.log(`[form] Pit form schema saved — id: ${schema.id}`);
+    res.json({ success: true, file: 'pitForm.json' });
+  } catch (err) {
+    console.error('[form] Failed to save schema:', err.message);
+    res.status(500).json({ error: 'Failed to save schema', detail: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });

@@ -4,6 +4,7 @@ import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
 import AdminDashboard from "./pages/admin";
+import FormBuilder from "./pages/formbuilder";
 import "./App.css";
 
 function MainMenu() {
@@ -89,6 +90,18 @@ function MainMenu() {
             Launch
           </Link>
         </div>
+        <div id="formbuilder" className="launchdiv">
+          <h1>Form Builder</h1>
+          <Link
+            to="/form"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startVis"
+          >
+            Launch
+          </Link>
+        </div>
       </div>
     </>
   );
@@ -103,6 +116,7 @@ function App() {
         <Route path="/match" element={<MatchScout />} />
         <Route path="/vis" element={<DataVis />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/form" element={<FormBuilder />} />
       </Routes>
     </BrowserRouter>
   );
