@@ -79,6 +79,27 @@ app.get("/admin/data", (req, res) => {
   res.json(getAdmin());
 });
 
+app.post("/admin/upload", (req, res) => {
+    try {
+    const data = getAdmin();
+    const newData = req.body;
+
+    if (!newData || typeof newData !== "object") {
+      return res.status(400).json({ error: "Invalid request body" });
+    }
+
+    data.push(newData);
+
+    fs.writeFileSync("matchData.json", JSON.stringify(users, null, 2));
+
+    console.log(`[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`);
+    res.status(201).json(newData);
+  } catch (err) {
+    console.error("[upload] Failed to save match data:", err.message);
+    res.status(500).json({ error: "Failed to save match data", detail: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
