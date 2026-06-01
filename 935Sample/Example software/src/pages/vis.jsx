@@ -45,6 +45,9 @@ function renderCellValue(value, colKey) {
     );
   if (colKey === "id" && String(value).length > 8) return `…${String(value).slice(-6)}`;
   if (typeof value === "number" && !Number.isInteger(value)) return value.toFixed(1);
+  if (typeof value == "string" && value.includes("T") && value.includes("Z")) {
+    return value.split("T")[0] + " " + value.split("T")[1].split(".")[0].replace("Z", "");
+  }
   return String(value);
 }
 
