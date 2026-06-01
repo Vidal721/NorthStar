@@ -1114,7 +1114,7 @@ export default function App() {
     const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
     console.log(`${label} — sending`, matchData);
     try {
-      const res = await fetch("http://localhost:3000/api/upload", {
+      const res = await fetch("https://tries-hiv-formula-medline.trycloudflare.com/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(matchData),
