@@ -4,34 +4,34 @@
 
 :root {
   /* Backgrounds */
-  --bg-app:      #f8f7f2;
-  --bg-surface:  rgba(255, 255, 255, 0.6);
+  --bg-app: #f8f7f2;
+  --bg-surface: rgba(255, 255, 255, 0.6);
   --bg-elevated: rgba(255, 255, 255, 0.85);
 
   /* Text */
-  --text-primary:   #1a1a18;
+  --text-primary: #1a1a18;
   --text-secondary: #4a4a45;
-  --text-muted:     #8a8a82;
+  --text-muted: #8a8a82;
 
   /* Borders */
-  --border-subtle:  rgba(0, 0, 0, 0.07);
+  --border-subtle: rgba(0, 0, 0, 0.07);
   --border-default: rgba(0, 0, 0, 0.14);
 
   /* Buttons — primary (dark) */
-  --btn-primary-bg:   #1a1a18;
+  --btn-primary-bg: #1a1a18;
   --btn-primary-text: #f8f7f2;
-  --btn-primary-hover:#2e2e2b;
+  --btn-primary-hover: #2e2e2b;
 
   /* Buttons — accent (yellow) */
-  --btn-accent-bg:    #facc15;
-  --btn-accent-text:  #1a1a18;
+  --btn-accent-bg: #facc15;
+  --btn-accent-text: #1a1a18;
   --btn-accent-hover: #eab308;
 
   /* Inputs */
-  --input-bg:           rgba(255, 255, 255, 0.7);
-  --input-border:       rgba(0, 0, 0, 0.12);
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --input-border: rgba(0, 0, 0, 0.12);
   --input-border-focus: #facc15;
-  --input-placeholder:  #a0a09a;
+  --input-placeholder: #a0a09a;
 
   /* Accent */
   --accent-yellow-soft: rgba(250, 204, 21, 0.18);
@@ -51,7 +51,7 @@
   --blur-lg: blur(20px);
 
   /* Transitions */
-  --transition-fast:   0.15s ease;
+  --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
 }
 
@@ -59,36 +59,36 @@
    DESIGN TOKENS — dark theme
    ========================================================= */
 
-[data-theme='dark'] {
+[data-theme="dark"] {
   /* Backgrounds */
-  --bg-app:      #0f0f0d;
-  --bg-surface:  rgba(255, 255, 255, 0.05);
+  --bg-app: #0f0f0d;
+  --bg-surface: rgba(255, 255, 255, 0.05);
   --bg-elevated: rgba(255, 255, 255, 0.09);
 
   /* Text */
-  --text-primary:   #f0efe8;
+  --text-primary: #f0efe8;
   --text-secondary: #a0a098;
-  --text-muted:     #62625c;
+  --text-muted: #62625c;
 
   /* Borders */
-  --border-subtle:  rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.07);
   --border-default: rgba(255, 255, 255, 0.14);
 
   /* Buttons — primary */
-  --btn-primary-bg:   #f0efe8;
+  --btn-primary-bg: #f0efe8;
   --btn-primary-text: #0f0f0d;
-  --btn-primary-hover:#d8d7d0;
+  --btn-primary-hover: #d8d7d0;
 
   /* Buttons — accent */
-  --btn-accent-bg:    #facc15;
-  --btn-accent-text:  #0f0f0d;
+  --btn-accent-bg: #facc15;
+  --btn-accent-text: #0f0f0d;
   --btn-accent-hover: #eab308;
 
   /* Inputs */
-  --input-bg:           rgba(255, 255, 255, 0.06);
-  --input-border:       rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.1);
   --input-border-focus: #facc15;
-  --input-placeholder:  #52524e;
+  --input-placeholder: #52524e;
 
   /* Accent */
   --accent-yellow-soft: rgba(250, 204, 21, 0.12);
@@ -142,7 +142,7 @@ h3,
 h4,
 h5,
 h6 {
-  margin: 0;
+  margin: 10px;
 
   color: var(--text-primary);
 
@@ -360,11 +360,11 @@ body {
    ICON TOGGLE
    ========================================================= */
 
-[data-theme='dark'] .icon-sun {
+[data-theme="dark"] .icon-sun {
   display: inline;
 }
 
-[data-theme='dark'] .icon-moon {
+[data-theme="dark"] .icon-moon {
   display: none;
 }
 
@@ -441,8 +441,7 @@ body {
 .input:focus {
   border-color: var(--input-border-focus);
 
-  box-shadow:
-    0 0 0 4px var(--accent-yellow-soft);
+  box-shadow: 0 0 0 4px var(--accent-yellow-soft);
 }
 
 /* =========================================================
@@ -480,7 +479,7 @@ body {
   border-bottom: 1px solid var(--border-subtle);
 }
 
-[data-theme='dark'] .navbar {
+[data-theme="dark"] .navbar {
   background: rgba(15, 15, 13, 0.65);
 }
 
@@ -600,25 +599,25 @@ body {
 
 :root {
   /* ── Accent palette — change here to retheme scout colors ── */
-  --scout-indigo:        #6366f1;
-  --scout-indigo-soft:   #a5b4fc;
-  --scout-indigo-bg:     rgba(99, 102, 241, 0.10);
+  --scout-indigo: #6366f1;
+  --scout-indigo-soft: #a5b4fc;
+  --scout-indigo-bg: rgba(99, 102, 241, 0.1);
 
-  --scout-green:         #22c55e;
-  --scout-green-soft:    #86efac;
-  --scout-green-bg:      rgba(34, 197, 94, 0.12);
+  --scout-green: #22c55e;
+  --scout-green-soft: #86efac;
+  --scout-green-bg: rgba(34, 197, 94, 0.12);
 
-  --scout-red:           #ef4444;
-  --scout-red-soft:      #fca5a5;
-  --scout-red-bg:        rgba(239, 68, 68, 0.12);
+  --scout-red: #ef4444;
+  --scout-red-soft: #fca5a5;
+  --scout-red-bg: rgba(239, 68, 68, 0.12);
 
-  --scout-yellow-soft:   #fde68a;
+  --scout-yellow-soft: #fde68a;
 
-  --scout-blue:          #3b82f6;
-  --scout-blue-soft:     #93c5fd;
-  --scout-blue-bg:       rgba(59, 130, 246, 0.12);
+  --scout-blue: #3b82f6;
+  --scout-blue-soft: #93c5fd;
+  --scout-blue-bg: rgba(59, 130, 246, 0.12);
 
-  --scout-bg-overlay:  rgba(0, 0, 0, 0.55);
+  --scout-bg-overlay: rgba(0, 0, 0, 0.55);
 }
 
 /* =========================================================
@@ -632,7 +631,12 @@ body {
   overflow: hidden;
   background: var(--bg-app);
   color: var(--text-primary);
-  font-family: Inter, "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    Inter,
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -640,7 +644,9 @@ body {
   position: absolute;
   inset: 0;
   width: 100%;
-  transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
   will-change: transform, opacity;
 }
 
@@ -747,7 +753,10 @@ body {
   letter-spacing: 0.06em;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -776,7 +785,10 @@ body {
   font-weight: 800;
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -793,14 +805,16 @@ body {
   padding: 8px 14px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(239, 68, 68, 0.25);
-  background: rgba(239, 68, 68, 0.10);
+  background: rgba(239, 68, 68, 0.1);
   color: var(--scout-red-soft);
   font-family: inherit;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -824,7 +838,9 @@ body {
   font-family: inherit;
   font-size: 13px;
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1015,7 +1031,9 @@ body {
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1038,7 +1056,9 @@ body {
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1107,4 +1127,14 @@ body {
   background: var(--border-subtle);
   color: var(--text-muted);
   flex-shrink: 0;
+}
+
+/* =========================================================
+   MISC
+   ========================================================= */
+
+/* Makes formula editor and sample data submit go next to eachother */
+#buttonCombo {
+  display: flex; 
+  gap: 12px;
 }

@@ -195,12 +195,54 @@ export const FORMULA_VARIABLES = [
 //  📐 DEFAULT EQUATIONS  (editable)
 // ============================================================
 const DEFAULT_EQUATIONS = [
-  { key: "csr",    label: "Cycle Success Rate",  formula: "(fullScores + partialScores * 0.5) / totalCycles",             desc: "Weighted scoring attempts over total cycles. Full = 1pt, Partial = 0.5pt.", weight: 0.28, builtin: true },
-  { key: "quality",label: "Scoring Quality",     formula: "fullScores / scoringCycles",                                    desc: "Ratio of full scores to all successful scores. How often full vs partial.", weight: 0.18, builtin: true },
-  { key: "dr",     label: "Defense Resistance",  formula: "scoringCycles / (scoringCycles + defendedFails)",               desc: "How well robot scores despite defense. Penalizes fails that happened while defended.", weight: 0.2, builtin: true },
-  { key: "rs",     label: "Reliability",         formula: "1 - failures / (shiftsCompleted + 1)",                          desc: "1 minus breakdown rate per shift. Penalizes breakdowns heavily.", weight: 0.12, builtin: true },
-  { key: "cr",     label: "Climb Rate",          formula: "climbSuccess / totalClimbs",                                    desc: "Successful climbs over all climb attempts.", weight: 0.08, builtin: true },
-  { key: "offUtil",label: "Off-Shift Utility",   formula: "(offActions / (offShiftSeconds / 60)) / 4",                     desc: "Off-shift actions per minute, normalized to 4 actions/min baseline.", weight: 0.14, builtin: true },
+  {
+    key: "csr",
+    label: "Cycle Success Rate",
+    formula: "totalCycles > 0 ? (fullScores + partialScores * 0.6) / totalCycles : 0",
+    desc: "Weighted scoring efficiency over all cycles. Full=1pt, Partial=0.6pt. Safe divide guard.",
+    weight: 0.25,
+    builtin: true,
+  },
+  {
+    key: "quality",
+    label: "Scoring Quality",
+    formula: "scoringCycles > 0 ? fullScores / scoringCycles : 0",
+    desc: "Proportion of successful cycles that were full scores. High = robot consistently scores full.",
+    weight: 0.18,
+    builtin: true,
+  },
+  {
+    key: "dr",
+    label: "Defense Resistance",
+    formula: "totalCycles > 0 ? 1 - (defendedFails / Math.max(totalCycles, 1)) * 1.5 : 0.5",
+    desc: "Penalizes defended fails weighted 1.5x against total cycles. Neutral (0.5) when no data.",
+    weight: 0.18,
+    builtin: true,
+  },
+  {
+    key: "rs",
+    label: "Reliability",
+    formula: "Math.max(0, 1 - (failures / Math.max(shiftsCompleted, 1)) * 0.4)",
+    desc: "Breakdown rate per completed shift, weighted at 0.4 impact per breakdown. Floors at 0.",
+    weight: 0.15,
+    builtin: true,
+  },
+  {
+    key: "cr",
+    label: "Climb Rate",
+    formula: "totalClimbs > 0 ? climbSuccess / totalClimbs : 0.5",
+    desc: "Successful climbs / total attempts. Neutral 0.5 when no climb data (no penalty, no bonus).",
+    weight: 0.12,
+    builtin: true,
+  },
+  {
+    key: "offUtil",
+    label: "Off-Shift Utility",
+    formula: "offShiftSeconds > 0 ? Math.min(1, (offActions / (offShiftSeconds / 60)) / 5) : 0",
+    desc: "Off-shift actions per minute normalized to 5 actions/min ceiling. Capped at 1.",
+    weight: 0.12,
+    builtin: true,
+  },
 ];
 
 // ============================================================
@@ -548,6 +590,30 @@ function FormulaEditor({ equations, onSave, onClose }) {
               </div>
             );
           })}
+
+          {/* Weight total */}
+          {(() => {
+            const totalW = eqs.reduce((sum, e) => sum + (e.weight || 0), 0);
+            const pct = Math.round(totalW * 100);
+            const over = pct > 100, under = pct < 100;
+            const col = over ? "var(--scout-red-soft)" : under ? "var(--scout-yellow-soft)" : "var(--scout-green-soft)";
+            return (
+              <div style={{ padding: "8px 10px", borderTop: "1px solid var(--scout-border)", background: "rgba(0,0,0,0.15)" }}>
+                <div className="scout-overline" style={{ marginBottom: 4 }}>Total Weight</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ flex: 1, height: 6, borderRadius: 999, background: "var(--scout-border)" }}>
+                    <div style={{ height: "100%", borderRadius: 999, width: `${Math.min(pct, 100)}%`, background: col, transition: "width 0.3s, background 0.3s" }} />
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: col, minWidth: 36, textAlign: "right" }}>{pct}%</span>
+                </div>
+                {(over || under) && (
+                  <div style={{ fontSize: 8, color: col, marginTop: 3, lineHeight: 1.4 }}>
+                    {over ? `▲ ${pct - 100}% over — fit score will normalise` : `▼ ${100 - pct}% under — weights don't sum to 100%`}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Add formula */}
           <div style={{ padding: 10, borderTop: "1px solid var(--scout-border)", marginTop: "auto" }}>
@@ -1031,6 +1097,7 @@ export default function App() {
       },
       metrics: computedMetrics,
       fitScore,
+      equations: equations.map((eq) => ({ key: eq.key, label: eq.label, formula: eq.formula, weight: eq.weight, desc: eq.desc })),
     };
 
     setIsSubmitting(true);
@@ -1175,6 +1242,7 @@ export default function App() {
       },
       metrics: computedMetrics2,
       fitScore: fitScore2,
+      equations: equations.map((eq) => ({ key: eq.key, label: eq.label, formula: eq.formula, weight: eq.weight, desc: eq.desc })),
     };
 
     setSampleProgress(null);
@@ -1306,6 +1374,7 @@ export default function App() {
           >
             START SCOUTING
           </button>
+          <div id="buttonCombo">
           <button
             onClick={() => setShowEditor(true)}
             className="scout-btn-ghost"
@@ -1322,6 +1391,7 @@ export default function App() {
           >
             ⚡ SAMPLE DATA SUBMIT
           </button>
+          </div>
         </div>
       </div>
 
@@ -1436,7 +1506,7 @@ export default function App() {
       <div
         className="scout-screen"
         style={{
-          display: "flex", flexDirection: "column", height: "100vh", overflowY: "auto",
+          display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden",
           transform: screen === "results" ? "translateX(0)" : "translateX(100%)",
           opacity: screen === "results" ? 1 : 0,
           pointerEvents: screen === "results" ? "auto" : "none",
@@ -1460,7 +1530,7 @@ export default function App() {
           const s       = statsRef.current;
           const derived = buildDerivedVars(s);
           return (
-            <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 18, flex: 1 }}>
+            <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 18, flex: 1, overflowY: "auto", paddingBottom: 8 }}>
 
               {/* Fit score */}
               <div style={{ borderRadius: 20, padding: "22px 20px", background: "linear-gradient(135deg, var(--scout-bg-card), rgba(26,29,46,.13))", border: "1px solid var(--scout-border-card)", display: "flex", alignItems: "center", gap: 20 }}>
@@ -1603,7 +1673,7 @@ export default function App() {
           );
         })()}
 
-        <div style={{ padding: "0 14px 36px", flexShrink: 0 }}>
+        <div style={{ padding: "12px 14px 32px", flexShrink: 0, background: "var(--scout-bg-surface)", borderTop: "1px solid var(--scout-border)" }}>
           <button onClick={handleSubmit} disabled={isSubmitting} className="scout-btn-primary">
             {isSubmitting ? "SUBMITTING…" : "SUBMIT & SCOUT NEXT MATCH"}
           </button>
