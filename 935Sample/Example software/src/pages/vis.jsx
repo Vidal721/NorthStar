@@ -19,7 +19,7 @@ const DEFAULT_SECTION_COLORS = {
 
 const DEFAULT_SUMMARY_COLS = [];
 
-const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/users";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/users";
 const LOCAL_URL = "http://localhost:3000/users";
 
 function formatHeader(key) {
@@ -302,7 +302,11 @@ export default function App() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+          headers: {
+            "ngrok-skip-browser-warning": "69420",
+          },
+        });
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
       } catch (err) { setError(err.message); }

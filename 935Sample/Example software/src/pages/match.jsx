@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import "../App.css";
 
-const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/api/upload";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/api/upload";
 const LOCAL_URL = "http://localhost:3000/api/upload";
 
 // ============================================================
@@ -1173,8 +1173,11 @@ export default function App() {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "69420",
+        },
+        body: JSON.stringify(matchData),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
