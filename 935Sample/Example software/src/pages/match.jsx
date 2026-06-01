@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import "../App.css";
 
+const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/api/upload";
+const LOCAL_URL = "http://localhost:3000/api/upload";
+
 // ============================================================
 //  ⏱  MATCH TIMING
 // ============================================================
@@ -1168,10 +1171,10 @@ export default function App() {
     const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
     console.log(`${label} — sending`, matchData);
     try {
-      const res = await fetch("https://tries-hiv-formula-medline.trycloudflare.com/api/upload", {
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(matchData),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));

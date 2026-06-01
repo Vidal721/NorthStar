@@ -20,6 +20,7 @@ const DEFAULT_SECTION_COLORS = {
 const DEFAULT_SUMMARY_COLS = [];
 
 const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/users";
+const LOCAL_URL = "http://localhost:3000/users";
 
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
