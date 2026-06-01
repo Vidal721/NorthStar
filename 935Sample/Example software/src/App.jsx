@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
+import AdminDashboard from "./pages/admin";
 import "./App.css";
 
 function MainMenu() {
@@ -76,6 +77,18 @@ function MainMenu() {
             Launch
           </Link>
         </div>
+        <div id="admin" className="launchdiv">
+          <h1>Admin</h1>
+          <Link
+            to="/admin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startVis"
+          >
+            Launch
+          </Link>
+        </div>
       </div>
     </>
   );
@@ -89,6 +102,7 @@ function App() {
         <Route path="/pit" element={<PitScout />} />
         <Route path="/match" element={<MatchScout />} />
         <Route path="/vis" element={<DataVis />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );
