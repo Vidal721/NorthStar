@@ -110,6 +110,8 @@
 html,
 body,
 #root {
+    -webkit-user-select: none;
+  user-select: none;
   margin: 0;
   padding: 0;
   min-height: 100%;
@@ -1138,3 +1140,9 @@ body {
   display: flex; 
   gap: 12px;
 }
+.disabled-link {
+  pointer-events: none; /* Stops all mouse clicks */
+  cursor: default;       /* Removes the pointer finger cursor */
+  opacity: 0.5;          /* Visually grays it out */
+}
+

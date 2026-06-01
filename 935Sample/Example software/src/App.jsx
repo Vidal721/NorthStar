@@ -9,6 +9,8 @@ function MainMenu() {
   // 1. Manage theme state inside the component
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
+  const isDisabled = true; 
+
   // 2. Update the HTML attribute whenever the theme changes
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -37,21 +39,40 @@ function MainMenu() {
 
         <div id="pitscout" className="launchdiv">
           <h1>Pitscouting</h1>
-          <Link to="/pit" target="_blank" rel="noopener noreferrer" className="launch-btn">
-            Launch
+
+          <Link
+            to={isDisabled ? "#" : "/pit"}
+            target={isDisabled ? undefined : "_blank"}
+            rel="noopener noreferrer"
+            className={`launch-btn ${isDisabled ? "disabled-link" : ""}`}
+            tabIndex={isDisabled ? -1 : 0} /* Prevents keyboard tabbing */
+          >
+            Coming Soon
           </Link>
         </div>
 
         <div id="mainscout" className="launchdiv">
           <h1>Match Scouting</h1>
-          <Link to="/match" target="_blank" rel="noopener noreferrer" className="launch-btn" id="startMatchScout">
+          <Link
+            to="/match"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startMatchScout"
+          >
             Launch
           </Link>
         </div>
 
         <div id="datavis" className="launchdiv">
           <h1>Data visualization</h1>
-          <Link to="/vis" target="_blank" rel="noopener noreferrer" className="launch-btn" id="startVis">
+          <Link
+            to="/vis"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startVis"
+          >
             Launch
           </Link>
         </div>
