@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NorthStar Scouting Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tooltip-text {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .tooltip-trigger:hover .tooltip-text,
+    .tooltip-trigger.active .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans antialiased">
+
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-5 mb-6 gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">NorthStar Scouting</h1>
+        <p class="text-gray-400 text-xs md:text-sm mt-0.5">Click a team card below to view advanced strategic metrics and match history</p>
+      </div>
+      <button id="calcBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-lg shadow-lg shadow-blue-950 transition duration-200 text-sm">
+        Load & Sync Profiles
+      </button>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <section class="lg:col-span-3">
+        <div class="bg-gray-800 border border-gray-800 rounded-xl p-4 sticky top-6">
+          <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Teams Directory</h2>
+          <div id="teamSelectorList" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-1 gap-2 max-h-[30vh] lg:max-h-[70vh] overflow-y-auto pr-1">
+            <p class="text-gray-500 italic text-xs col-span-full py-2">Sync data first...</p>
+          </div>
+        </div>
+      </section>
+
+      <main class="lg:col-span-9">
+        <div id="menuViewport" class="bg-gray-800 border border-gray-800 rounded-xl p-4 md:p-6 min-h-[40vh] flex flex-col justify-center items-center text-center text-gray-500">
+          <svg class="w-12 h-12 text-gray-700 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+          <p class="text-sm">Select a team from the list to display their analytical summary dashboard and match stream logs.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function makeStatRow(label, value, target, definition) {
+      return `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-900/40 rounded-lg border border-gray-800/60 gap-1 sm:gap-4">
+          <div class="flex items-center gap-1.5 relative tooltip-trigger cursor-pointer select-none" onclick="toggleTooltip(this, event)">
+            <span class="text-gray-400 text-sm font-medium border-b border-dotted border-gray-600">${label}</span>
+            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="tooltip-text absolute bottom-full left-0 mb-2 w-64 bg-gray-950 text-gray-200 text-xs rounded p-2.5 shadow-xl border border-gray-700 z-50 pointer-events-none">
+              <p class="font-semibold mb-1 text-blue-400">${label}</p>
+              <p class="leading-relaxed mb-1.5">${definition}</p>
+              <p class="text-[10px] text-gray-400 border-t border-gray-850 pt-1 font-medium"><span class="text-emerald-400">Target Range:</span> ${target}</p>
+            </div>
+          </div>
+          <div class="text-right flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-center gap-2">
+            <span class="text-base font-bold text-white">${value}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleTooltip(element, event) {
+      event.stopPropagation();
+      const isActive = element.classList.contains('active');
+      document.querySelectorAll('.tooltip-trigger').forEach(el => el.classList.remove('active'));
+      if (!isActive) {
+        element.classList.add('active');
+      }
+    }
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.tooltip-trigger').forEach(el => el.classList.remove('active'));
+    });
+
+    let globalProfiles = {};
+
+    async function processScoutingStream() {
+      try {
+        const selectorList = document.getElementById('teamSelectorList');
+        selectorList.innerHTML = `<p class="text-blue-400 text-xs animate-pulse col-span-full py-2">Syncing...</p>`;
+        
+        const response = await fetch('https://tries-hiv-formula-medline.trycloudflare.com/users');
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const matches = await response.json();
+        const teamsGrouped = {};
+        
+        matches.forEach(match => {
+          const teamNum = match.meta.teamNumber;
+          if (!teamsGrouped[teamNum]) teamsGrouped[teamNum] = [];
+          teamsGrouped[teamNum].push(match);
+        });
+
+        const profilesArray = Object.keys(teamsGrouped).map(teamNum => {
+          const teamMatches = teamsGrouped[teamNum];
+          const matchCount = teamMatches.length;
+
+          let totalCyclesSum = 0, scoringCyclesSum = 0, fitScoreSum = 0, autoFullScoresSum = 0;
+          let teleopFullScoresSum = 0, climbSuccessesSum = 0, defenseFormulaScoreSum = 0;
+          let autoPossessionsSum = 0, teleopPartialScoresSum = 0, transitScoreSum = 0, transitMissSum = 0;
+          let ourShiftSecondsSum = 0, offShiftSecondsSum = 0, transitSecondsSum = 0, shiftsCompletedSum = 0;
+          let defendedCyclesSum = 0, offActionsSum = 0, totalFailuresSum = 0, climbAttemptsSum = 0;
+
+          teamMatches.forEach(match => {
+            const totalCycles = match.totals?.totalCycles || 0;
+            const defendedFails = match.totals?.defendedFails || 0;
+            const partialScores = match.totals?.partialScores || 0;
+
+            totalCyclesSum += totalCycles;
+            scoringCyclesSum += match.totals?.scoringCycles || 0;
+            fitScoreSum += match.fitScore || 0;
+            autoFullScoresSum += match.auto?.fullScores || 0;
+            teleopFullScoresSum += match.teleop?.fullScores || 0;
+            climbSuccessesSum += match.endgame?.climbSuccess || 0;
+            autoPossessionsSum += match.auto?.possessions || 0;
+            teleopPartialScoresSum += partialScores;
+            transitScoreSum += match.teleop?.transitScore || 0;
+            transitMissSum += match.teleop?.transitMiss || 0;
+            ourShiftSecondsSum += match.teleop?.ourShiftSeconds || 0;
+            offShiftSecondsSum += match.teleop?.offShiftSeconds || 0;
+            transitSecondsSum += match.teleop?.transitSeconds || 0;
+            shiftsCompletedSum += match.teleop?.shiftsCompleted || 0;
+            defendedCyclesSum += match.teleop?.defendedCycles || 0;
+            offActionsSum += match.totals?.offActions || 0;
+            
+            totalFailuresSum += (match.auto?.failures || 0) + (match.teleop?.failures || 0) + (match.endgame?.failures || 0);
+            climbAttemptsSum += (match.endgame?.climbSuccess || 0) + (match.endgame?.climbFail || 0);
+
+            const matchResilienceScore = totalCycles > 0 
+              ? Math.max(0, 1 - (defendedFails / Math.max(totalCycles + (partialScores * 0.2), 1)) * 1.5) 
+              : 0.5;
+            
+            defenseFormulaScoreSum += matchResilienceScore;
+          });
+
+          return {
+            teamNumber: teamNum,
+            matchesPlayed: matchCount,
+            rawMatches: teamMatches,
+            predictedCycles: matchCount > 0 ? Number((totalCyclesSum / matchCount).toFixed(1)) : 0,
+            defenseResilienceRating: matchCount > 0 ? ((defenseFormulaScoreSum / matchCount) * 100).toFixed(1) + '%' : '50.0%',
+            autoReliabilityIndex: autoPossessionsSum > 0 ? ((autoFullScoresSum / autoPossessionsSum) * 100).toFixed(1) + '%' : '0.0%',
+            teleopOptimizationIndex: (teleopFullScoresSum + teleopPartialScoresSum) > 0 ? ((teleopFullScoresSum / (teleopFullScoresSum + teleopPartialScoresSum)) * 100).toFixed(1) + '%' : '0.0%',
+            transitScoringSuccessRate: (transitScoreSum + transitMissSum) > 0 ? ((transitScoreSum / (transitScoreSum + transitMissSum)) * 100).toFixed(1) + '%' : '0.0%',
+            cycleVelocitySeconds: totalCyclesSum > 0 ? Number(((ourShiftSecondsSum + offShiftSecondsSum + transitSecondsSum) / totalCyclesSum).toFixed(1)) : 0,
+            shiftOutputEfficiency: shiftsCompletedSum > 0 ? Number((totalCyclesSum / shiftsCompletedSum).toFixed(1)) : 0,
+            defendedVulnerabilityFactor: totalCyclesSum > 0 ? ((defendedCyclesSum / totalCyclesSum) * 100).toFixed(1) + '%' : '0.0%',
+            offensiveActionDensity: matchCount > 0 ? Number((offActionsSum / matchCount).toFixed(1)) : 0,
+            matchBreakdownRisk: matchCount > 0 ? ((totalFailuresSum / matchCount) * 100).toFixed(1) + '%' : '0.0%',
+            scoringAccuracy: totalCyclesSum > 0 ? ((scoringCyclesSum / totalCyclesSum) * 100).toFixed(1) + '%' : '0.0%',
+            climbRate: matchCount > 0 ? ((climbSuccessesSum / matchCount) * 100).toFixed(0) + '%' : '0%',
+            avgFitScore: matchCount > 0 ? Math.round(fitScoreSum / matchCount) : 0
+          };
+        });
+
+        // Sort profiles numerically by team number
+        profilesArray.sort((a, b) => parseInt(a.teamNumber) - parseInt(b.teamNumber));
+
+        globalProfiles = {};
+        selectorList.innerHTML = '';
+
+        profilesArray.forEach(p => {
+          globalProfiles[p.teamNumber] = p;
+          selectorList.innerHTML += `
+            <button onclick="displayTeamMenu('${p.teamNumber}')" class="w-full text-left p-3 rounded-lg bg-gray-900/60 hover:bg-gray-700/40 border border-gray-800 transition flex items-center justify-between group">
+              <span class="font-bold text-sm text-gray-200 group-hover:text-blue-400">Team ${p.teamNumber}</span>
+              <span class="text-[11px] text-gray-500 font-medium bg-gray-900 px-1.5 py-0.5 rounded border border-gray-800">${p.matchesPlayed} matches</span>
+            </button>
+          `;
+        });
+
+        document.getElementById('menuViewport').innerHTML = `
+          <svg class="w-12 h-12 text-emerald-500/80 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <p class="text-sm text-gray-300 font-medium">Sync Complete. ${profilesArray.length} teams loaded.</p>
+          <p class="text-xs text-gray-500 mt-1">Click any team directory list item to inspect data menus.</p>
+        `;
+
+      } catch (err) {
+        document.getElementById('teamSelectorList').innerHTML = `<p class="text-red-400 text-xs font-mono p-2">Sync Error</p>`;
+        console.error(err);
+      }
+    }
+
+    function displayTeamMenu(teamNum) {
+      const profile = globalProfiles[teamNum];
+      const viewport = document.getElementById('menuViewport');
+      
+      let matchesHTML = '';
+      profile.rawMatches.forEach(m => {
+        matchesHTML += `
+          <div class="bg-gray-900/40 border border-gray-800/80 p-3.5 rounded-lg text-xs space-y-2.5">
+            <div class="flex justify-between border-b border-gray-800 pb-1.5">
+              <span class="font-bold text-blue-400 text-sm">Match #${m.meta?.matchNumber || 'N/A'}</span>
+              <span class="text-gray-500">Scout: ${m.meta?.scoutName || 'Unk'}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-gray-400">
+              <div class="flex justify-between"><span>Auto Full/Poss:</span><strong class="text-gray-200">${m.auto?.fullScores || 0}/${m.auto?.possessions || 0}</strong></div>
+              <div class="flex justify-between"><span>Teleop Full/Part:</span><strong class="text-gray-200">${m.teleop?.fullScores || 0}/${m.teleop?.partialScores || 0}</strong></div>
+              <div class="flex justify-between"><span>Total/Scoring Cycles:</span><strong class="text-emerald-400">${m.totals?.totalCycles || 0}/${m.totals?.scoringCycles || 0}</strong></div>
+              <div class="flex justify-between"><span>Defended/Fails:</span><strong class="text-amber-500">${m.teleop?.defendedCycles || 0}/${m.totals?.defendedFails || 0}</strong></div>
+              <div class="flex justify-between"><span>Total Failures:</span><strong class="text-red-400">${(m.auto?.failures||0)+(m.teleop?.failures||0)+(m.endgame?.failures||0)}</strong></div>
+              <div class="flex justify-between"><span>Climb Status:</span><strong class="${m.endgame?.climbSuccess ? 'text-green-400' : 'text-gray-500'}">${m.endgame?.climbSuccess ? 'SUCCESS' : 'NONE'}</strong></div>
+            </div>
+          </div>
+        `;
+      });
+
+      viewport.innerHTML = `
+        <div class="w-full text-left space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-700/50 pb-4 gap-2">
+            <div>
+              <h2 class="text-2xl font-black text-white">Team ${profile.teamNumber} Dashboard</h2>
+              <p class="text-xs text-gray-400 mt-0.5">Aggregated Overview Metrics across ${profile.matchesPlayed} matches</p>
+            </div>
+            <div class="bg-blue-950/60 border border-blue-800/80 px-3 py-1.5 rounded-lg text-right">
+              <span class="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Avg FitScore</span>
+              <span class="text-lg font-black text-blue-400">${profile.avgFitScore}</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Core Performance Indices</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              ${makeStatRow("Predicted Cycles", profile.predictedCycles, "15.0+ Cycles", "The expected total cycle completion output calculated for their upcoming match profile baseline.")}
+              ${makeStatRow("Defense Resilience Rating", profile.defenseResilienceRating, "95.0%+", "The capability score tracking how effectively a team holds onto items when physically contested by active defense.")}
+              ${makeStatRow("Scoring Accuracy", profile.scoringAccuracy, "90.0%+", "Percentage of initiated execution operations that resulted in successful alliance scores.")}
+              ${makeStatRow("Auto Reliability Index", profile.autoReliabilityIndex, "90.0%+", "Percentage of autonomous period placement possessions successfully converted into full value scores.")}
+              ${makeStatRow("Teleop Optimization Index", profile.teleopOptimizationIndex, "80.0%+", "Ratio tracking how frequently completed teleop cycles yield maximum-value full scores versus low-value partial items.")}
+              ${makeStatRow("Transit Scoring Success Rate", profile.transitScoringSuccessRate, "85.0%+", "Accuracy rate tracking successful scoring iterations performed while cross-field on the move.")}
+              ${makeStatRow("Cycle Velocity", profile.cycleVelocitySeconds + "s", "Under 8.0s", "The average time density in seconds required to close out an active system operation cycle.")}
+              ${makeStatRow("Shift Output Efficiency", profile.shiftOutputEfficiency, "3.5+ Cycles", "Average volume of system tasks fully completed per execution role shift iteration.")}
+              ${makeStatRow("Defended Vulnerability Factor", profile.defendedVulnerabilityFactor, "Below 15.0%", "The match time footprint percentage spent completely suppressed under heavy opposing team defense.")}
+              ${makeStatRow("Offensive Action Density", profile.offensiveActionDensity, "8.0+ Actions", "Volume metric counting non-scoring match contributions such as dynamic field pushes, interference blocks, or collections.")}
+              ${makeStatRow("Match Breakdown Risk", profile.matchBreakdownRisk, "0.0%", "The hazard rating reflecting the match incidence frequency of mechanical system failures or field execution faults.")}
+              ${makeStatRow("Climb Rate", profile.climbRate, "100.0%", "The ultimate success verification footprint tracking standard endgame climbing accomplishments.")}
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Individual Match History Logs</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${matchesHTML}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', processScoutingStream);
+  </script>
+</body>
+</html>

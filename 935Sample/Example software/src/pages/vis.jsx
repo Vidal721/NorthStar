@@ -372,6 +372,11 @@ export default function App() {
     <>
       <div className="team-badge">935</div>
 
+      <button onClick={() => window.open('/index.html', '_blank')}>
+  Open Page
+</button>
+
+
       <button className="settings-trigger" onClick={() => setShowSettings(true)} aria-label="Open settings">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="10" cy="10" r="2.5"/>
