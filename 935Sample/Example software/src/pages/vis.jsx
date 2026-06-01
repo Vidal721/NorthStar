@@ -296,7 +296,7 @@ export default function App() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch("https://gardening-consecutive-frequencies-comparative.trycloudflare.com//users");
+        const res = await fetch("https://tries-hiv-formula-medline.trycloudflare.com/users");
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
       } catch (err) { setError(err.message); }
