@@ -56,7 +56,7 @@ app.get("/users/:id", (req, res) => {
   res.json(user);
 });
 
-app.get("/users", (req, res) => {
+app.get("/userss", (req, res) => {
   res.json(getMatch());
 });
 
