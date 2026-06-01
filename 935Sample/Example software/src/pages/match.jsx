@@ -1173,8 +1173,11 @@ export default function App() {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "69420",
+        },
+        body: JSON.stringify(matchData),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));

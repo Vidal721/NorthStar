@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/admin/data";
-const LOCAL_URL = "http://localhost:3000/admin/data";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/users";
+const LOCAL_URL = "http://localhost:3000/users";
 
 export default function AdminDashboard() {
   const [data, setData] = useState([]);
@@ -13,7 +13,11 @@ export default function AdminDashboard() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch(LOCAL_URL);
+        const res = await fetch(API_URL, {
+          headers: {
+            "ngrok-skip-browser-warning": "69420",
+          },
+        });
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
       } catch (err) { setError(err.message); }
@@ -42,6 +46,9 @@ export default function AdminDashboard() {
         <div style={{ padding: 20, border: "1px solid #444", flex: 1 }}>
           <h3>Total Submissions</h3>
           <p style={{ fontSize: 40, margin: 0 }}>{data.length}</p>
+          <button onClick={() => window.location.reload()} style={{ marginTop: 10, padding: "5px 10px", background: "#333", color: "#eee", border: "1px solid #555", cursor: "pointer" }}>
+            REFRESH
+          </button>
         </div>
         <div style={{ padding: 20, border: "1px solid #444", flex: 1 }}>
             <button onClick={deleteAll} style={{ background: "red", color: "white", border: "none", padding: "10px 20px", cursor: "pointer", fontWeight: "bold" }}>
@@ -58,19 +65,22 @@ export default function AdminDashboard() {
             <th style={{ padding: 10 }}>Team</th>
             <th style={{ padding: 10 }}>Match</th>
             <th style={{ padding: 10 }}>Scouter</th>
-            <th style={{ padding: 10 }}>Time</th>
+            <th style={{ padding: 10 }}>Full Timestamp</th>
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.id} style={{ borderBottom: "1px solid #333" }}>
-              <td style={{ padding: 10 }}>{row.id}</td>
-              <td style={{ padding: 10 }}>{row.meta?.teamNumber || "???"}</td>
-              <td style={{ padding: 10 }}>{row.meta?.matchNumber || "???"}</td>
-              <td style={{ padding: 10 }}>{row.meta?.scoutName || "???"}</td>
-              <td style={{ padding: 10 }}>{row.meta?.timestamp?.split("T")[0] || "???"}</td>
-            </tr>
-          ))}
+          {data.map((row) => {
+            const time = row.meta?.timestamp ? row.meta.timestamp.replace("T", " ").split(".")[0] : "???";
+            return (
+              <tr key={row.id} style={{ borderBottom: "1px solid #333" }}>
+                <td style={{ padding: 10 }}>{row.id}</td>
+                <td style={{ padding: 10 }}>{row.meta?.teamNumber || "???"}</td>
+                <td style={{ padding: 10 }}>{row.meta?.matchNumber || "???"}</td>
+                <td style={{ padding: 10 }}>{row.meta?.scoutName || "???"}</td>
+                <td style={{ padding: 10 }}>{time}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

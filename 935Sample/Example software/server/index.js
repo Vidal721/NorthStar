@@ -33,7 +33,7 @@ app.get("/users", (req, res) => {
 
 app.post("/api/upload", (req, res) => {
   try {
-    const users = getPit();
+    const users = getMatch();
     const newData = req.body;
 
     if (!newData || typeof newData !== "object") {
@@ -55,7 +55,7 @@ app.post("/api/upload", (req, res) => {
 
 app.post("/pit/upload", (req, res) => {
     try {
-    const users = getMatch();
+    const users = getPit();
     const newData = req.body;
 
     if (!newData || typeof newData !== "object") {
@@ -65,13 +65,13 @@ app.post("/pit/upload", (req, res) => {
     newData.id = Date.now(); // unique id for each submission
     users.push(newData);
 
-    fs.writeFileSync("matchData.json", JSON.stringify(users, null, 2));
+    fs.writeFileSync("pitData.json", JSON.stringify(users, null, 2));
 
-    console.log(`[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`);
+    console.log(`[upload] Pit data saved`);
     res.status(201).json(newData);
   } catch (err) {
-    console.error("[upload] Failed to save match data:", err.message);
-    res.status(500).json({ error: "Failed to save match data", detail: err.message });
+    console.error("[upload] Failed to save pit data:", err.message);
+    res.status(500).json({ error: "Failed to save pit data", detail: err.message });
   }
 });
 

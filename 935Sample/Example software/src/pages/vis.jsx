@@ -302,7 +302,11 @@ export default function App() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+          headers: {
+            "ngrok-skip-browser-warning": "69420",
+          },
+        });
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
       } catch (err) { setError(err.message); }
