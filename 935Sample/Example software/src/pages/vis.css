@@ -32,7 +32,6 @@ body {
   align-items: flex-start;
   min-height: 100vh;
   margin: 0;
-  padding: 32px 20px 60px;
   background-color: var(--bg);
   font-family: var(--font);
 }
@@ -593,7 +592,6 @@ td {
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
-  body { padding: 16px 0 48px; }
   .table-wrapper { max-width: 100%; margin-top: 48px; }
   .table-container { border-radius: 0; border-left: none; border-right: none; }
   .settings-trigger { top: 12px; right: 12px; width: 36px; height: 36px; }

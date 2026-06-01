@@ -518,9 +518,6 @@ body {
   justify-content: space-between;
 }
 
-.scout-root {
-}
-
 .column {
   display: flex;
   flex-direction: column;
