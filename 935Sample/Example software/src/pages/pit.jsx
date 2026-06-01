@@ -17,7 +17,7 @@ const s = {
   },
   card: {
     width: "100%",
-    maxWidth: 480,
+    maxWidth: 10000,
     background: "var(--scout-bg-surface, #181c27)",
     border: "1px solid var(--scout-border, #2a2f3e)",
     borderRadius: 14,
@@ -45,7 +45,7 @@ const s = {
     marginTop: 2,
     letterSpacing: "-0.02em",
   },
-  body: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 },
+  body: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14},
   fieldWrap: { display: "flex", flexDirection: "column", gap: 5 },
   label: {
     fontSize: 10,
