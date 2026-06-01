@@ -576,5 +576,119 @@
       }
     ],
     "id": 1780345909595
+  },
+  {
+    "meta": {
+      "teamNumber": "",
+      "matchNumber": "",
+      "scoutName": "",
+      "timestamp": "2026-06-01T21:27:59.690Z",
+      "sampleData": true
+    },
+    "auto": {
+      "possessions": 6,
+      "fullScores": 4,
+      "partialScores": 0,
+      "failedCycles": 2,
+      "failures": 0
+    },
+    "teleop": {
+      "possessions": 14,
+      "fullScores": 5,
+      "partialScores": 5,
+      "failedCycles": 4,
+      "defendedCycles": 1,
+      "defendedFails": 1,
+      "failures": 0,
+      "offCollect": 0,
+      "offPush": 2,
+      "offShoot": 2,
+      "offDispense": 1,
+      "offDefend": 1,
+      "transitScore": 2,
+      "transitMiss": 1,
+      "transitCollect": 0,
+      "transitDefend": 2,
+      "transitWeScore": 2,
+      "transitNothing": 0,
+      "ourShiftSeconds": 54,
+      "offShiftSeconds": 45,
+      "transitSeconds": 9,
+      "shiftsCompleted": 6
+    },
+    "endgame": {
+      "climbSuccess": 0,
+      "climbFail": 1,
+      "failures": 0
+    },
+    "totals": {
+      "possessions": 20,
+      "fullScores": 9,
+      "partialScores": 5,
+      "failedCycles": 6,
+      "defendedCycles": 1,
+      "defendedFails": 1,
+      "failures": 0,
+      "climbSuccess": 0,
+      "climbFail": 1,
+      "totalCycles": 20,
+      "scoringCycles": 14,
+      "totalClimbs": 1,
+      "offActions": 6
+    },
+    "metrics": {
+      "csr": 0.6,
+      "quality": 0.6428571428571429,
+      "dr": 0.925,
+      "rs": 1,
+      "cr": 0,
+      "offUtil": 1
+    },
+    "fitScore": 70,
+    "equations": [
+      {
+        "key": "csr",
+        "label": "Cycle Success Rate",
+        "formula": "totalCycles > 0 ? (fullScores + partialScores * 0.6) / totalCycles : 0",
+        "weight": 0.25,
+        "desc": "Weighted scoring efficiency over all cycles. Full=1pt, Partial=0.6pt. Safe divide guard."
+      },
+      {
+        "key": "quality",
+        "label": "Scoring Quality",
+        "formula": "scoringCycles > 0 ? fullScores / scoringCycles : 0",
+        "weight": 0.18,
+        "desc": "Proportion of successful cycles that were full scores. High = robot consistently scores full."
+      },
+      {
+        "key": "dr",
+        "label": "Defense Resistance",
+        "formula": "totalCycles > 0 ? 1 - (defendedFails / Math.max(totalCycles, 1)) * 1.5 : 0.5",
+        "weight": 0.18,
+        "desc": "Penalizes defended fails weighted 1.5x against total cycles. Neutral (0.5) when no data."
+      },
+      {
+        "key": "rs",
+        "label": "Reliability",
+        "formula": "Math.max(0, 1 - (failures / Math.max(shiftsCompleted, 1)) * 0.4)",
+        "weight": 0.15,
+        "desc": "Breakdown rate per completed shift, weighted at 0.4 impact per breakdown. Floors at 0."
+      },
+      {
+        "key": "cr",
+        "label": "Climb Rate",
+        "formula": "totalClimbs > 0 ? climbSuccess / totalClimbs : 0.5",
+        "weight": 0.12,
+        "desc": "Successful climbs / total attempts. Neutral 0.5 when no climb data (no penalty, no bonus)."
+      },
+      {
+        "key": "offUtil",
+        "label": "Off-Shift Utility",
+        "formula": "offShiftSeconds > 0 ? Math.min(1, (offActions / (offShiftSeconds / 60)) / 5) : 0",
+        "weight": 0.12,
+        "desc": "Off-shift actions per minute normalized to 5 actions/min ceiling. Capped at 1."
+      }
+    ],
+    "id": 1780349279704
   }
 ]

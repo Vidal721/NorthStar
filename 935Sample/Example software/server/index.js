@@ -45,6 +45,10 @@ function getPit() {
   return JSON.parse(fs.readFileSync("pitData.json", "utf8"));
 }
 
+function getPitForm() {
+  return JSON.parse(fs.readFileSync("pitForm.json", "utf8"));
+}
+
 function getAdmin() {
   return JSON.parse(fs.readFileSync("adminData.json", "utf8"));
 }
@@ -95,7 +99,7 @@ app.post("/pit/upload", (req, res) => {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
-    newData.id = Date.now(); // unique id for each submission
+    newData.id = Date.now();
     users.push(newData);
 
     fs.writeFileSync("pitData.json", JSON.stringify(users, null, 2));
@@ -112,6 +116,14 @@ app.post("/pit/upload", (req, res) => {
 
 app.get("/admin/data", (req, res) => {
   res.json(getAdmin());
+});
+
+app.get("/admin/data", (req, res) => {
+  res.json(getAdmin());
+});
+
+app.get("/pit/form", (req, res) => {
+  res.json(getPitForm());
 });
 
 app.post("/admin/upload", (req, res) => {
