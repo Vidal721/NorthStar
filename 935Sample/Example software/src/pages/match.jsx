@@ -38,6 +38,13 @@ const BUTTON_GROUPS = {
         ],
       },
       {
+        sectionLabel: "Shooting",
+        cols: 1,
+        buttons: [
+          { id: "shoot",   label: "Start Shooting",  icon: "🎯", color: C.neutral, action: "startShooting", requiresCycle: true },
+        ],
+      },
+      {
         sectionLabel: "Finish Cycle",
         cols: 2,
         buttons: [
@@ -89,6 +96,13 @@ const BUTTON_GROUPS = {
         cols: 1,
         buttons: [
           { id: "gain", label: "Gain Possession", icon: "✊", color: C.action, action: "startCycle" },
+        ],
+      },
+      {
+        sectionLabel: "Shooting",
+        cols: 1,
+        buttons: [
+          { id: "shoot", label: "Start Shooting", icon: "🎯", color: C.neutral, action: "startShooting", requiresCycle: true },
         ],
       },
       {
@@ -184,6 +198,9 @@ export const FORMULA_VARIABLES = [
   { name: "transitDefend",    desc: "Transition: we defended",                    category: "transition" },
   { name: "transitWeScore",   desc: "Transition: we scored",                      category: "transition" },
   { name: "transitNothing",   desc: "Transition: nothing happened",               category: "transition" },
+  { name: "timedShots",      desc: "Number of shots with timing data",             category: "scoring" },
+  { name: "avgShotMs",      desc: "Average shot time in milliseconds (computed)",  category: "derived" },
+  { name: "fastestShotMs",  desc: "Fastest recorded shot in ms (computed)",        category: "derived" },
   { name: "totalCycles",      desc: "fullScores + partialScores + failedCycles (computed)", category: "derived" },
   { name: "totalClimbs",      desc: "climbSuccess + climbFail (computed)",        category: "derived" },
   { name: "scoringCycles",    desc: "fullScores + partialScores (computed)",      category: "derived" },
@@ -249,6 +266,7 @@ const DEFAULT_EQUATIONS = [
 //  Formula evaluator — safe math sandbox
 // ============================================================
 function buildDerivedVars(s) {
+  const times = s.shootingTimes || [];
   return {
     ...s,
     totalCycles:  s.fullScores + s.partialScores + s.failedCycles,
@@ -256,6 +274,9 @@ function buildDerivedVars(s) {
     scoringCycles:s.fullScores + s.partialScores,
     offActions:   s.offCollect + s.offPush + s.offShoot + s.offDispense + s.offDefend,
     matchMinutes: 160 / 60,
+    timedShots:   times.length,
+    avgShotMs:    times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0,
+    fastestShotMs:times.length > 0 ? Math.min(...times) : 0,
   };
 }
 
@@ -309,6 +330,8 @@ const initialStats = () => ({
   shiftsCompleted: 0, offCollect: 0, offPush: 0, offShoot: 0,
   offDispense: 0, offDefend: 0, transitScore: 0, transitMiss: 0,
   transitCollect: 0, transitDefend: 0, transitWeScore: 0, transitNothing: 0,
+  // shot timing — ms from "Start Shooting" to full/partial score
+  shootingTimes: [],       // array of milliseconds per timed shot
   // per-phase breakdowns
   auto: { possessions: 0, fullScores: 0, partialScores: 0, failedCycles: 0, failures: 0 },
   teleop: { possessions: 0, fullScores: 0, partialScores: 0, failedCycles: 0, defendedCycles: 0, defendedFails: 0, failures: 0 },
@@ -320,9 +343,10 @@ const initialMeta = () => ({ teamNumber: "", matchNumber: "", scoutName: "" });
 // ============================================================
 //  COMPONENTS
 // ============================================================
-function ActionButton({ btn, disabled, onClick }) {
+function ActionButton({ btn, disabled, onClick, isActive }) {
   const [pressed, setPressed] = useState(false);
   const [flash, setFlash] = useState(false);
+  const activeColor = isActive ? C.warn : null;
   return (
     <button
       onPointerDown={() => !disabled && setPressed(true)}
@@ -335,13 +359,13 @@ function ActionButton({ btn, disabled, onClick }) {
         onClick();
       }}
       style={{
-        backgroundColor: flash ? btn.color.glow : btn.color.bg,
-        color: btn.color.fg,
+        backgroundColor: flash ? (activeColor || btn.color).glow : (activeColor || btn.color).bg,
+        color: (activeColor || btn.color).fg,
         border: "1px solid rgba(255,255,255,0.06)",
         opacity: disabled ? 0.22 : 1,
         pointerEvents: disabled ? "none" : "auto",
         transform: pressed ? "scale(0.91)" : "scale(1)",
-        boxShadow: pressed && !disabled ? `0 0 18px ${btn.color.glow}66` : "none",
+        boxShadow: pressed && !disabled ? `0 0 18px ${(activeColor || btn.color).glow}66` : isActive ? `0 0 12px ${C.warn.glow}55` : "none",
         transition: "transform 0.1s, box-shadow 0.12s, background-color 0.1s",
         borderRadius: 14,
         padding: "14px 8px",
@@ -368,7 +392,7 @@ function ActionButton({ btn, disabled, onClick }) {
   );
 }
 
-function ButtonSection({ section, activeCycle, onAction }) {
+function ButtonSection({ section, activeCycle, isShooting, onAction }) {
   return (
     <div>
       <div className="scout-overline" style={{ marginBottom: 7, display: "flex", alignItems: "center", gap: 8 }}>
@@ -382,6 +406,7 @@ function ButtonSection({ section, activeCycle, onAction }) {
             key={btn.id}
             btn={btn}
             disabled={btn.requiresCycle && !activeCycle}
+            isActive={btn.action === "startShooting" && isShooting}
             onClick={() => onAction(btn)}
           />
         ))}
@@ -835,6 +860,8 @@ export default function App() {
 
   const [activeCycle, setActiveCycle]     = useState(false);
   const cycleDefendedRef                   = useRef(false);
+  const [isShooting, setIsShooting]       = useState(false);
+  const shootStartTimeRef                  = useRef(null);
   const [matchOver, setMatchOver]         = useState(false);
   const [stats, setStats]                 = useState(initialStats());
   const statsRef                           = useRef(initialStats());
@@ -954,26 +981,47 @@ export default function App() {
         if (activeCycle) return;
         setActiveCycle(true);
         cycleDefendedRef.current = false;
+        shootStartTimeRef.current = null;
+        setIsShooting(false);
         s.possessions++;
         if (ph === "auto") s.auto.possessions++;
         else if (ph === "shift" || ph === "transit") s.teleop.possessions++;
         break;
-      case "finishFull":
+      case "startShooting":
         if (!activeCycle) return;
+        shootStartTimeRef.current = performance.now();
+        setIsShooting(true);
+        break;
+      case "finishFull": {
+        if (!activeCycle) return;
+        if (shootStartTimeRef.current !== null) {
+          s.shootingTimes = [...s.shootingTimes, Math.round(performance.now() - shootStartTimeRef.current)];
+          shootStartTimeRef.current = null;
+        }
+        setIsShooting(false);
         s.fullScores++;
         if (ph === "auto") s.auto.fullScores++;
         else s.teleop.fullScores++;
         setActiveCycle(false); cycleDefendedRef.current = false;
         break;
-      case "finishPartial":
+      }
+      case "finishPartial": {
         if (!activeCycle) return;
+        if (shootStartTimeRef.current !== null) {
+          s.shootingTimes = [...s.shootingTimes, Math.round(performance.now() - shootStartTimeRef.current)];
+          shootStartTimeRef.current = null;
+        }
+        setIsShooting(false);
         s.partialScores++;
         if (ph === "auto") s.auto.partialScores++;
         else s.teleop.partialScores++;
         setActiveCycle(false); cycleDefendedRef.current = false;
         break;
+      }
       case "finishFail":
         if (!activeCycle) return;
+        shootStartTimeRef.current = null;
+        setIsShooting(false);
         s.failedCycles++;
         if (ph === "auto") s.auto.failedCycles++;
         else s.teleop.failedCycles++;
@@ -1017,8 +1065,10 @@ export default function App() {
     shiftTimeLeftRef.current = 0;
     statsRef.current = initialStats();
     cycleDefendedRef.current = false;
+    shootStartTimeRef.current = null;
     setMatchTime(matchTotal); setPhase("auto"); setCurrentShift(null);
     setShiftTimeLeft(0); setTransitTimeLeft(0); setActiveCycle(false);
+    setIsShooting(false);
     setShowAutoOverlay(false); setMatchOver(false); setStats(initialStats());
     setMetrics(null);
     // Keep scout name + team, increment match number
@@ -1094,6 +1144,10 @@ export default function App() {
         scoringCycles:  derived.scoringCycles,
         totalClimbs:    derived.totalClimbs,
         offActions:     derived.offActions,
+        shootingTimes:  s.shootingTimes,
+        avgShotMs:      s.shootingTimes.length > 0 ? Math.round(s.shootingTimes.reduce((a, b) => a + b, 0) / s.shootingTimes.length) : null,
+        fastestShotMs:  s.shootingTimes.length > 0 ? Math.min(...s.shootingTimes) : null,
+        timedShots:     s.shootingTimes.length,
       },
       metrics: computedMetrics,
       fitScore,
@@ -1449,6 +1503,8 @@ export default function App() {
               <div style={{ fontSize: 11, color: "var(--scout-text-muted)", fontWeight: 600 }}>
                 {activeGroupKey === "offShift" ? (
                   <><span style={{ color: "var(--scout-red-soft)", fontWeight: 800 }}>Their shift</span> — log off-shift activity</>
+                ) : activeCycle && isShooting ? (
+                  <><span style={{ color: "var(--scout-yellow-soft)", fontWeight: 800 }}>🎯 Aiming</span> — tap Full Score or Partial to stop timer</>
                 ) : activeCycle ? (
                   <><span style={{ color: "var(--scout-text-body)", fontWeight: 800 }}>Cycle active</span> — finish the cycle{cycleDefendedRef.current ? <span style={{ color: "var(--scout-blue-soft)", marginLeft: 6 }}>🛡 defended</span> : ""}</>
                 ) : (
@@ -1468,10 +1524,10 @@ export default function App() {
           )}
 
           {activeGroup.sections.map((sec, i) => (
-            <ButtonSection key={i} section={sec} activeCycle={activeCycle} onAction={handleAction} />
+            <ButtonSection key={i} section={sec} activeCycle={activeCycle} isShooting={isShooting} onAction={handleAction} />
           ))}
           {showEndgame && activeGroup.endgameSections?.map((sec, i) => (
-            <ButtonSection key={"eg" + i} section={sec} activeCycle={activeCycle} onAction={handleAction} />
+            <ButtonSection key={"eg" + i} section={sec} activeCycle={activeCycle} isShooting={isShooting} onAction={handleAction} />
           ))}
         </div>
 
@@ -1595,6 +1651,26 @@ export default function App() {
                   })}
                 </div>
               </div>
+
+              {/* Shot timing */}
+              {s.shootingTimes.length > 0 && (
+                <div>
+                  <SectionHeader>Shot Timing</SectionHeader>
+                  <div className="scout-stat-grid-3" style={{ marginTop: 10 }}>
+                    {[
+                      ["Timed Shots",  s.shootingTimes.length,                                                                         "var(--scout-indigo-soft)"],
+                      ["Avg Time",     `${(s.shootingTimes.reduce((a,b)=>a+b,0)/s.shootingTimes.length/1000).toFixed(2)}s`,            "var(--scout-yellow-soft)"],
+                      ["Fastest",      `${(Math.min(...s.shootingTimes)/1000).toFixed(2)}s`,                                           "var(--scout-green-soft)"],
+                      ["Slowest",      `${(Math.max(...s.shootingTimes)/1000).toFixed(2)}s`,                                           "var(--scout-red-soft)"],
+                    ].map(([lbl, val, color]) => (
+                      <div key={lbl} className="scout-stat-tile">
+                        <div className="scout-stat-label">{lbl}</div>
+                        <div className="scout-stat-value" style={{ color }}>{val}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Raw stats */}
               <div>
