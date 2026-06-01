@@ -1468,6 +1468,9 @@ export default function App() {
             <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.18em", padding: "4px 10px", borderRadius: 6, background: phaseInfo.bg, color: phaseInfo.accent, border: `1px solid ${phaseInfo.accent}33` }}>
               {phaseInfo.label}
             </div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "var(--scout-text-muted)" }}>
+              MATCH {matchMeta.matchNumber} / TEAM {matchMeta.teamNumber}
+            </div>
             <div style={{
               fontSize: 30, fontWeight: 900, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em",
               color: matchTime <= endgameStart ? "#fb923c" : phase === "auto" ? "var(--scout-indigo-soft)" : phase === "transit" ? "var(--scout-yellow-soft)" : "var(--scout-text-primary)",
