@@ -372,7 +372,7 @@ export default function App() {
     <>
       <div className="team-badge">935</div>
 
-      <button onClick={() => window.open('/index.html', '_blank')}>
+      <button onClick={() => window.open('/calc.html', '_blank')}>
   Open Page
 </button>
 
