@@ -929,7 +929,7 @@ export default function App() {
   const setAutoWinner = (weWon) => {
     setShowAutoOverlay(false);
     autoWinnerSetRef.current = true;
-    const firstShift = weWon ? "ours" : "theirs";
+    const firstShift = weWon ? "theirs" : "ours";
     currentShiftRef.current = firstShift;
     setCurrentShift(firstShift);
     const t = matchTimeRef.current;
