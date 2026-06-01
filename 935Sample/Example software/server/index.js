@@ -22,7 +22,7 @@ app.post("/deploy", (req, res) => {
   console.log("[deploy] Updating server...");
 
   exec(
-    "git pull origin main",
+    "git pull origin main && npm install && pm2 reload scouting",
     (error, stdout, stderr) => {
       if (error) {
         console.error(error);
@@ -33,7 +33,7 @@ app.post("/deploy", (req, res) => {
       console.error(stderr);
 
       res.send("Deploy successful");
-    }
+    },
   );
 });
 
@@ -74,16 +74,20 @@ app.post("/api/upload", (req, res) => {
 
     fs.writeFileSync("matchData.json", JSON.stringify(users, null, 2));
 
-    console.log(`[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`);
+    console.log(
+      `[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`,
+    );
     res.status(201).json(newData);
   } catch (err) {
     console.error("[upload] Failed to save match data:", err.message);
-    res.status(500).json({ error: "Failed to save match data", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save match data", detail: err.message });
   }
 });
 
 app.post("/pit/upload", (req, res) => {
-    try {
+  try {
     const users = getPit();
     const newData = req.body;
 
@@ -100,7 +104,9 @@ app.post("/pit/upload", (req, res) => {
     res.status(201).json(newData);
   } catch (err) {
     console.error("[upload] Failed to save pit data:", err.message);
-    res.status(500).json({ error: "Failed to save pit data", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save pit data", detail: err.message });
   }
 });
 
@@ -109,7 +115,7 @@ app.get("/admin/data", (req, res) => {
 });
 
 app.post("/admin/upload", (req, res) => {
-    try {
+  try {
     const data = getAdmin();
     const newData = req.body;
 
@@ -121,11 +127,15 @@ app.post("/admin/upload", (req, res) => {
 
     fs.writeFileSync("matchData.json", JSON.stringify(users, null, 2));
 
-    console.log(`[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`);
+    console.log(
+      `[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`,
+    );
     res.status(201).json(newData);
   } catch (err) {
     console.error("[upload] Failed to save match data:", err.message);
-    res.status(500).json({ error: "Failed to save match data", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save match data", detail: err.message });
   }
 });
 
