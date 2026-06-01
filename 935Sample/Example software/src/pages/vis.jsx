@@ -19,6 +19,8 @@ const DEFAULT_SECTION_COLORS = {
 
 const DEFAULT_SUMMARY_COLS = [];
 
+const API_URL = "https://tries-hiv-formula-medline.trycloudflare.com/users";
+
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
 }
@@ -299,7 +301,7 @@ export default function App() {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch("https://tries-hiv-formula-medline.trycloudflare.com/users");
+        const res = await fetch(API_URL);
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
       } catch (err) { setError(err.message); }
