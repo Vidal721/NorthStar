@@ -1,0 +1,72 @@
+# NorthStar Project Dependencies
+# Generated for a brand new system setup
+
+## 1. Core Software & Programs
+- **Node.js LTS** (Recommended: Version 20.x or newer)
+- **Python 3.10+** (System includes Python 3 by default on most Linux distros)
+- **Java 17 JDK** (REQUIRED for Android builds; Oracle JDK or Eclipse Temurin)
+- **Android Studio** (For building the Scouter Tablets app)
+- **Android SDK & Build Tools** (API Level 33 specifically mentioned)
+- **ADB (Android Debug Bridge)** (Part of `android-tools` or `platform-tools`)
+- **Git** (For version control)
+- **Code OSS / VS Code** (Recommended IDE)
+- **Tesseract OCR Engine** (System binary required for `pytesseract`)
+
+## 2. System Dependencies (Linux/Arch/Ubuntu)
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install nodejs npm python3-pip adb tesseract-ocr libtesseract-dev libgl1-mesa-glx libbluetooth-dev bluez bluetooth python3-tk
+
+# Arch Linux
+sudo pacman -S nodejs npm python-pip android-tools tesseract tesseract-data-eng libbluetooth bluez bluez-utils tk
+```
+
+## 3. Python Libraries (via pip)
+Install these for the vision and server components:
+```bash
+pip install opencv-python numpy ultralytics filterpy flask scipy paramiko pytesseract pybluez
+```
+*Note: `pybluez` may require additional setup for Bluetooth compatibility mode.*
+
+## 4. Node.js Libraries (via npm)
+Found in NorthStar and Scouter Tablet subdirectories.
+
+### NorthStar Main:
+- @capacitor/android, @capacitor/cli, @capacitor/core
+- @fontsource-variable/geist
+- @fortawesome/fontawesome-svg-core
+- @fortawesome/free-brands-svg-icons
+- @fortawesome/free-regular-svg-icons
+- @fortawesome/free-solid-svg-icons
+- @fortawesome/react-fontawesome
+- @tailwindcss/vite, tailwindcss, postcss, autoprefixer
+- class-variance-authority, clsx
+- lucide-react
+- radix-ui
+- react, react-dom (v19)
+- react-router-dom (v7)
+- shadcn
+- tailwind-merge
+- tw-animate-css
+- vite
+
+### Scouter Tablets (Old Project):
+- @capacitor/android, @capacitor/cli, @capacitor/core (v3.x)
+- cordova-plugin-bluetooth-serial
+- patch-package
+
+## 5. Raspberry Pi Specifics
+If setting up a Raspberry Pi as a hub:
+- **Python 3**
+- **Node.js**
+- **ADB**
+- **Bluetooth Dev Headers** (`libbluetooth-dev`)
+- **Bluez** (for Bluetooth communication)
+
+## 6. VS Code Extensions (Optional but Recommended)
+- ES7+ React/Redux/React-Native snippets
+- Tailwind CSS IntelliSense
+- Python (Microsoft)
+- ESLint
+- Prettier - Code formatter
