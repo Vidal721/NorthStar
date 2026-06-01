@@ -1257,7 +1257,7 @@ export default function App() {
     s.climbSuccess   = climbOk;
     s.climbFail      = climbFail;
 
-    // Inject into refs/state directly (bypass live match flow)
+    // Inject into refs/state directlya (bypass live match flow)
     statsRef.current = s;
     setStats({ ...s });
 
