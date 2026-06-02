@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
-import { faGear } from "@fortawesome/free-solid-svg-icons";
+import {
+  faGear,
+  faArrowRightFromBracket,
+  faArrowUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons";
 import "./vis.css";
 
 const DENSITY = {
@@ -112,26 +117,146 @@ function getCellValue(row, def) {
   return row[def.section]?.[def.subKey];
 }
 
+// ── Compute profile metrics exactly as calc.html does ──────
+function computeProfile(teamRows) {
+  const matchCount = teamRows.length;
+  let totalCyclesSum = 0, scoringCyclesSum = 0, fitScoreSum = 0, autoFullScoresSum = 0;
+  let teleopFullScoresSum = 0, climbSuccessesSum = 0, defenseFormulaScoreSum = 0;
+  let autoPossessionsSum = 0, teleopPartialScoresSum = 0, transitScoreSum = 0, transitMissSum = 0;
+  let ourShiftSecondsSum = 0, offShiftSecondsSum = 0, transitSecondsSum = 0, shiftsCompletedSum = 0;
+  let defendedCyclesSum = 0, offActionsSum = 0, totalFailuresSum = 0;
+
+  teamRows.forEach((match) => {
+    const totalCycles = match.totals?.totalCycles || 0;
+    const defendedFails = match.totals?.defendedFails || 0;
+    const partialScores = match.totals?.partialScores || 0;
+
+    totalCyclesSum += totalCycles;
+    scoringCyclesSum += match.totals?.scoringCycles || 0;
+    fitScoreSum += match.fitScore || 0;
+    autoFullScoresSum += match.auto?.fullScores || 0;
+    teleopFullScoresSum += match.teleop?.fullScores || 0;
+    climbSuccessesSum += match.endgame?.climbSuccess || 0;
+    autoPossessionsSum += match.auto?.possessions || 0;
+    teleopPartialScoresSum += partialScores;
+    transitScoreSum += match.teleop?.transitScore || 0;
+    transitMissSum += match.teleop?.transitMiss || 0;
+    ourShiftSecondsSum += match.teleop?.ourShiftSeconds || 0;
+    offShiftSecondsSum += match.teleop?.offShiftSeconds || 0;
+    transitSecondsSum += match.teleop?.transitSeconds || 0;
+    shiftsCompletedSum += match.teleop?.shiftsCompleted || 0;
+    defendedCyclesSum += match.teleop?.defendedCycles || 0;
+    offActionsSum += match.totals?.offActions || 0;
+    totalFailuresSum += (match.auto?.failures || 0) + (match.teleop?.failures || 0) + (match.endgame?.failures || 0);
+
+    const matchResilienceScore = totalCycles > 0
+      ? Math.max(0, 1 - (defendedFails / Math.max(totalCycles + (partialScores * 0.2), 1)) * 1.5)
+      : 0.5;
+    defenseFormulaScoreSum += matchResilienceScore;
+  });
+
+  return {
+    matchesPlayed: matchCount,
+    predictedCycles: matchCount > 0 ? Number((totalCyclesSum / matchCount).toFixed(1)) : 0,
+    defenseResilienceRating: matchCount > 0 ? ((defenseFormulaScoreSum / matchCount) * 100).toFixed(1) + '%' : '50.0%',
+    autoReliabilityIndex: autoPossessionsSum > 0 ? ((autoFullScoresSum / autoPossessionsSum) * 100).toFixed(1) + '%' : '0.0%',
+    teleopOptimizationIndex: (teleopFullScoresSum + teleopPartialScoresSum) > 0 ? ((teleopFullScoresSum / (teleopFullScoresSum + teleopPartialScoresSum)) * 100).toFixed(1) + '%' : '0.0%',
+    transitScoringSuccessRate: (transitScoreSum + transitMissSum) > 0 ? ((transitScoreSum / (transitScoreSum + transitMissSum)) * 100).toFixed(1) + '%' : '0.0%',
+    cycleVelocitySeconds: totalCyclesSum > 0 ? Number(((ourShiftSecondsSum + offShiftSecondsSum + transitSecondsSum) / totalCyclesSum).toFixed(1)) : 0,
+    shiftOutputEfficiency: shiftsCompletedSum > 0 ? Number((totalCyclesSum / shiftsCompletedSum).toFixed(1)) : 0,
+    defendedVulnerabilityFactor: totalCyclesSum > 0 ? ((defendedCyclesSum / totalCyclesSum) * 100).toFixed(1) + '%' : '0.0%',
+    offensiveActionDensity: matchCount > 0 ? Number((offActionsSum / matchCount).toFixed(1)) : 0,
+    matchBreakdownRisk: matchCount > 0 ? ((totalFailuresSum / matchCount) * 100).toFixed(1) + '%' : '0.0%',
+    scoringAccuracy: totalCyclesSum > 0 ? ((scoringCyclesSum / totalCyclesSum) * 100).toFixed(1) + '%' : '0.0%',
+    climbRate: matchCount > 0 ? ((climbSuccessesSum / matchCount) * 100).toFixed(0) + '%' : '0%',
+    avgFitScore: matchCount > 0 ? Math.round(fitScoreSum / matchCount) : 0,
+  };
+}
+
+const OVERVIEW_STATS = [
+  { key: "predictedCycles",           label: "Predicted Cycles",              target: "15.0+ Cycles",    def: "The expected total cycle completion output calculated for their upcoming match profile baseline.", fmt: (v) => v },
+  { key: "defenseResilienceRating",   label: "Defense Resilience Rating",     target: "95.0%+",          def: "The capability score tracking how effectively a team holds onto items when physically contested by active defense.", fmt: (v) => v },
+  { key: "scoringAccuracy",           label: "Scoring Accuracy",              target: "90.0%+",          def: "Percentage of initiated execution operations that resulted in successful alliance scores.", fmt: (v) => v },
+  { key: "autoReliabilityIndex",      label: "Auto Reliability Index",        target: "90.0%+",          def: "Percentage of autonomous period placement possessions successfully converted into full value scores.", fmt: (v) => v },
+  { key: "teleopOptimizationIndex",   label: "Teleop Optimization Index",     target: "80.0%+",          def: "Ratio tracking how frequently completed teleop cycles yield maximum-value full scores versus low-value partial items.", fmt: (v) => v },
+  { key: "transitScoringSuccessRate", label: "Transit Scoring Success Rate",  target: "85.0%+",          def: "Accuracy rate tracking successful scoring iterations performed while cross-field on the move.", fmt: (v) => v },
+  { key: "cycleVelocitySeconds",      label: "Cycle Velocity",                target: "Under 8.0s",      def: "The average time density in seconds required to close out an active system operation cycle.", fmt: (v) => v + "s" },
+  { key: "shiftOutputEfficiency",     label: "Shift Output Efficiency",       target: "3.5+ Cycles",     def: "Average volume of system tasks fully completed per execution role shift iteration.", fmt: (v) => v },
+  { key: "defendedVulnerabilityFactor", label: "Defended Vulnerability Factor", target: "Below 15.0%",  def: "The match time footprint percentage spent completely suppressed under heavy opposing team defense.", fmt: (v) => v },
+  { key: "offensiveActionDensity",    label: "Offensive Action Density",      target: "8.0+ Actions",    def: "Volume metric counting non-scoring match contributions such as dynamic field pushes, interference blocks, or collections.", fmt: (v) => v },
+  { key: "matchBreakdownRisk",        label: "Match Breakdown Risk",          target: "0.0%",            def: "The hazard rating reflecting the match incidence frequency of mechanical system failures or field execution faults.", fmt: (v) => v },
+  { key: "climbRate",                 label: "Climb Rate",                    target: "100.0%",          def: "The ultimate success verification footprint tracking standard endgame climbing accomplishments.", fmt: (v) => v },
+];
+
+// ── Portal Tooltip ─────────────────────────────────────────
+function StatTooltip({ label, def, target, anchorRef }) {
+  const [pos, setPos] = useState(null);
+  const tipRef = useRef(null);
+
+  useEffect(() => {
+    const el = anchorRef.current;
+    if (!el) return;
+    const enter = () => { setPos(el.getBoundingClientRect()); };
+    const leave = () => setPos(null);
+    el.addEventListener("mouseenter", enter);
+    el.addEventListener("mouseleave", leave);
+    return () => { el.removeEventListener("mouseenter", enter); el.removeEventListener("mouseleave", leave); };
+  }, [anchorRef]);
+
+  useEffect(() => {
+    if (!pos || !tipRef.current) return;
+    const tip = tipRef.current;
+    const vw = window.innerWidth;
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+    let left = pos.left;
+    let top = pos.top - th - 8;
+    if (left + tw > vw - 8) left = vw - tw - 8;
+    if (left < 8) left = 8;
+    if (top < 8) top = pos.bottom + 6;
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+  }, [pos]);
+
+  if (!pos) return null;
+  return ReactDOM.createPortal(
+    <div ref={tipRef} className="team-kv-tooltip" style={{ position: "fixed", zIndex: 9999 }}>
+      <p className="team-kv-tooltip-title">{label}</p>
+      <p className="team-kv-tooltip-def">{def}</p>
+      <p className="team-kv-tooltip-target"><span>Target:</span> {target}</p>
+    </div>,
+    document.body
+  );
+}
+
+function StatCard({ label, target, def, value }) {
+  const triggerRef = useRef(null);
+  return (
+    <div className="team-kv-card team-kv-card--stat">
+      <div className="team-kv-stat-label">
+        <span ref={triggerRef} className="team-kv-stat-label-text">{label}</span>
+        <StatTooltip label={label} def={def} target={target} anchorRef={triggerRef} />
+      </div>
+      <div className="team-kv-stat-value">{value}</div>
+    </div>
+  );
+}
+
 // ── Team Overview Modal ────────────────────────────────────
-function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
-  const [showAll, setShowAll] = useState(false);
+function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
+  const [tab, setTab] = useState("overview"); // "overview" | "detail"
+  const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
 
-  // Find identifier — first _flat col that looks like a team/name
-  const teamId =
-    teamRows[0]?.team ??
-    teamRows[0]?.id ??
-    teamRows[0]?.[Object.keys(teamRows[0])[0]];
+  const teamId = teamRows[0]?.meta?.teamNumber ?? teamRows[0]?.team ?? teamRows[0]?.id;
+  const profile = computeProfile(teamRows);
 
-  const displayDefs = showAll
-    ? colDefs
-    : summaryCols.length > 0
-      ? colDefs.filter((d) => summaryCols.includes(d.flatKey))
-      : colDefs.slice(0, 8);
+  // For detail view — all colDefs for the selected match
+  const selectedMatch = teamRows[selectedMatchIdx];
 
   return (
     <div
       className="settings-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="team-modal">
         <div className="team-modal-header">
@@ -143,21 +268,19 @@ function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
           </div>
           <div className="team-modal-actions">
             <button
-              className={`team-modal-toggle${showAll ? " active" : ""}`}
-              onClick={() => setShowAll((v) => !v)}
+              className={`team-modal-toggle${tab === "overview" ? " active" : ""}`}
+              onClick={() => setTab("overview")}
             >
-              {showAll ? "Summary" : "All Data"}
+              Overview
+            </button>
+            <button
+              className={`team-modal-toggle${tab === "detail" ? " active" : ""}`}
+              onClick={() => setTab("detail")}
+            >
+              Match Detail
             </button>
             <button className="settings-close" onClick={onClose}>
-              <svg
-                viewBox="0 0 16 16"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <line x1="2" y1="2" x2="14" y2="14" />
                 <line x1="14" y1="2" x2="2" y2="14" />
               </svg>
@@ -165,53 +288,65 @@ function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
           </div>
         </div>
 
-        {teamRows.length > 1 && (
-          <div className="team-modal-matches">
-            {teamRows.map((r, i) => {
-              const matchVal = r.match ?? r.matchNumber ?? `#${i + 1}`;
-              return (
-                <span key={i} className="team-match-chip">
-                  Match {matchVal}
-                </span>
-              );
-            })}
-          </div>
-        )}
-
         <div className="team-modal-body">
-          {displayDefs.length === 0 ? (
-            <div className="team-modal-empty">
-              No summary columns selected. Configure in Settings → Summary
-              Columns.
+          {tab === "overview" && (
+            <div className="team-overview-panel">
+              {/* FitScore badge */}
+              <div className="team-overview-fitscore">
+                <span className="team-overview-fitscore-label">Avg FitScore</span>
+                <span className="team-overview-fitscore-value">{profile.avgFitScore}</span>
+              </div>
+
+              <div className="team-kv-grid">
+                {OVERVIEW_STATS.map(({ key, label, target, def, fmt }) => (
+                  <StatCard key={key} label={label} target={target} def={def} value={fmt(profile[key])} />
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="team-kv-grid">
-              {displayDefs.map((def) => {
-                const color = sectionColors[def.section] || "#888";
-                // If multiple rows, show all values
-                const vals = teamRows.map((r) => getCellValue(r, def));
-                return (
-                  <div
-                    key={def.flatKey}
-                    className="team-kv-card"
-                    style={{ "--card-color": color }}
-                  >
-                    <div className="team-kv-section" style={{ color }}>
-                      {def.section === "_flat"
-                        ? "Info"
-                        : def.section.toUpperCase()}
-                    </div>
-                    <div className="team-kv-key">{def.label}</div>
-                    <div className="team-kv-vals">
-                      {vals.map((v, i) => (
-                        <span key={i} className="team-kv-val">
-                          {renderCellValue(v, def.subKey)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+          )}
+
+          {tab === "detail" && (
+            <div className="team-detail-panel">
+              {/* Match selector */}
+              <div className="team-match-selector">
+                {teamRows.map((r, i) => {
+                  const matchNum = r.meta?.matchNumber ?? r.match ?? `#${i + 1}`;
+                  return (
+                    <button
+                      key={i}
+                      className={`team-match-chip${selectedMatchIdx === i ? " active" : ""}`}
+                      onClick={() => setSelectedMatchIdx(i)}
+                    >
+                      Match {matchNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* All data for selected match */}
+              {selectedMatch && (
+                <div className="team-kv-grid">
+                  {colDefs.map((def) => {
+                    const color = sectionColors[def.section] || "#888";
+                    const val = getCellValue(selectedMatch, def);
+                    return (
+                      <div
+                        key={def.flatKey}
+                        className="team-kv-card"
+                        style={{ "--card-color": color }}
+                      >
+                        <div className="team-kv-section" style={{ color }}>
+                          {def.section === "_flat" ? "Info" : def.section.toUpperCase()}
+                        </div>
+                        <div className="team-kv-key">{def.label}</div>
+                        <div className="team-kv-vals">
+                          <span className="team-kv-val">{renderCellValue(val, def.subKey)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -412,7 +547,12 @@ export default function App() {
   const [teamFocus, setTeamFocus] = useState(null); // { teamId, rows }
 
   const thRefs = useRef({});
+  const secThRefs = useRef({});
+  const tableContainerRef = useRef(null);
   const [frozenOffsets, setFrozenOffsets] = useState({});
+
+
+
 
   useEffect(() => {
     async function fetchData() {
@@ -448,14 +588,19 @@ export default function App() {
       setFrozenOffsets({});
       return;
     }
-    const offsets = {};
-    let acc = 0;
-    for (const fk of frozenCols) {
-      offsets[fk] = acc;
-      const el = thRefs.current[fk];
-      if (el) acc += el.offsetWidth;
-    }
-    setFrozenOffsets(offsets);
+    const compute = () => {
+      const offsets = {};
+      let acc = 0;
+      for (const fk of frozenCols) {
+        offsets[fk] = acc;
+        const el = thRefs.current[fk];
+        if (el) acc += el.offsetWidth;
+      }
+      setFrozenOffsets(offsets);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
   }, [frozenCols, freezeEnabled, data]);
 
   useEffect(() => {
@@ -489,16 +634,28 @@ export default function App() {
     );
 
   const isFrozen = (fk) => freezeEnabled && frozenCols.includes(fk);
-  const getStickyStyle = (fk) =>
-    isFrozen(fk)
-      ? { position: "sticky", left: frozenOffsets[fk] ?? 0, zIndex: 4 }
-      : {};
+
+  // Total frozen width — labels should not overlap frozen cols
+  const totalFrozenWidth = Object.keys(frozenOffsets).length > 0
+    ? Math.max(...Object.keys(frozenOffsets).map((fk) => {
+        const el = thRefs.current[fk];
+        return (frozenOffsets[fk] ?? 0) + (el ? el.offsetWidth : 0);
+      }))
+    : 0;
+
+  // Snap frozen cols to nearest border:
+  // CSS `position:sticky; left:X` naturally does this: the element sticks only when scrolling
+  // would otherwise push it left of X. So it correctly stays at natural position until you reach it.
+
+  const getStickyStyle = (fk) => {
+    if (!isFrozen(fk)) return {};
+    return { position: "sticky", left: frozenOffsets[fk] ?? 0, zIndex: 4 };
+  };
 
   // Find team column — look for a _flat col named "team" or first _flat col
   const teamColDef =
-    colDefs.find(
-      (d) => d.section === "_flat" && d.subKey.toLowerCase() === "team",
-    ) ?? colDefs.find((d) => d.section === "_flat");
+    colDefs.find((d) => d.section === "meta" && d.subKey === "teamNumber") ??
+    colDefs.find((d) => d.section === "_flat");
 
   const handleTeamClick = (e, row) => {
     e.stopPropagation();
@@ -522,22 +679,22 @@ export default function App() {
     <>
       <div className="team-badge">935</div>
 
-      <button onClick={() => window.open("/calc.html", "_blank")}>
-        Open Page
-      </button>
+      <div className="headerButtons">
+        <button className="settings-trigger">
+          <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
+            <FontAwesomeIcon icon={faArrowRightFromBracket} />
+          </Link>
+        </button>
 
-      <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
-        [ Back to Menu ]
-      </Link>
-
-      <button
-        className="settings-trigger"
-        onClick={() => setShowSettings(true)}
-        aria-label="Open settings"
-      >
-        <FontAwesomeIcon icon={faGear} />
-      </button>
-
+        <button
+          className="settings-trigger"
+          onClick={() => setShowSettings(true)}
+          aria-label="Open settings"
+          id="settingsIcon"
+        >
+          <FontAwesomeIcon icon={faGear} />
+        </button>
+      </div>
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
@@ -561,13 +718,12 @@ export default function App() {
           teamRows={teamFocus.rows}
           colDefs={colDefs}
           sectionColors={sectionColors}
-          summaryCols={summaryCols}
           onClose={() => setTeamFocus(null)}
         />
       )}
 
       <div className="table-wrapper">
-        <div className="table-container">
+        <div className="table-container" ref={tableContainerRef}>
           <table>
             <thead>
               {/* Row 1: Section group headers */}
@@ -579,10 +735,13 @@ export default function App() {
                     <th
                       key={sec}
                       colSpan={count}
+                      ref={(el) => { secThRefs.current[sec] = el; }}
                       className="section-group-th"
                       style={{ "--sec-color": color }}
                     >
-                      <span className="section-group-label">
+                      <span
+                        className="section-group-label"
+                      >
                         {sec === "_flat" ? "Info" : sec.toUpperCase()}
                       </span>
                     </th>

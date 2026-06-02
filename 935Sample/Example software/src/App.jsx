@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { faMoon, faSun, faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
@@ -81,7 +81,7 @@ function MainMenu() {
             className={`launch-btn ${isDisabled ? "disabled-link" : ""}`}
             tabIndex={isDisabled ? -1 : 0} /* Prevents keyboard tabbing */
           >
-            Launch
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </Link>
         </div>
 
@@ -94,7 +94,7 @@ function MainMenu() {
             className="launch-btn"
             id="startMatchScout"
           >
-            Launch
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </Link>
         </div>
 
@@ -107,7 +107,7 @@ function MainMenu() {
             className="launch-btn"
             id="startVis"
           >
-            Launch
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </Link>
         </div>
         {/* Now has the 7 clicks feature on the welcom scouter
@@ -133,7 +133,7 @@ function MainMenu() {
             className="launch-btn"
             id="startVis"
           >
-            Launch
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </Link>
         </div>
       </div>
