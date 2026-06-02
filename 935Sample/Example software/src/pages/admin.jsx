@@ -5,7 +5,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { faReact } from "@fortawesome/free-brands-svg-icons";
 
 const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/match/data";
-const LOCAL_URL = "http://localhost:3000";
+let LOCAL_URL;
 
 export default function AdminDashboard() {
   const [data, setData] = useState([]);
@@ -56,6 +56,16 @@ export default function AdminDashboard() {
       setError(err.message);
     }
   }
+
+  const checkbox = document.getElementById("myCheckbox");
+  checkbox.addEventListener("change", function() {
+  if (this.checked) {
+    // Run your custom function here
+    LOCAL_URL = "http://localhost:3000"
+  } else {
+    LOCAL_URL = "https://taco-childhood-jailbreak.ngrok-free.dev"
+  }
+});
 
   const deleteAll = async () => {
     if (!window.confirm("ARE YOU SURE?? This deletes EVERYTHING")) return;
@@ -113,6 +123,9 @@ export default function AdminDashboard() {
         <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
           [ Back to Menu ]
         </Link>
+        <input type="checkbox" id="myCheckbox"></input>
+        <label for="myCheckbox">Enable Feature</label>
+
       </div>
 
       <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
