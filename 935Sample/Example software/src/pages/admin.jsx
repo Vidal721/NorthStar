@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { faReact } from "@fortawesome/free-brands-svg-icons";
 
-const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/match/data";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev";
 const LOCAL_URL = "http://localhost:3000";
 
 export default function AdminDashboard() {
@@ -22,7 +22,7 @@ export default function AdminDashboard() {
         setIsLoading(true);
       }
 
-      const res = await fetch(`${LOCAL_URL}/match/data`, {
+      const res = await fetch(`${API_URL}/match/data`, {
         headers: {
           "ngrok-skip-browser-warning": "69420",
         },
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
 
   async function deleteItem(id) {
     try {
-      const response = await fetch(`${LOCAL_URL}/delete/match/${id}`, {
+      const response = await fetch(`${API_URL}/delete/match/${id}`, {
         method: "DELETE",
       });
 

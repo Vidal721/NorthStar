@@ -1,20 +1,23 @@
 import { useState, useEffect, useRef } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Link } from "react-router-dom";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
 import "./vis.css";
 
 const DENSITY = {
-  tight:       { label: "Tight",       paddingV: "6px",  rowHeight: "38px" },
+  tight: { label: "Tight", paddingV: "6px", rowHeight: "38px" },
   comfortable: { label: "Comfortable", paddingV: "10px", rowHeight: "48px" },
-  loose:       { label: "Loose",       paddingV: "16px", rowHeight: "60px" },
+  loose: { label: "Loose", paddingV: "16px", rowHeight: "60px" },
 };
 
 const DEFAULT_SECTION_COLORS = {
-  meta:     "#8b5cf6",
-  auto:     "#ef4444",
-  teleop:   "#3b82f6",
-  endgame:  "#10b981",
-  totals:   "#f59e0b",
-  metrics:  "#ec4899",
-  _flat:    "#6b7280",
+  meta: "#8b5cf6",
+  auto: "#ef4444",
+  teleop: "#3b82f6",
+  endgame: "#10b981",
+  totals: "#f59e0b",
+  metrics: "#ec4899",
+  _flat: "#6b7280",
 };
 
 const DEFAULT_SUMMARY_COLS = [];
@@ -33,7 +36,11 @@ function renderCellValue(value, colKey) {
   if (Array.isArray(value))
     return (
       <div className="pill-container">
-        {value.map((t, i) => <span key={i} className="tag-pill">{String(t)}</span>)}
+        {value.map((t, i) => (
+          <span key={i} className="tag-pill">
+            {String(t)}
+          </span>
+        ))}
       </div>
     );
   if (typeof value === "object")
@@ -46,10 +53,16 @@ function renderCellValue(value, colKey) {
         ))}
       </div>
     );
-  if (colKey === "id" && String(value).length > 8) return `…${String(value).slice(-6)}`;
-  if (typeof value === "number" && !Number.isInteger(value)) return value.toFixed(1);
+  if (colKey === "id" && String(value).length > 8)
+    return `…${String(value).slice(-6)}`;
+  if (typeof value === "number" && !Number.isInteger(value))
+    return value.toFixed(1);
   if (typeof value == "string" && value.includes("T") && value.includes("Z")) {
-    return value.split("T")[0] + " " + value.split("T")[1].split(".")[0].replace("Z", "");
+    return (
+      value.split("T")[0] +
+      " " +
+      value.split("T")[1].split(".")[0].replace("Z", "")
+    );
   }
   return String(value);
 }
@@ -60,19 +73,33 @@ function buildColumnDefs(rows) {
   const defs = [];
   for (const row of rows) {
     for (const [topKey, topVal] of Object.entries(row)) {
-      if (topVal !== null && typeof topVal === "object" && !Array.isArray(topVal)) {
+      if (
+        topVal !== null &&
+        typeof topVal === "object" &&
+        !Array.isArray(topVal)
+      ) {
         for (const subKey of Object.keys(topVal)) {
           const flatKey = `${topKey}.${subKey}`;
           if (!seen.has(flatKey)) {
             seen.add(flatKey);
-            defs.push({ flatKey, section: topKey, subKey, label: formatHeader(subKey) });
+            defs.push({
+              flatKey,
+              section: topKey,
+              subKey,
+              label: formatHeader(subKey),
+            });
           }
         }
       } else {
         const flatKey = `_flat.${topKey}`;
         if (!seen.has(flatKey)) {
           seen.add(flatKey);
-          defs.push({ flatKey, section: "_flat", subKey: topKey, label: formatHeader(topKey) });
+          defs.push({
+            flatKey,
+            section: "_flat",
+            subKey: topKey,
+            label: formatHeader(topKey),
+          });
         }
       }
     }
@@ -90,32 +117,49 @@ function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
   const [showAll, setShowAll] = useState(false);
 
   // Find identifier — first _flat col that looks like a team/name
-  const teamId = teamRows[0]?.team ?? teamRows[0]?.id ?? teamRows[0]?.[Object.keys(teamRows[0])[0]];
+  const teamId =
+    teamRows[0]?.team ??
+    teamRows[0]?.id ??
+    teamRows[0]?.[Object.keys(teamRows[0])[0]];
 
   const displayDefs = showAll
     ? colDefs
     : summaryCols.length > 0
-      ? colDefs.filter(d => summaryCols.includes(d.flatKey))
+      ? colDefs.filter((d) => summaryCols.includes(d.flatKey))
       : colDefs.slice(0, 8);
 
   return (
-    <div className="settings-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div
+      className="settings-overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="team-modal">
         <div className="team-modal-header">
           <div className="team-modal-title">
             <span className="team-modal-number">Team {teamId}</span>
-            <span className="team-modal-subtitle">{teamRows.length} match{teamRows.length !== 1 ? "es" : ""}</span>
+            <span className="team-modal-subtitle">
+              {teamRows.length} match{teamRows.length !== 1 ? "es" : ""}
+            </span>
           </div>
           <div className="team-modal-actions">
             <button
               className={`team-modal-toggle${showAll ? " active" : ""}`}
-              onClick={() => setShowAll(v => !v)}
+              onClick={() => setShowAll((v) => !v)}
             >
               {showAll ? "Summary" : "All Data"}
             </button>
             <button className="settings-close" onClick={onClose}>
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
+              <svg
+                viewBox="0 0 16 16"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <line x1="2" y1="2" x2="14" y2="14" />
+                <line x1="14" y1="2" x2="2" y2="14" />
               </svg>
             </button>
           </div>
@@ -126,7 +170,9 @@ function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
             {teamRows.map((r, i) => {
               const matchVal = r.match ?? r.matchNumber ?? `#${i + 1}`;
               return (
-                <span key={i} className="team-match-chip">Match {matchVal}</span>
+                <span key={i} className="team-match-chip">
+                  Match {matchVal}
+                </span>
               );
             })}
           </div>
@@ -134,22 +180,33 @@ function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
 
         <div className="team-modal-body">
           {displayDefs.length === 0 ? (
-            <div className="team-modal-empty">No summary columns selected. Configure in Settings → Summary Columns.</div>
+            <div className="team-modal-empty">
+              No summary columns selected. Configure in Settings → Summary
+              Columns.
+            </div>
           ) : (
             <div className="team-kv-grid">
-              {displayDefs.map(def => {
+              {displayDefs.map((def) => {
                 const color = sectionColors[def.section] || "#888";
                 // If multiple rows, show all values
-                const vals = teamRows.map(r => getCellValue(r, def));
+                const vals = teamRows.map((r) => getCellValue(r, def));
                 return (
-                  <div key={def.flatKey} className="team-kv-card" style={{ "--card-color": color }}>
+                  <div
+                    key={def.flatKey}
+                    className="team-kv-card"
+                    style={{ "--card-color": color }}
+                  >
                     <div className="team-kv-section" style={{ color }}>
-                      {def.section === "_flat" ? "Info" : def.section.toUpperCase()}
+                      {def.section === "_flat"
+                        ? "Info"
+                        : def.section.toUpperCase()}
                     </div>
                     <div className="team-kv-key">{def.label}</div>
                     <div className="team-kv-vals">
                       {vals.map((v, i) => (
-                        <span key={i} className="team-kv-val">{renderCellValue(v, def.subKey)}</span>
+                        <span key={i} className="team-kv-val">
+                          {renderCellValue(v, def.subKey)}
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -165,13 +222,24 @@ function TeamModal({ teamRows, colDefs, sectionColors, summaryCols, onClose }) {
 
 // ── Settings Modal ─────────────────────────────────────────
 function SettingsModal({
-  onClose, density, setDensity,
-  freezeEnabled, setFreezeEnabled, frozenCols, toggleFreezeCol,
-  columns, sectionColors, setSectionColors, knownSections,
-  summaryCols, setSummaryCols,
+  onClose,
+  density,
+  setDensity,
+  freezeEnabled,
+  setFreezeEnabled,
+  frozenCols,
+  toggleFreezeCol,
+  columns,
+  sectionColors,
+  setSectionColors,
+  knownSections,
+  summaryCols,
+  setSummaryCols,
 }) {
   const toggleSummaryCol = (fk) =>
-    setSummaryCols(prev => prev.includes(fk) ? prev.filter(c => c !== fk) : [...prev, fk]);
+    setSummaryCols((prev) =>
+      prev.includes(fk) ? prev.filter((c) => c !== fk) : [...prev, fk],
+    );
 
   // Group columns by section for display
   const grouped = columns.reduce((acc, col) => {
@@ -182,13 +250,27 @@ function SettingsModal({
   }, {});
 
   return (
-    <div className="settings-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div
+      className="settings-overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="settings-modal">
         <div className="settings-header">
-          <h2>⚙ Table Settings — Team 935</h2>
+          <h2>
+            <FontAwesomeIcon icon={faGear} /> Table Settings — Team 935
+          </h2>
           <button className="settings-close" onClick={onClose}>
-            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
+            <svg
+              viewBox="0 0 16 16"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <line x1="2" y1="2" x2="14" y2="14" />
+              <line x1="14" y1="2" x2="2" y2="14" />
             </svg>
           </button>
         </div>
@@ -198,7 +280,11 @@ function SettingsModal({
             <div className="settings-section-label">Row Density</div>
             <div className="density-options">
               {Object.entries(DENSITY).map(([key, val]) => (
-                <button key={key} className={`density-btn${density === key ? " active" : ""}`} onClick={() => setDensity(key)}>
+                <button
+                  key={key}
+                  className={`density-btn${density === key ? " active" : ""}`}
+                  onClick={() => setDensity(key)}
+                >
                   {val.label}
                 </button>
               ))}
@@ -209,15 +295,28 @@ function SettingsModal({
           <div>
             <div className="settings-section-label">Section Colors</div>
             <div className="section-color-list">
-              {knownSections.map(sec => (
+              {knownSections.map((sec) => (
                 <div key={sec} className="section-color-row">
-                  <span className="section-color-label" style={{ borderLeft: `3px solid ${sectionColors[sec] || "#999"}`, paddingLeft: 8 }}>
-                    {sec === "_flat" ? "Other" : sec.charAt(0).toUpperCase() + sec.slice(1)}
+                  <span
+                    className="section-color-label"
+                    style={{
+                      borderLeft: `3px solid ${sectionColors[sec] || "#999"}`,
+                      paddingLeft: 8,
+                    }}
+                  >
+                    {sec === "_flat"
+                      ? "Other"
+                      : sec.charAt(0).toUpperCase() + sec.slice(1)}
                   </span>
                   <input
                     type="color"
                     value={sectionColors[sec] || "#999999"}
-                    onChange={e => setSectionColors(prev => ({ ...prev, [sec]: e.target.value }))}
+                    onChange={(e) =>
+                      setSectionColors((prev) => ({
+                        ...prev,
+                        [sec]: e.target.value,
+                      }))
+                    }
                     className="color-swatch-input"
                   />
                 </div>
@@ -228,15 +327,19 @@ function SettingsModal({
           {/* Summary Columns */}
           <div>
             <div className="settings-section-label">Summary Columns</div>
-            <p className="settings-hint">These appear in the team overview. Click to toggle.</p>
+            <p className="settings-hint">
+              These appear in the team overview. Click to toggle.
+            </p>
             <div className="summary-col-sections">
               {Object.entries(grouped).map(([sec, cols]) => {
                 const color = sectionColors[cols[0].section] || "#888";
                 return (
                   <div key={sec} className="summary-col-group">
-                    <div className="summary-col-group-label" style={{ color }}>{sec}</div>
+                    <div className="summary-col-group-label" style={{ color }}>
+                      {sec}
+                    </div>
                     <div className="freeze-columns-list">
-                      {cols.map(col => (
+                      {cols.map((col) => (
                         <button
                           key={col.flatKey}
                           className={`freeze-col-chip${summaryCols.includes(col.flatKey) ? " frozen" : ""}`}
@@ -257,16 +360,29 @@ function SettingsModal({
             <div className="freeze-toggle-row">
               <span>Column Freezing</span>
               <label className="toggle-switch">
-                <input type="checkbox" checked={freezeEnabled} onChange={e => setFreezeEnabled(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={freezeEnabled}
+                  onChange={(e) => setFreezeEnabled(e.target.checked)}
+                />
                 <span className="toggle-slider" />
               </label>
             </div>
             {freezeEnabled && columns.length > 0 && (
               <>
-                <div className="settings-section-label" style={{ marginBottom: 8 }}>Select columns to freeze</div>
+                <div
+                  className="settings-section-label"
+                  style={{ marginBottom: 8 }}
+                >
+                  Select columns to freeze
+                </div>
                 <div className="freeze-columns-list">
-                  {columns.map(col => (
-                    <button key={col.flatKey} className={`freeze-col-chip${frozenCols.includes(col.flatKey) ? " frozen" : ""}`} onClick={() => toggleFreezeCol(col.flatKey)}>
+                  {columns.map((col) => (
+                    <button
+                      key={col.flatKey}
+                      className={`freeze-col-chip${frozenCols.includes(col.flatKey) ? " frozen" : ""}`}
+                      onClick={() => toggleFreezeCol(col.flatKey)}
+                    >
                       {col.label}
                     </button>
                   ))}
@@ -282,18 +398,18 @@ function SettingsModal({
 
 // ── App ────────────────────────────────────────────────────
 export default function App() {
-  const [data, setData]               = useState([]);
-  const [sortField, setSortField]     = useState("");
-  const [sortOrder, setSortOrder]     = useState("asc");
-  const [isLoading, setIsLoading]     = useState(true);
-  const [error, setError]             = useState(null);
+  const [data, setData] = useState([]);
+  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [density, setDensity]         = useState("comfortable");
+  const [density, setDensity] = useState("comfortable");
   const [freezeEnabled, setFreezeEnabled] = useState(false);
-  const [frozenCols, setFrozenCols]   = useState([]);
+  const [frozenCols, setFrozenCols] = useState([]);
   const [sectionColors, setSectionColors] = useState(DEFAULT_SECTION_COLORS);
   const [summaryCols, setSummaryCols] = useState(DEFAULT_SUMMARY_COLS);
-  const [teamFocus, setTeamFocus]     = useState(null); // { teamId, rows }
+  const [teamFocus, setTeamFocus] = useState(null); // { teamId, rows }
 
   const thRefs = useRef({});
   const [frozenOffsets, setFrozenOffsets] = useState({});
@@ -309,8 +425,11 @@ export default function App() {
         });
         if (!res.ok) throw new Error("Failed to fetch data from server.");
         setData(await res.json());
-      } catch (err) { setError(err.message); }
-      finally { setIsLoading(false); }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchData();
   }, []);
@@ -325,7 +444,10 @@ export default function App() {
   const knownSections = Object.keys(sectionGroups);
 
   useEffect(() => {
-    if (!freezeEnabled || frozenCols.length === 0) { setFrozenOffsets({}); return; }
+    if (!freezeEnabled || frozenCols.length === 0) {
+      setFrozenOffsets({});
+      return;
+    }
     const offsets = {};
     let acc = 0;
     for (const fk of frozenCols) {
@@ -346,64 +468,91 @@ export default function App() {
     const order = sortField === flatKey && sortOrder === "asc" ? "desc" : "asc";
     setSortField(flatKey);
     setSortOrder(order);
-    const def = colDefs.find(d => d.flatKey === flatKey);
-    setData(prev =>
+    const def = colDefs.find((d) => d.flatKey === flatKey);
+    setData((prev) =>
       [...prev].sort((a, b) => {
         const va = def ? String(getCellValue(a, def) ?? "") : "";
         const vb = def ? String(getCellValue(b, def) ?? "") : "";
-        return va.localeCompare(vb, undefined, { numeric: true, sensitivity: "base" }) * (order === "asc" ? 1 : -1);
-      })
+        return (
+          va.localeCompare(vb, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }) * (order === "asc" ? 1 : -1)
+        );
+      }),
     );
   };
 
-  const toggleFreezeCol = fk =>
-    setFrozenCols(prev => prev.includes(fk) ? prev.filter(c => c !== fk) : [...prev, fk]);
+  const toggleFreezeCol = (fk) =>
+    setFrozenCols((prev) =>
+      prev.includes(fk) ? prev.filter((c) => c !== fk) : [...prev, fk],
+    );
 
-  const isFrozen = fk => freezeEnabled && frozenCols.includes(fk);
-  const getStickyStyle = fk => isFrozen(fk) ? { position: "sticky", left: frozenOffsets[fk] ?? 0, zIndex: 4 } : {};
+  const isFrozen = (fk) => freezeEnabled && frozenCols.includes(fk);
+  const getStickyStyle = (fk) =>
+    isFrozen(fk)
+      ? { position: "sticky", left: frozenOffsets[fk] ?? 0, zIndex: 4 }
+      : {};
 
   // Find team column — look for a _flat col named "team" or first _flat col
-  const teamColDef = colDefs.find(d => d.section === "_flat" && d.subKey.toLowerCase() === "team")
-    ?? colDefs.find(d => d.section === "_flat");
+  const teamColDef =
+    colDefs.find(
+      (d) => d.section === "_flat" && d.subKey.toLowerCase() === "team",
+    ) ?? colDefs.find((d) => d.section === "_flat");
 
   const handleTeamClick = (e, row) => {
     e.stopPropagation();
     if (!teamColDef) return;
     const teamId = getCellValue(row, teamColDef);
     // Gather all rows for this team
-    const teamRows = data.filter(r => getCellValue(r, teamColDef) === teamId);
+    const teamRows = data.filter((r) => getCellValue(r, teamColDef) === teamId);
     setTeamFocus({ teamId, rows: teamRows });
   };
 
-  if (isLoading) return <div className="table-container message-box">Loading server data...</div>;
-  if (error)     return <div className="table-container message-box error">Error: {error}</div>;
+  if (isLoading)
+    return (
+      <div className="table-container message-box">Loading server data...</div>
+    );
+  if (error)
+    return (
+      <div className="table-container message-box error">Error: {error}</div>
+    );
 
   return (
     <>
       <div className="team-badge">935</div>
 
-      <button onClick={() => window.open('/calc.html', '_blank')}>
-  Open Page
-</button>
+      <button onClick={() => window.open("/calc.html", "_blank")}>
+        Open Page
+      </button>
 
+      <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
+        [ Back to Menu ]
+      </Link>
 
-      <button className="settings-trigger" onClick={() => setShowSettings(true)} aria-label="Open settings">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="10" cy="10" r="2.5"/>
-          <path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.22 4.22l1.06 1.06M14.72 14.72l1.06 1.06M4.22 15.78l1.06-1.06M14.72 5.28l1.06-1.06"/>
-        </svg>
+      <button
+        className="settings-trigger"
+        onClick={() => setShowSettings(true)}
+        aria-label="Open settings"
+      >
+        <FontAwesomeIcon icon={faGear} />
       </button>
 
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
-          density={density} setDensity={setDensity}
-          freezeEnabled={freezeEnabled} setFreezeEnabled={setFreezeEnabled}
-          frozenCols={frozenCols} toggleFreezeCol={toggleFreezeCol}
+          density={density}
+          setDensity={setDensity}
+          freezeEnabled={freezeEnabled}
+          setFreezeEnabled={setFreezeEnabled}
+          frozenCols={frozenCols}
+          toggleFreezeCol={toggleFreezeCol}
           columns={colDefs}
-          sectionColors={sectionColors} setSectionColors={setSectionColors}
+          sectionColors={sectionColors}
+          setSectionColors={setSectionColors}
           knownSections={knownSections}
-          summaryCols={summaryCols} setSummaryCols={setSummaryCols}
+          summaryCols={summaryCols}
+          setSummaryCols={setSummaryCols}
         />
       )}
 
@@ -423,7 +572,7 @@ export default function App() {
             <thead>
               {/* Row 1: Section group headers */}
               <tr className="section-header-row">
-                {knownSections.map(sec => {
+                {knownSections.map((sec) => {
                   const color = sectionColors[sec] || "#888";
                   const count = sectionGroups[sec].length;
                   return (
@@ -442,16 +591,20 @@ export default function App() {
               </tr>
               {/* Row 2: Individual column headers */}
               <tr className="col-header-row">
-                {colDefs.map(def => {
+                {colDefs.map((def) => {
                   const color = sectionColors[def.section] || "#888";
                   return (
                     <th
                       key={def.flatKey}
-                      ref={el => { thRefs.current[def.flatKey] = el; }}
+                      ref={(el) => {
+                        thRefs.current[def.flatKey] = el;
+                      }}
                       className={[
                         sortField === def.flatKey ? "sort-active" : "",
                         isFrozen(def.flatKey) ? "frozen" : "",
-                      ].filter(Boolean).join(" ")}
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                       style={{
                         ...getStickyStyle(def.flatKey),
                         "--sec-color": color,
@@ -460,7 +613,11 @@ export default function App() {
                     >
                       {def.label}
                       <span className="sort-indicator">
-                        {sortField === def.flatKey ? (sortOrder === "asc" ? "▲" : "▼") : "⇅"}
+                        {sortField === def.flatKey
+                          ? sortOrder === "asc"
+                            ? "▲"
+                            : "▼"
+                          : "⇅"}
                       </span>
                     </th>
                   );
@@ -469,16 +626,24 @@ export default function App() {
             </thead>
             <tbody>
               {data.length === 0 ? (
-                <tr><td colSpan={colDefs.length || 1} style={{ textAlign: "center", color: "#888" }}>No data available.</td></tr>
+                <tr>
+                  <td
+                    colSpan={colDefs.length || 1}
+                    style={{ textAlign: "center", color: "#888" }}
+                  >
+                    No data available.
+                  </td>
+                </tr>
               ) : (
                 data.map((row, rowIdx) => (
                   <tr key={row.id || rowIdx}>
-                    {colDefs.map(def => {
+                    {colDefs.map((def) => {
                       const color = sectionColors[def.section] || "#888";
                       const val = getCellValue(row, def);
                       const secDefs = sectionGroups[def.section];
                       const isFirst = secDefs[0].flatKey === def.flatKey;
-                      const isLast  = secDefs[secDefs.length - 1].flatKey === def.flatKey;
+                      const isLast =
+                        secDefs[secDefs.length - 1].flatKey === def.flatKey;
                       const isTeamCol = def === teamColDef;
 
                       return (
@@ -488,16 +653,25 @@ export default function App() {
                             "sectioned-cell",
                             isFrozen(def.flatKey) ? "frozen" : "",
                             isTeamCol ? "team-cell" : "",
-                          ].filter(Boolean).join(" ")}
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
                           style={{
                             ...getStickyStyle(def.flatKey),
                             "--sec-color": color,
-                            borderLeft:  isFirst ? `2px solid ${color}20` : undefined,
-                            borderRight: isLast  ? `2px solid ${color}20` : undefined,
+                            borderLeft: isFirst
+                              ? `2px solid ${color}20`
+                              : undefined,
+                            borderRight: isLast
+                              ? `2px solid ${color}20`
+                              : undefined,
                           }}
                         >
                           {isTeamCol ? (
-                            <button className="team-link" onClick={(e) => handleTeamClick(e, row)}>
+                            <button
+                              className="team-link"
+                              onClick={(e) => handleTeamClick(e, row)}
+                            >
                               {renderCellValue(val, def.subKey)}
                             </button>
                           ) : (

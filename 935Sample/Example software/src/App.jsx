@@ -6,6 +6,8 @@ import {
   Link,
   useNavigate,
 } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
@@ -64,8 +66,8 @@ function MainMenu() {
           onClick={toggleTheme}
           aria-label="Toggle dark mode"
         >
-          <span className="icon-sun">☀️</span>
-          <span className="icon-moon">🌙</span>
+          <span className="icon-sun"><FontAwesomeIcon icon={faSun} /></span>
+          <span className="icon-moon"><FontAwesomeIcon icon={faMoon} /></span>
           <span className="theme-text">Switch Theme</span>
         </button>
 
