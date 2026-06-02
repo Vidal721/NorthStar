@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react"; // Added hooks
-import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
@@ -11,7 +17,7 @@ function MainMenu() {
   // 1. Manage theme state inside the component
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
-  const isDisabled = true; 
+  const isDisabled = true;
 
   // 2. Update the HTML attribute whenever the theme changes
   useEffect(() => {
@@ -23,9 +29,33 @@ function MainMenu() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
+  const [clickCount, setClickCount] = useState(0);
+  const navigate = useNavigate();
+
+  const handleHeaderClick = () => {
+    // Functional state update ensures accuracy if clicks happen rapidly
+    setClickCount((prevCount) => {
+      const nextCount = prevCount + 1;
+
+      if (nextCount === 7) {
+        navigate("/admin"); // Redirects using your React Router path
+        return 0; // Resets the counter
+      }
+
+      if(nextCount > 3) {
+        document.getElementById("count").textContent = 7 - nextCount + " clicks to open admin";
+      }
+
+      return nextCount;
+    });
+  };
+
   return (
     <>
-      <h1 className="headertext">Welcome scouter!</h1>
+      <h1 className="headertext" onClick={handleHeaderClick}>
+        Welcome scouter!
+      </h1>
+      <div id="count"></div>
       <div>
         <h1 className="headertext">choose what to start</h1>
 
@@ -78,6 +108,7 @@ function MainMenu() {
             Launch
           </Link>
         </div>
+        {/* Now has the 7 clicks feature on the welcom scouter
         <div id="admin" className="launchdiv">
           <h1>Admin</h1>
           <Link
@@ -90,6 +121,7 @@ function MainMenu() {
             Launch
           </Link>
         </div>
+*/}
         <div id="formbuilder" className="launchdiv">
           <h1>Form Builder</h1>
           <Link
