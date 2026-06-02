@@ -56,14 +56,14 @@ function getAdmin() {
 }
 
 // ==== Example code ==== //
-app.get("/match/data/:id", (req, res) => {
+app.get("/match/Data/:id", (req, res) => {
   const id = Number(req.params.id);
   const team = getMatch().find((team) => team.id === id);
   if (!team) return res.status(404).json({ error: "User not found" });
   res.json(team);
 });
 
-app.get("/match/data", (req, res) => {
+app.get("/match/Data", (req, res) => {
   res.json(getMatch());
 });
 
