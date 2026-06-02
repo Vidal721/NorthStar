@@ -30,7 +30,7 @@ class PocketBase {
 
   // AUTH
   async login(email, password) {
-    const data = await this.req('POST', 'collections/users/auth-with-password', { identity: email, password });
+    const data = await this.req('POST', 'collections/match/data/auth-with-password', { identity: email, password });
     this.token = data.token;
     this.user  = data.record;
     localStorage.setItem('pb_token', this.token);
@@ -39,7 +39,7 @@ class PocketBase {
   }
 
   async register(name, email, password, role) {
-    const data = await this.req('POST', 'collections/users/records', {
+    const data = await this.req('POST', 'collections/match/data/records', {
       name, email, password, passwordConfirm: password, role
     });
     return this.login(email, password);

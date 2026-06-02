@@ -440,7 +440,7 @@ export default function FormBuilder() {
   const saveSchema = async () => {
     setSaveStatus('saving');
     try {
-      const res = await fetch('http://localhost:3000/api/save-form-schema', {
+      const res = await fetch('http://localhost:3000/pit/save', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(schema),
       });
       if (!res.ok) throw new Error();

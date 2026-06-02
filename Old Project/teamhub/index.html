@@ -2390,7 +2390,7 @@ async function tryRestoreSession() {
   if (!pb.isLoggedIn) return;
   try {
     // Validate token by fetching own user record
-    await pb.req('GET', `collections/users/records/${pb.user.id}`);
+    await pb.req('GET', `collections/match/data/records/${pb.user.id}`);
     launchApp();
   } catch {
     // Token expired — clear and show auth

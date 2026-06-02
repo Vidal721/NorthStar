@@ -19,8 +19,8 @@ const DEFAULT_SECTION_COLORS = {
 
 const DEFAULT_SUMMARY_COLS = [];
 
-const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/users";
-const LOCAL_URL = "http://localhost:3000/users";
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/match/data";
+const LOCAL_URL = "http://localhost:3000/match/data";
 
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());

@@ -12,8 +12,10 @@ dotenv.config();
 app.use(express.json());
 app.use(cors());
 
+// ==== GitHub Logic ==== //
 console.log("Deploy key:", process.env.DEPLOY_KEY);
 
+// Allows github to auto pull code
 app.post("/deploy", (req, res) => {
   if (req.query.key !== process.env.DEPLOY_KEY) {
     return res.status(401).send("Unauthorized");
@@ -53,18 +55,20 @@ function getAdmin() {
   return JSON.parse(fs.readFileSync("adminData.json", "utf8"));
 }
 
-app.get("/users/:id", (req, res) => {
+// ==== Example code ==== //
+app.get("/match/data/:id", (req, res) => {
   const id = Number(req.params.id);
-  const user = getMatch().find((user) => user.id === id);
-  if (!user) return res.status(404).json({ error: "User not found" });
-  res.json(user);
+  const team = getMatch().find((team) => team.id === id);
+  if (!team) return res.status(404).json({ error: "User not found" });
+  res.json(team);
 });
 
-app.get("/users", (req, res) => {
+app.get("/match/data", (req, res) => {
   res.json(getMatch());
 });
 
-app.post("/api/upload", (req, res) => {
+// ==== Match endpoints ==== //
+app.post("/match/upload", (req, res) => {
   try {
     const users = getMatch();
     const newData = req.body;
@@ -90,6 +94,30 @@ app.post("/api/upload", (req, res) => {
   }
 });
 
+app.delete("/delete/match/:id", (req, res) => {
+  const matchData = getMatch();
+  const matchId = parseInt(req.params.id);
+  
+  // FIX 1: Change matchData.id to match.id (checking the individual item)
+  const matchIndex = matchData.findIndex(match => match.id === matchId);
+  
+  // If the item wasn't found, let the client know immediately
+  if (matchIndex === -1) {
+    return res.status(404).json({ error: "Match not found" });
+  }
+
+  // Remove the item from the array
+  matchData.splice(matchIndex, 1);
+  
+  // FIX 2: Move file saving inside or alongside the success path
+  fs.writeFileSync("matchData.json", JSON.stringify(matchData, null, 2));
+  
+  // Send the success response back to curl
+  return res.status(204).send(); 
+});
+
+
+// ==== Pit endpoints ==== //
 app.post("/pit/upload", (req, res) => {
   try {
     const users = getPit();
@@ -114,16 +142,30 @@ app.post("/pit/upload", (req, res) => {
   }
 });
 
-app.get("/admin/data", (req, res) => {
-  res.json(getAdmin());
-});
-
-app.get("/admin/data", (req, res) => {
-  res.json(getAdmin());
-});
-
 app.get("/pit/form", (req, res) => {
   res.json(getPitForm());
+});
+
+app.post('/pit/save', (req, res) => {
+  const schema = req.body;
+
+  if (!schema || !schema.id) {
+    return res.status(400).json({ error: 'Invalid schema — missing id' });
+  }
+
+  try {
+    fs.writeFileSync('pitForm.json', JSON.stringify(schema, null, 2), 'utf-8');
+    console.log(`[form] Pit form schema saved — id: ${schema.id}`);
+    res.json({ success: true, file: 'pitForm.json' });
+  } catch (err) {
+    console.error('[form] Failed to save schema:', err.message);
+    res.status(500).json({ error: 'Failed to save schema', detail: err.message });
+  }
+});
+
+// ==== Admin endpoints ==== //
+app.get("/admin/data", (req, res) => {
+  res.json(getAdmin());
 });
 
 app.post("/admin/upload", (req, res) => {
@@ -148,23 +190,6 @@ app.post("/admin/upload", (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to save match data", detail: err.message });
-  }
-});
-
-app.post('/api/save-form-schema', (req, res) => {
-  const schema = req.body;
-
-  if (!schema || !schema.id) {
-    return res.status(400).json({ error: 'Invalid schema — missing id' });
-  }
-
-  try {
-    fs.writeFileSync('pitForm.json', JSON.stringify(schema, null, 2), 'utf-8');
-    console.log(`[form] Pit form schema saved — id: ${schema.id}`);
-    res.json({ success: true, file: 'pitForm.json' });
-  } catch (err) {
-    console.error('[form] Failed to save schema:', err.message);
-    res.status(500).json({ error: 'Failed to save schema', detail: err.message });
   }
 });
 

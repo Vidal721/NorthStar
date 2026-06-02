@@ -17,7 +17,7 @@ function MainMenu() {
   // 1. Manage theme state inside the component
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
-  const isDisabled = true;
+  const isDisabled = false;
 
   // 2. Update the HTML attribute whenever the theme changes
   useEffect(() => {
@@ -79,7 +79,7 @@ function MainMenu() {
             className={`launch-btn ${isDisabled ? "disabled-link" : ""}`}
             tabIndex={isDisabled ? -1 : 0} /* Prevents keyboard tabbing */
           >
-            Coming Soon
+            Launch
           </Link>
         </div>
 
