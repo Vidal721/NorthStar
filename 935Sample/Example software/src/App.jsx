@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; // Added hooks
 import {
   BrowserRouter,
   Route,
@@ -7,15 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faMoon,
-  faSun,
-  faArrowUpRightFromSquare,
-  faClipboardList,
-  faChartBar,
-  faWrench,
-  faHammer,
-} from "@fortawesome/free-solid-svg-icons";
+import { faMoon, faSun, faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
@@ -23,47 +15,13 @@ import AdminDashboard from "./pages/admin";
 import FormBuilder from "./pages/formbuilder";
 import "./App.css";
 
-const SECTIONS = [
-  {
-    id: "pitscout",
-    title: "Pit Scouting",
-    description: "Record robot specs and capabilities at the pits",
-    icon: faWrench,
-    to: "/pit",
-    disabled: false,
-  },
-  {
-    id: "mainscout",
-    title: "Match Scouting",
-    description: "Track team performance live during matches",
-    icon: faClipboardList,
-    to: "/match",
-    disabled: false,
-  },
-  {
-    id: "datavis",
-    title: "Data Visualization",
-    description: "Analyze and compare scouted data across teams",
-    icon: faChartBar,
-    to: "/vis",
-    disabled: false,
-  },
-  {
-    id: "formbuilder",
-    title: "Form Builder",
-    description: "Design and customize scouting form fields",
-    icon: faHammer,
-    to: "/form",
-    disabled: false,
-  },
-];
-
 function MainMenu() {
+  // 1. Manage theme state inside the component
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  const [clickCount, setClickCount] = useState(0);
-  const [hint, setHint] = useState("");
-  const navigate = useNavigate();
 
+  const isDisabled = false;
+
+  // 2. Update the HTML attribute whenever the theme changes
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
@@ -73,89 +31,113 @@ function MainMenu() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
+  const [clickCount, setClickCount] = useState(0);
+  const navigate = useNavigate();
+
   const handleHeaderClick = () => {
-    setClickCount((prev) => {
-      const next = prev + 1;
-      if (next === 7) {
-        navigate("/admin");
-        return 0;
+    // Functional state update ensures accuracy if clicks happen rapidly
+    setClickCount((prevCount) => {
+      const nextCount = prevCount + 1;
+
+      if (nextCount === 7) {
+        navigate("/admin"); // Redirects using your React Router path
+        return 0; // Resets the counter
       }
-      if (next > 3) {
-        setHint(`${7 - next} more to unlock admin`);
+
+      if(nextCount > 3) {
+        document.getElementById("count").textContent = 7 - nextCount + " clicks to open admin";
       }
-      return next;
+
+      return nextCount;
     });
   };
 
   return (
-    <div className="menu-root">
-      {/* Background decoration */}
-      <div className="menu-bg-circle menu-bg-circle--1" aria-hidden="true" />
-      <div className="menu-bg-circle menu-bg-circle--2" aria-hidden="true" />
+    <>
+      <h1 className="headertext" onClick={handleHeaderClick}>
+        Welcome scouter!
+      </h1>
+      <div id="count"></div>
+      <div id="main-menu-container">
+        <h1 className="headertext">choose what to start</h1>
 
-      {/* Header */}
-      <header className="menu-header">
-        <div className="menu-header__inner">
-          <div className="menu-team-badge" onClick={handleHeaderClick}>
-            <span className="menu-team-badge__number">935</span>
-          </div>
+        <button
+          className="theme-btn"
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+        >
+          <span className="icon-sun"><FontAwesomeIcon icon={faSun} /></span>
+          <span className="icon-moon"><FontAwesomeIcon icon={faMoon} /></span>
+          <span className="theme-text">Switch Theme</span>
+        </button>
 
-          <div className="menu-header__titles">
-            <h1 className="menu-team-name" onClick={handleHeaderClick}>
-              RaileRobotics
-            </h1>
-            <p className="menu-team-sub">FRC Scouting Hub · Season 2025</p>
-            {hint && <p className="menu-hint">{hint}</p>}
-          </div>
+        <div id="pitscout" className="launchdiv">
+          <h1>Pitscouting</h1>
 
-          <button
-            className="theme-btn"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
+          <Link
+            to={isDisabled ? "#" : "/pit"}
+            target={isDisabled ? undefined : "_blank"}
+            rel="noopener noreferrer"
+            className={`launch-btn ${isDisabled ? "disabled-link" : ""}`}
+            tabIndex={isDisabled ? -1 : 0} /* Prevents keyboard tabbing */
           >
-            <FontAwesomeIcon icon={theme === "light" ? faMoon : faSun} />
-            <span>{theme === "light" ? "Dark" : "Light"}</span>
-          </button>
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </Link>
         </div>
-      </header>
 
-      {/* Welcome strip */}
-      <div className="menu-welcome">
-        <p className="menu-welcome__text">
-          Welcome, scouter! Choose a tool below to get started.
-        </p>
+        <div id="mainscout" className="launchdiv">
+          <h1>Match Scouting</h1>
+          <Link
+            to="/match"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startMatchScout"
+          >
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </Link>
+        </div>
+
+        <div id="datavis" className="launchdiv">
+          <h1>Data visualization</h1>
+          <Link
+            to="/vis"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startVis"
+          >
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </Link>
+        </div>
+        {/* Now has the 7 clicks feature on the welcom scouter
+        <div id="admin" className="launchdiv">
+          <h1>Admin</h1>
+          <Link
+            to="/admin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startVis"
+          >
+            Launch
+          </Link>
+        </div>
+*/}
+        <div id="formbuilder" className="launchdiv">
+          <h1>Form Builder</h1>
+          <Link
+            to="/form"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-btn"
+            id="startVis"
+          >
+            Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </Link>
+        </div>
       </div>
-
-      {/* Cards grid */}
-      <main className="menu-grid">
-        {SECTIONS.map((s) => (
-          <div key={s.id} className={`menu-card ${s.disabled ? "menu-card--disabled" : ""}`}>
-            <div className="menu-card__icon" aria-hidden="true">
-              <FontAwesomeIcon icon={s.icon} />
-            </div>
-            <div className="menu-card__body">
-              <h2 className="menu-card__title">{s.title}</h2>
-              <p className="menu-card__desc">{s.description}</p>
-            </div>
-            <Link
-              to={s.disabled ? "#" : s.to}
-              target={s.disabled ? undefined : "_blank"}
-              rel="noopener noreferrer"
-              className="launch-btn"
-              tabIndex={s.disabled ? -1 : 0}
-              aria-disabled={s.disabled}
-            >
-              Launch <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-            </Link>
-          </div>
-        ))}
-      </main>
-
-      {/* Footer */}
-      <footer className="menu-footer">
-        <p>Team 935 · FIRST Robotics Competition</p>
-      </footer>
-    </div>
+    </>
   );
 }
 
