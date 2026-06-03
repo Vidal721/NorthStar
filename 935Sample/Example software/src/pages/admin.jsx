@@ -117,7 +117,7 @@ export default function AdminDashboard() {
 
       </div>
 
-      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+      <div style={{ marginTop: 20, display: "flex", gap: 10}}>
         <div style={{ padding: 20, border: "1px solid #444", flex: 1 }}>
           <h3>Total Submissions</h3>
           <p style={{ fontSize: 40, margin: 0 }}>{data.length}</p>

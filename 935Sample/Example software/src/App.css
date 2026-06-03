@@ -1,3 +1,5 @@
+@import url('https://googleapis.com');
+
 /* =========================================================
    DESIGN TOKENS — light theme (default)
    ========================================================= */
@@ -139,7 +141,9 @@ body,
 #main-menu-container {
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  margin-top: 70px;
+  display: grid;
+  place-items: center;
 }
 
 /* =========================================================
@@ -181,10 +185,6 @@ p {
   font-size: 0.95rem;
 }
 
-.headertext {
-  color: var(--text-primary);
-}
-
 /* =========================================================
    APP BACKGROUND
    ========================================================= */
@@ -221,7 +221,7 @@ body {
   width: 96%;
   max-width: 2000px;
 
-  margin: 10px auto;
+  margin: 0px auto;
 
   padding: 16px 20px;
 
@@ -234,6 +234,8 @@ body {
   backdrop-filter: var(--blur-lg);
 
   box-shadow: var(--shadow-sm);
+
+  margin-top: 10px;
 
   transition:
     transform var(--transition-normal),
@@ -254,6 +256,7 @@ body {
 
   box-shadow: var(--shadow-md);
 }
+
 
 /* =========================================================
    BUTTONS
@@ -1154,4 +1157,57 @@ body {
   cursor: default;       /* Removes the pointer finger cursor */
   opacity: 0.5;          /* Visually grays it out */
 }
-
+.logo {
+  width: 50px;
+  top: 10px;
+  left: 10px;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.85);;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+#header {
+  border-bottom: 2px solid var(--border-subtle);
+  height: 70px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+}
+.headertext {
+  color: var(--text-primary);
+  font-family: "Quicksand", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+#strong {
+  color: var(--btn-accent-hover);
+  font-size: 40px;
+  font-family: "Birthstone", cursive;
+  font-weight: 700;
+  font-style: normal;
+}
+#divs {
+  display: grid;
+  
+  /* Step 2: Create 2 equal-width columns (1 fraction of space each) */
+  grid-template-columns: repeat(2, 1fr);
+  
+  /* Step 3: Optional spacing between the blocks */
+  gap: 1px; 
+  width: 95%;
+}
+.redZone {
+  position: absolute;
+  background-color: var(--btn-accent-hover);
+  border: var(--border-default);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  top: 10px;
+  right: 10px;
+  height: 50px;
+  font-size: 20px;
+  width: 50px;
+}
