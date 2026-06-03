@@ -1,0 +1,113 @@
+// ============================================================
+//  📐 VARIABLES available in formulas
+// ============================================================
+export const FORMULA_VARIABLES = [
+  { name: "fullScores", desc: "Number of full scores", category: "scoring" },
+  {
+    name: "partialScores",
+    desc: "Number of partial scores",
+    category: "scoring",
+  },
+  {
+    name: "failedCycles",
+    desc: "Number of failed cycles",
+    category: "scoring",
+  },
+  {
+    name: "defendedCycles",
+    desc: "Cycles where robot was defended against",
+    category: "defense",
+  },
+  {
+    name: "defendedFails",
+    desc: "Fails that occurred while being defended",
+    category: "defense",
+  },
+  {
+    name: "possessions",
+    desc: "Total possessions gained",
+    category: "scoring",
+  },
+  { name: "failures", desc: "Total breakdowns", category: "reliability" },
+  { name: "climbSuccess", desc: "Successful climbs", category: "endgame" },
+  { name: "climbFail", desc: "Failed climbs", category: "endgame" },
+  { name: "ourShiftSeconds", desc: "Seconds in our shift", category: "time" },
+  { name: "offShiftSeconds", desc: "Seconds in their shift", category: "time" },
+  { name: "transitSeconds", desc: "Seconds in transition", category: "time" },
+  { name: "shiftsCompleted", desc: "Total shifts completed", category: "time" },
+  { name: "offCollect", desc: "Off-shift ball collects", category: "offshift" },
+  { name: "offPush", desc: "Off-shift ball pushes", category: "offshift" },
+  { name: "offShoot", desc: "Off-shift shots", category: "offshift" },
+  { name: "offDispense", desc: "Off-shift dispenses", category: "offshift" },
+  { name: "offDefend", desc: "Off-shift defenses", category: "offshift" },
+  {
+    name: "transitScore",
+    desc: "Transition: opponent scored",
+    category: "transition",
+  },
+  {
+    name: "transitMiss",
+    desc: "Transition: opponent missed",
+    category: "transition",
+  },
+  {
+    name: "transitCollect",
+    desc: "Transition: we collected",
+    category: "transition",
+  },
+  {
+    name: "transitDefend",
+    desc: "Transition: we defended",
+    category: "transition",
+  },
+  {
+    name: "transitWeScore",
+    desc: "Transition: we scored",
+    category: "transition",
+  },
+  {
+    name: "transitNothing",
+    desc: "Transition: nothing happened",
+    category: "transition",
+  },
+  {
+    name: "timedShots",
+    desc: "Number of shots with timing data",
+    category: "scoring",
+  },
+  {
+    name: "avgShotMs",
+    desc: "Average shot time in milliseconds (computed)",
+    category: "derived",
+  },
+  {
+    name: "fastestShotMs",
+    desc: "Fastest recorded shot in ms (computed)",
+    category: "derived",
+  },
+  {
+    name: "totalCycles",
+    desc: "fullScores + partialScores + failedCycles (computed)",
+    category: "derived",
+  },
+  {
+    name: "totalClimbs",
+    desc: "climbSuccess + climbFail (computed)",
+    category: "derived",
+  },
+  {
+    name: "scoringCycles",
+    desc: "fullScores + partialScores (computed)",
+    category: "derived",
+  },
+  {
+    name: "offActions",
+    desc: "offCollect + offPush + offShoot + offDispense + offDefend (computed)",
+    category: "derived",
+  },
+  {
+    name: "matchMinutes",
+    desc: "Total match time in minutes (2.667)",
+    category: "derived",
+  },
+];

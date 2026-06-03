@@ -1,4 +1,20 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHandFist,            // Gain Possession
+  faCrosshairs,          // Start Shooting / We Scored / Shoot (off)
+  faCircleCheck,         // Full Score / Scored
+  faBolt,                // Partial
+  faXmark,               // Failed / Missed
+  faTriangleExclamation, // Breakdown
+  faCircle,              // Collect
+  faShield,              // Defend
+  faMinus,               // Nothing
+  faRocket,              // Climb OK
+  faBomb,                // Climb Fail
+  faHandPointRight,      // Push
+  faArrowTurnUp,        // Dispense
+} from "@fortawesome/free-solid-svg-icons";
 import "../App.css";
 
 const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/match/upload";
@@ -52,7 +68,24 @@ const C = {
   },
 };
 
+// ============================================================
+//  🔘 BUTTON CONFIG  ← EDIT YOUR BUTTONS HERE
+// ============================================================
+//  Each button object supports:
+//    label    – Text shown on the button
+//    icon     – Emoji fallback (used when faIcon is not set)
+//    faIcon   – Font Awesome class string, e.g. "fa-solid fa-hand-fist"
+//               Set this to replace the emoji with an FA icon.
+//               Leave undefined (or delete the line) to use emoji instead.
+//    color    – One of: C.action  C.success  C.warn  C.danger  C.neutral  C.defend
+//    sub      – (optional) Small subtitle text under the label
+//  DO NOT change: id, action, statKey, requiresCycle — those are logic hooks.
+// ============================================================
+
 const BUTTON_GROUPS = {
+  // ----------------------------------------------------------
+  //  AUTO  (Autonomous period)
+  // ----------------------------------------------------------
   auto: {
     label: "Autonomous",
     accent: "var(--scout-indigo-soft)",
@@ -63,8 +96,8 @@ const BUTTON_GROUPS = {
         buttons: [
           {
             id: "gain",
-            label: "Gain Possession",
-            icon: "✊",
+            label: "Gain Possession",   // ← edit label
+            icon: <FontAwesomeIcon icon={faHandFist} />,
             color: C.action,
             action: "startCycle",
           },
@@ -77,7 +110,7 @@ const BUTTON_GROUPS = {
           {
             id: "shoot",
             label: "Start Shooting",
-            icon: "🎯",
+            icon: <FontAwesomeIcon icon={faCrosshairs} />,
             color: C.neutral,
             action: "startShooting",
             requiresCycle: true,
@@ -91,7 +124,7 @@ const BUTTON_GROUPS = {
           {
             id: "full",
             label: "Full Score",
-            icon: "✅",
+            icon: <FontAwesomeIcon icon={faCircleCheck} />,
             color: C.success,
             action: "finishFull",
             requiresCycle: true,
@@ -99,7 +132,7 @@ const BUTTON_GROUPS = {
           {
             id: "partial",
             label: "Partial",
-            icon: "⚡",
+            icon: <FontAwesomeIcon icon={faBolt} />,
             color: C.warn,
             action: "finishPartial",
             requiresCycle: true,
@@ -107,7 +140,7 @@ const BUTTON_GROUPS = {
           {
             id: "fail",
             label: "Failed",
-            icon: "✕",
+            icon: <FontAwesomeIcon icon={faXmark} />,
             color: C.danger,
             action: "finishFail",
             requiresCycle: true,
@@ -115,7 +148,7 @@ const BUTTON_GROUPS = {
           {
             id: "break",
             label: "Breakdown",
-            icon: "⚠",
+            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
             color: C.danger,
             action: "breakdown",
           },
@@ -123,6 +156,9 @@ const BUTTON_GROUPS = {
       },
     ],
   },
+  // ----------------------------------------------------------
+  //  TRANSIT  (Transition shift)
+  // ----------------------------------------------------------
   transit: {
     label: "Transition Shift",
     accent: "var(--scout-yellow-soft)",
@@ -134,7 +170,7 @@ const BUTTON_GROUPS = {
           {
             id: "txScore",
             label: "Scored",
-            icon: "✅",
+            icon: <FontAwesomeIcon icon={faCircleCheck} />,
             color: C.success,
             action: "transitStat",
             statKey: "transitScore",
@@ -142,7 +178,7 @@ const BUTTON_GROUPS = {
           {
             id: "txFail",
             label: "Missed",
-            icon: "✕",
+            icon: <FontAwesomeIcon icon={faXmark} />,
             color: C.danger,
             action: "transitStat",
             statKey: "transitMiss",
@@ -156,7 +192,7 @@ const BUTTON_GROUPS = {
           {
             id: "txCollect",
             label: "Collect",
-            icon: "🔵",
+            icon: <FontAwesomeIcon icon={faCircle} />,
             color: C.action,
             action: "transitStat",
             statKey: "transitCollect",
@@ -164,7 +200,7 @@ const BUTTON_GROUPS = {
           {
             id: "txDefend",
             label: "Defend",
-            icon: "🛡",
+            icon: <FontAwesomeIcon icon={faShield} />,
             color: C.defend,
             action: "transitStat",
             statKey: "transitDefend",
@@ -172,7 +208,7 @@ const BUTTON_GROUPS = {
           {
             id: "txScore2",
             label: "We Scored",
-            icon: "🎯",
+            icon: <FontAwesomeIcon icon={faCrosshairs} />,
             color: C.success,
             action: "transitStat",
             statKey: "transitWeScore",
@@ -186,14 +222,14 @@ const BUTTON_GROUPS = {
           {
             id: "txBreak",
             label: "Breakdown",
-            icon: "⚠",
+            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
             color: C.danger,
             action: "breakdown",
           },
           {
             id: "txNone",
             label: "Nothing",
-            icon: "—",
+            icon: <FontAwesomeIcon icon={faMinus} />,
             color: C.neutral,
             action: "transitStat",
             statKey: "transitNothing",
@@ -202,6 +238,9 @@ const BUTTON_GROUPS = {
       },
     ],
   },
+  // ----------------------------------------------------------
+  //  OUR SHIFT
+  // ----------------------------------------------------------
   ourShift: {
     label: "Our Shift",
     accent: "var(--scout-green-soft)",
@@ -213,7 +252,7 @@ const BUTTON_GROUPS = {
           {
             id: "gain",
             label: "Gain Possession",
-            icon: "✊",
+            icon: <FontAwesomeIcon icon={faHandFist} />,
             color: C.action,
             action: "startCycle",
           },
@@ -226,7 +265,7 @@ const BUTTON_GROUPS = {
           {
             id: "shoot",
             label: "Start Shooting",
-            icon: "🎯",
+            icon: <FontAwesomeIcon icon={faCrosshairs} />,
             color: C.neutral,
             action: "startShooting",
             requiresCycle: true,
@@ -240,7 +279,7 @@ const BUTTON_GROUPS = {
           {
             id: "defend",
             label: "Defended",
-            icon: "🛡",
+            icon: <FontAwesomeIcon icon={faShield} />,
             color: C.defend,
             action: "defend",
             requiresCycle: true,
@@ -248,7 +287,7 @@ const BUTTON_GROUPS = {
           {
             id: "break",
             label: "Breakdown",
-            icon: "⚠",
+            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
             color: C.danger,
             action: "breakdown",
           },
@@ -261,7 +300,7 @@ const BUTTON_GROUPS = {
           {
             id: "full",
             label: "Full Score",
-            icon: "✅",
+            icon: <FontAwesomeIcon icon={faCircleCheck} />,
             color: C.success,
             action: "finishFull",
             requiresCycle: true,
@@ -269,7 +308,7 @@ const BUTTON_GROUPS = {
           {
             id: "partial",
             label: "Partial",
-            icon: "⚡",
+            icon: <FontAwesomeIcon icon={faBolt} />,
             color: C.warn,
             action: "finishPartial",
             requiresCycle: true,
@@ -277,7 +316,7 @@ const BUTTON_GROUPS = {
           {
             id: "fail",
             label: "Failed",
-            icon: "✕",
+            icon: <FontAwesomeIcon icon={faXmark} />,
             color: C.danger,
             action: "finishFail",
             requiresCycle: true,
@@ -293,14 +332,14 @@ const BUTTON_GROUPS = {
           {
             id: "climbOk",
             label: "Climb OK",
-            icon: "🚀",
+            icon: <FontAwesomeIcon icon={faRocket} />,
             color: C.success,
             action: "climbOk",
           },
           {
             id: "climbFail",
             label: "Climb Fail",
-            icon: "💥",
+            icon: <FontAwesomeIcon icon={faBomb} />,
             color: C.danger,
             action: "climbFail",
           },
@@ -308,6 +347,9 @@ const BUTTON_GROUPS = {
       },
     ],
   },
+  // ----------------------------------------------------------
+  //  OFF SHIFT  (Their Shift — observing the opponent)
+  // ----------------------------------------------------------
   offShift: {
     label: "Their Shift",
     accent: "var(--scout-red-soft)",
@@ -319,7 +361,7 @@ const BUTTON_GROUPS = {
           {
             id: "collect",
             label: "Collect",
-            icon: "🔵",
+            icon: <FontAwesomeIcon icon={faCircle} />,
             color: C.action,
             action: "offStat",
             statKey: "offCollect",
@@ -327,7 +369,7 @@ const BUTTON_GROUPS = {
           {
             id: "push",
             label: "Push",
-            icon: "👉",
+            icon: <FontAwesomeIcon icon={faHandPointRight} />,
             color: C.action,
             action: "offStat",
             statKey: "offPush",
@@ -335,7 +377,7 @@ const BUTTON_GROUPS = {
           {
             id: "shoot",
             label: "Shoot",
-            icon: "🎯",
+            icon: <FontAwesomeIcon icon={faCrosshairs} />,
             color: C.action,
             action: "offStat",
             statKey: "offShoot",
@@ -350,7 +392,7 @@ const BUTTON_GROUPS = {
             id: "dispense",
             label: "Dispense",
             sub: "to their side",
-            icon: "↗",
+            icon: <FontAwesomeIcon icon={faArrowTurnUp} />,
             color: C.neutral,
             action: "offStat",
             statKey: "offDispense",
@@ -358,7 +400,7 @@ const BUTTON_GROUPS = {
           {
             id: "offdefend",
             label: "Defend",
-            icon: "🛡",
+            icon: <FontAwesomeIcon icon={faShield} />,
             color: C.defend,
             action: "offStat",
             statKey: "offDefend",
@@ -366,7 +408,7 @@ const BUTTON_GROUPS = {
           {
             id: "break",
             label: "Breakdown",
-            icon: "⚠",
+            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
             color: C.danger,
             action: "breakdown",
           },
@@ -381,14 +423,14 @@ const BUTTON_GROUPS = {
           {
             id: "climbOk",
             label: "Climb OK",
-            icon: "🚀",
+            icon: <FontAwesomeIcon icon={faRocket} />,
             color: C.success,
             action: "climbOk",
           },
           {
             id: "climbFail",
             label: "Climb Fail",
-            icon: "💥",
+            icon: <FontAwesomeIcon icon={faBomb} />,
             color: C.danger,
             action: "climbFail",
           },
@@ -398,119 +440,7 @@ const BUTTON_GROUPS = {
   },
 };
 
-// ============================================================
-//  📐 VARIABLES available in formulas
-// ============================================================
-export const FORMULA_VARIABLES = [
-  { name: "fullScores", desc: "Number of full scores", category: "scoring" },
-  {
-    name: "partialScores",
-    desc: "Number of partial scores",
-    category: "scoring",
-  },
-  {
-    name: "failedCycles",
-    desc: "Number of failed cycles",
-    category: "scoring",
-  },
-  {
-    name: "defendedCycles",
-    desc: "Cycles where robot was defended against",
-    category: "defense",
-  },
-  {
-    name: "defendedFails",
-    desc: "Fails that occurred while being defended",
-    category: "defense",
-  },
-  {
-    name: "possessions",
-    desc: "Total possessions gained",
-    category: "scoring",
-  },
-  { name: "failures", desc: "Total breakdowns", category: "reliability" },
-  { name: "climbSuccess", desc: "Successful climbs", category: "endgame" },
-  { name: "climbFail", desc: "Failed climbs", category: "endgame" },
-  { name: "ourShiftSeconds", desc: "Seconds in our shift", category: "time" },
-  { name: "offShiftSeconds", desc: "Seconds in their shift", category: "time" },
-  { name: "transitSeconds", desc: "Seconds in transition", category: "time" },
-  { name: "shiftsCompleted", desc: "Total shifts completed", category: "time" },
-  { name: "offCollect", desc: "Off-shift ball collects", category: "offshift" },
-  { name: "offPush", desc: "Off-shift ball pushes", category: "offshift" },
-  { name: "offShoot", desc: "Off-shift shots", category: "offshift" },
-  { name: "offDispense", desc: "Off-shift dispenses", category: "offshift" },
-  { name: "offDefend", desc: "Off-shift defenses", category: "offshift" },
-  {
-    name: "transitScore",
-    desc: "Transition: opponent scored",
-    category: "transition",
-  },
-  {
-    name: "transitMiss",
-    desc: "Transition: opponent missed",
-    category: "transition",
-  },
-  {
-    name: "transitCollect",
-    desc: "Transition: we collected",
-    category: "transition",
-  },
-  {
-    name: "transitDefend",
-    desc: "Transition: we defended",
-    category: "transition",
-  },
-  {
-    name: "transitWeScore",
-    desc: "Transition: we scored",
-    category: "transition",
-  },
-  {
-    name: "transitNothing",
-    desc: "Transition: nothing happened",
-    category: "transition",
-  },
-  {
-    name: "timedShots",
-    desc: "Number of shots with timing data",
-    category: "scoring",
-  },
-  {
-    name: "avgShotMs",
-    desc: "Average shot time in milliseconds (computed)",
-    category: "derived",
-  },
-  {
-    name: "fastestShotMs",
-    desc: "Fastest recorded shot in ms (computed)",
-    category: "derived",
-  },
-  {
-    name: "totalCycles",
-    desc: "fullScores + partialScores + failedCycles (computed)",
-    category: "derived",
-  },
-  {
-    name: "totalClimbs",
-    desc: "climbSuccess + climbFail (computed)",
-    category: "derived",
-  },
-  {
-    name: "scoringCycles",
-    desc: "fullScores + partialScores (computed)",
-    category: "derived",
-  },
-  {
-    name: "offActions",
-    desc: "offCollect + offPush + offShoot + offDispense + offDefend (computed)",
-    category: "derived",
-  },
-  {
-    name: "matchMinutes",
-    desc: "Total match time in minutes (2.667)",
-    category: "derived",
-  },
-];
+export { FORMULA_VARIABLES } from "./formulaVariables.js";
 
 // ============================================================
 //  📐 DEFAULT EQUATIONS  (editable)
@@ -707,12 +637,12 @@ function ActionButton({ btn, disabled, onClick, isActive }) {
         setTimeout(() => setFlash(false), 160);
         onClick();
       }}
+      id="action-btn"
       style={{
         backgroundColor: flash
           ? (activeColor || btn.color).glow
           : (activeColor || btn.color).bg,
         color: (activeColor || btn.color).fg,
-        border: "1px solid rgba(255,255,255,0.06)",
         opacity: disabled ? 0.22 : 1,
         pointerEvents: disabled ? "none" : "auto",
         transform: pressed ? "scale(0.91)" : "scale(1)",
@@ -722,35 +652,15 @@ function ActionButton({ btn, disabled, onClick, isActive }) {
             : isActive
               ? `0 0 12px ${C.warn.glow}55`
               : "none",
-        transition: "transform 0.1s, box-shadow 0.12s, background-color 0.1s",
-        borderRadius: 14,
-        padding: "14px 8px",
-        fontWeight: 700,
         cursor: disabled ? "default" : "pointer",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 5,
-        lineHeight: 1.2,
-        width: "100%",
-        WebkitTapHighlightColor: "transparent",
-        userSelect: "none",
       }}
     >
-      <span style={{ fontSize: 20 }}>{btn.icon}</span>
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 800,
-          textAlign: "center",
-          lineHeight: 1.2,
-          letterSpacing: "0.02em",
-        }}
-      >
+      <span id="action-btn-icon">{btn.icon}</span>
+      <span id="action-btn-label">
         {btn.label}
       </span>
       {btn.sub && (
-        <span style={{ fontSize: 9, opacity: 0.65, textAlign: "center" }}>
+        <span id="action-btn-sub">
           {btn.sub}
         </span>
       )}
@@ -762,13 +672,8 @@ function ButtonSection({ section, activeCycle, isShooting, onAction }) {
   return (
     <div>
       <div
+        id="btn-section-header"
         className="scout-overline"
-        style={{
-          marginBottom: 7,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
       >
         <span className="scout-section-divider scout-section-divider--left" />
         {section.sectionLabel}
@@ -831,19 +736,9 @@ function RadialProgress({
 
 function SectionHeader({ children }) {
   return (
-    <div
-      style={{
-        fontSize: 9,
-        fontWeight: 900,
-        letterSpacing: "0.18em",
-        textTransform: "uppercase",
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-      }}
-    >
+    <div id="section-header">
       <span className="scout-section-divider scout-section-divider--left" />
-      <span style={{ color: "var(--scout-text-faint)" }}>{children}</span>
+      <span id="section-header-text">{children}</span>
       <span className="scout-section-divider scout-section-divider--right" />
     </div>
   );
@@ -1035,29 +930,11 @@ function FormulaEditor({ equations, onSave, onClose }) {
       {/* Header */}
       <div className="scout-editor__header">
         <div>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: "0.2em",
-              color: "var(--scout-indigo)",
-            }}
-          >
-            FORMULA EDITOR
-          </div>
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: 900,
-              letterSpacing: "-0.02em",
-              marginTop: 2,
-              color: "var(--scout-text-body)",
-            }}
-          >
+          <div id="editor-header-title">
             Scoring Equations
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div id="editor-header-actions">
           <button
             className="scout-btn-ghost"
             onClick={() => setShowOpsHelp((h) => !h)}
@@ -1066,11 +943,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
           </button>
           <button
             className="scout-btn-ghost"
-            style={{
-              background: "linear-gradient(135deg,#3730a3,#4f46e5)",
-              color: "#fff",
-              border: "none",
-            }}
+            id="editor-btn-save"
             onClick={() => onSave(eqs)}
           >
             SAVE
@@ -1084,7 +957,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
       <div className="scout-editor__body">
         {/* Sidebar */}
         <div className="scout-editor__sidebar">
-          <div className="scout-overline" style={{ padding: "8px 10px" }}>
+          <div id="editor-sidebar-overline" className="scout-overline">
             Equations
           </div>
           {eqs.map((eq, i) => {
@@ -1095,46 +968,30 @@ function FormulaEditor({ equations, onSave, onClose }) {
                 onClick={() => setActiveIdx(i)}
                 className={`scout-eq-item ${i === activeIdx ? "scout-eq-item--active" : ""}`}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 4,
-                  }}
-                >
+                <div id="eq-item-row">
                   <span
+                    id="eq-item-label"
                     style={{
-                      fontSize: 10,
-                      fontWeight: 700,
                       color:
                         i === activeIdx
                           ? "var(--scout-indigo-soft)"
                           : "var(--scout-text-secondary)",
-                      lineHeight: 1.3,
                     }}
                   >
                     {eq.label}
                   </span>
                   <span
+                    id="eq-item-status"
                     style={{
-                      fontSize: 9,
                       color: result.ok
                         ? "var(--scout-green-soft)"
                         : "var(--scout-red-soft)",
-                      fontWeight: 800,
                     }}
                   >
                     {result.ok ? "✓" : "✗"}
                   </span>
                 </div>
-                <div
-                  style={{
-                    fontSize: 8,
-                    color: "var(--scout-text-ghost)",
-                    marginTop: 2,
-                  }}
-                >
+                <div id="eq-item-weight">
                   w: {(eq.weight * 100).toFixed(0)}%
                 </div>
               </div>
@@ -1153,17 +1010,11 @@ function FormulaEditor({ equations, onSave, onClose }) {
                 ? "var(--scout-yellow-soft)"
                 : "var(--scout-green-soft)";
             return (
-              <div
-                style={{
-                  padding: "8px 10px",
-                  borderTop: "1px solid var(--scout-border)",
-                  background: "rgba(0,0,0,0.15)",
-                }}
-              >
+              <div id="eq-weight-total">
                 <div className="scout-overline" style={{ marginBottom: 4 }}>
                   Total Weight
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div id="eq-weight-bar-wrap">
                   <div
                     style={{
                       flex: 1,
@@ -1182,27 +1033,12 @@ function FormulaEditor({ equations, onSave, onClose }) {
                       }}
                     />
                   </div>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 900,
-                      color: col,
-                      minWidth: 36,
-                      textAlign: "right",
-                    }}
-                  >
+                  <span id="eq-weight-pct" style={{ color: col }}>
                     {pct}%
                   </span>
                 </div>
                 {(over || under) && (
-                  <div
-                    style={{
-                      fontSize: 8,
-                      color: col,
-                      marginTop: 3,
-                      lineHeight: 1.4,
-                    }}
-                  >
+                  <div id="eq-weight-warning" style={{ color: col }}>
                     {over
                       ? `▲ ${pct - 100}% over — fit score will normalise`
                       : `▼ ${100 - pct}% under — weights don't sum to 100%`}
@@ -1213,14 +1049,8 @@ function FormulaEditor({ equations, onSave, onClose }) {
           })()}
 
           {/* Add formula */}
-          <div
-            style={{
-              padding: 10,
-              borderTop: "1px solid var(--scout-border)",
-              marginTop: "auto",
-            }}
-          >
-            <div className="scout-overline" style={{ marginBottom: 6 }}>
+          <div id="editor-add-formula">
+            <div id="editor-add-formula-overline" className="scout-overline">
               New Formula
             </div>
             <input
@@ -1232,14 +1062,8 @@ function FormulaEditor({ equations, onSave, onClose }) {
               style={{ fontSize: 10 }}
             />
             <button
+              id="editor-add-btn"
               className="scout-btn-ghost"
-              style={{
-                marginTop: 6,
-                width: "100%",
-                borderRadius: 7,
-                padding: "6px",
-                fontSize: 10,
-              }}
               onClick={addFormula}
             >
               + ADD
@@ -1252,17 +1076,9 @@ function FormulaEditor({ equations, onSave, onClose }) {
           {active && (
             <>
               {/* Formula name & weight */}
-              <div
-                style={{
-                  padding: "12px 16px",
-                  borderBottom: "1px solid var(--scout-border)",
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "flex-end",
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div className="scout-overline" style={{ marginBottom: 4 }}>
+              <div id="editor-meta-row">
+                <div id="editor-label-col">
+                  <div id="editor-label-overline" className="scout-overline">
                     Label
                   </div>
                   <input
@@ -1279,8 +1095,8 @@ function FormulaEditor({ equations, onSave, onClose }) {
                     className="scout-input"
                   />
                 </div>
-                <div style={{ width: 80 }}>
-                  <div className="scout-overline" style={{ marginBottom: 4 }}>
+                <div id="editor-weight-col">
+                  <div id="editor-weight-overline" className="scout-overline">
                     Weight (0–1)
                   </div>
                   <input
@@ -1298,18 +1114,14 @@ function FormulaEditor({ equations, onSave, onClose }) {
                         ),
                       )
                     }
+                    id="editor-weight-input"
                     className="scout-input"
-                    style={{ color: "var(--scout-yellow-soft)" }}
                   />
                 </div>
                 {!active.builtin && (
                   <button
+                    id="editor-delete-btn"
                     className="scout-btn-danger"
-                    style={{
-                      borderRadius: 7,
-                      padding: "6px 10px",
-                      fontSize: 10,
-                    }}
                     onClick={() => removeFormula(activeIdx)}
                   >
                     DELETE
@@ -1318,12 +1130,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
               </div>
 
               {/* Description */}
-              <div
-                style={{
-                  padding: "8px 16px",
-                  borderBottom: "1px solid var(--scout-border)",
-                }}
-              >
+              <div id="editor-desc-row">
                 <div className="scout-overline" style={{ marginBottom: 4 }}>
                   Description
                 </div>
@@ -1336,9 +1143,9 @@ function FormulaEditor({ equations, onSave, onClose }) {
                       ),
                     )
                   }
+                  id="editor-desc-input"
                   placeholder="What does this measure?"
                   className="scout-input"
-                  style={{ fontSize: 11, color: "var(--scout-text-secondary)" }}
                 />
               </div>
 
@@ -1357,18 +1164,12 @@ function FormulaEditor({ equations, onSave, onClose }) {
               </div>
 
               {/* Formula input with autocomplete */}
-              <div
-                style={{
-                  padding: "10px 16px",
-                  borderBottom: "1px solid var(--scout-border)",
-                  position: "relative",
-                }}
-              >
-                <div className="scout-overline" style={{ marginBottom: 6 }}>
+              <div id="editor-formula-section">
+                <div id="editor-formula-overline" className="scout-overline">
                   Formula — result clamped to [0, 1] · type 2+ chars for
                   variable autocomplete
                 </div>
-                <div style={{ position: "relative" }}>
+                <div id="editor-formula-wrap">
                   <input
                     ref={inputRef}
                     value={active.formula}
@@ -1396,23 +1197,10 @@ function FormulaEditor({ equations, onSave, onClose }) {
                           className={`scout-autocomplete__item ${i === acSelected ? "scout-autocomplete__item--selected" : ""}`}
                         >
                           <div>
-                            <span
-                              style={{
-                                fontSize: 11,
-                                color: "var(--scout-indigo-soft)",
-                                fontFamily: "monospace",
-                                fontWeight: 700,
-                              }}
-                            >
+                            <span id="autocomplete-var-name">
                               {v.name}
                             </span>
-                            <span
-                              style={{
-                                fontSize: 9,
-                                color: "var(--scout-text-ghost)",
-                                marginLeft: 8,
-                              }}
-                            >
+                            <span id="autocomplete-var-desc">
                               {v.desc}
                             </span>
                           </div>
@@ -1425,15 +1213,9 @@ function FormulaEditor({ equations, onSave, onClose }) {
                   )}
                 </div>
                 {testResult && (
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 10,
-                      fontFamily: "monospace",
-                    }}
-                  >
+                  <div id="editor-test-result">
                     {testResult.ok ? (
-                      <span style={{ color: "var(--scout-green-soft)" }}>
+                      <span id="editor-test-ok">
                         ✓ test result:{" "}
                         <strong>
                           {typeof testResult.value === "number"
@@ -1443,7 +1225,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
                         (with sample data)
                       </span>
                     ) : (
-                      <span style={{ color: "var(--scout-red-soft)" }}>
+                      <span id="editor-test-err">
                         ✗ error: {testResult.error}
                       </span>
                     )}
@@ -1453,7 +1235,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
 
               {/* Variables reference */}
               <div style={{ flex: 1, overflowY: "auto", padding: "10px 16px" }}>
-                <div className="scout-overline" style={{ marginBottom: 8 }}>
+                <div id="editor-vars-overline" className="scout-overline">
                   Available Variables
                 </div>
                 {[
@@ -1471,21 +1253,10 @@ function FormulaEditor({ equations, onSave, onClose }) {
                   );
                   return (
                     <div key={cat} style={{ marginBottom: 10 }}>
-                      <div
-                        style={{
-                          fontSize: 8,
-                          color: "var(--scout-text-darker)",
-                          fontWeight: 800,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          marginBottom: 4,
-                        }}
-                      >
+                      <div id="var-category-header">
                         {cat}
                       </div>
-                      <div
-                        style={{ display: "flex", flexWrap: "wrap", gap: 4 }}
-                      >
+                      <div id="var-category-chips">
                         {vars.map((v) => (
                           <button
                             key={v.name}
@@ -1508,112 +1279,46 @@ function FormulaEditor({ equations, onSave, onClose }) {
 
       {/* Help overlay */}
       {showOpsHelp && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "var(--scout-bg-overlay)",
-            zIndex: 200,
-            overflowY: "auto",
-            padding: "20px 20px 40px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 900,
-                color: "var(--scout-text-body)",
-              }}
-            >
+        <div id="help-overlay">
+          <div id="help-overlay-header">
+            <div id="help-overlay-title">
               Formula Reference
             </div>
             <button
+              id="help-overlay-close"
               className="scout-btn-danger"
-              style={{ borderRadius: 8, padding: "6px 14px", fontSize: 11 }}
               onClick={() => setShowOpsHelp(false)}
             >
               CLOSE
             </button>
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 8,
-              marginBottom: 20,
-            }}
-          >
+          <div id="help-ops-grid">
             {MATH_OPS.map((op) => (
               <div
                 key={op.label}
+                id="help-op-card"
                 className="scout-card scout-card--alt"
-                style={{ borderRadius: 8, padding: "10px 12px" }}
               >
-                <span
-                  style={{
-                    color: "var(--scout-indigo-soft)",
-                    fontFamily: "monospace",
-                    fontWeight: 800,
-                    fontSize: 13,
-                  }}
-                >
+                <span id="help-op-label">
                   {op.label}
                 </span>
-                <span
-                  style={{
-                    color: "var(--scout-text-secondary)",
-                    fontSize: 10,
-                    marginLeft: 10,
-                  }}
-                >
+                <span id="help-op-desc">
                   {op.desc}
                 </span>
-                <div
-                  style={{
-                    fontSize: 9,
-                    color: "var(--scout-text-ghost)",
-                    marginTop: 3,
-                    fontFamily: "monospace",
-                  }}
-                >
+                <div id="help-op-insert">
                   inserts:{" "}
-                  <span style={{ color: "var(--scout-text-faint)" }}>
+                  <span id="help-op-insert-val">
                     {op.insert}
                   </span>
                 </div>
               </div>
             ))}
           </div>
-          <div
-            className="scout-card scout-card--alt"
-            style={{ borderRadius: 10, padding: 14, marginBottom: 12 }}
-          >
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: "var(--scout-yellow-soft)",
-                marginBottom: 8,
-              }}
-            >
+          <div id="help-rules-card" className="scout-card scout-card--alt">
+            <div id="help-rules-title">
               Formula Rules
             </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--scout-text-secondary)",
-                lineHeight: 1.7,
-                fontFamily: "monospace",
-              }}
-            >
+            <div id="help-rules-body">
               • Result is automatically clamped to [0, 1]
               <br />
               • Division by zero returns 0<br />
@@ -1625,18 +1330,8 @@ function FormulaEditor({ equations, onSave, onClose }) {
               <br />• Example: totalCycles &gt; 0 ? fullScores / totalCycles : 0
             </div>
           </div>
-          <div
-            className="scout-card scout-card--alt"
-            style={{ borderRadius: 10, padding: 14 }}
-          >
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: "var(--scout-green-soft)",
-                marginBottom: 8,
-              }}
-            >
+          <div id="help-examples-card" className="scout-card scout-card--alt">
+            <div id="help-examples-title">
               Example Formulas
             </div>
             {[
@@ -1658,27 +1353,11 @@ function FormulaEditor({ equations, onSave, onClose }) {
                 "climbSuccess / Math.max(totalClimbs, 1) * 0.4 + fullScores / Math.max(totalCycles, 1) * 0.6",
               ],
             ].map(([name, formula]) => (
-              <div key={name} style={{ marginBottom: 8 }}>
-                <div
-                  style={{
-                    fontSize: 9,
-                    color: "var(--scout-text-faint)",
-                    fontWeight: 700,
-                  }}
-                >
+              <div key={name} id="help-example-item">
+                <div id="help-example-name">
                   {name}
                 </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "var(--scout-green-soft)",
-                    fontFamily: "monospace",
-                    background: "var(--scout-bg-app)",
-                    padding: "5px 8px",
-                    borderRadius: 5,
-                    marginTop: 3,
-                  }}
-                >
+                <div id="help-example-formula">
                   {formula}
                 </div>
               </div>
@@ -1721,9 +1400,18 @@ export default function App() {
   const [transitTimeLeft, setTransitTimeLeft] = useState(0);
 
   const [activeCycle, setActiveCycle] = useState(false);
+  const activeCycleRef = useRef(false);
   const cycleDefendedRef = useRef(false);
   const [isShooting, setIsShooting] = useState(false);
+  const isShootingRef = useRef(false);
   const shootStartTimeRef = useRef(null);
+  const [carryover, setCarryover] = useState(null);
+  const [matchNotes, setMatchNotes] = useState("");
+  const [earlyEndReason, setEarlyEndReason] = useState("");
+  const [showEarlyEndOverlay, setShowEarlyEndOverlay] = useState(false);
+  const earlyEndReasonDraftRef = useRef("");
+  const holdTimerRef = useRef(null);
+  const [holdProgress, setHoldProgress] = useState(0);
   const [matchOver, setMatchOver] = useState(false);
   const [stats, setStats] = useState(initialStats());
   const statsRef = useRef(initialStats());
@@ -1770,8 +1458,11 @@ export default function App() {
     setMatchTime(t);
     const ph = phaseRef.current;
 
-    if (ph === "auto" && t <= autoEnd && !autoWinnerSetRef.current)
+    if (ph === "auto" && t <= autoEnd && !autoWinnerSetRef.current) {
       setShowAutoOverlay(true);
+      clearInterval(intervalRef.current);
+      return;
+    }
 
     if (ph === "transit") {
       statsRef.current.transitSeconds++;
@@ -1781,6 +1472,13 @@ export default function App() {
           autoWinnerSetRef.current = true;
           currentShiftRef.current = "theirs";
           setCurrentShift("theirs");
+        }
+        // Detect carryover from transit into first shift
+        if (activeCycleRef.current) {
+          setCarryover(isShootingRef.current ? "shooting" : "possession");
+          shootStartTimeRef.current = null;
+          isShootingRef.current = false;
+          setIsShooting(false);
         }
         phaseRef.current = "shift";
         setPhase("shift");
@@ -1799,6 +1497,19 @@ export default function App() {
 
       if (shiftTimeLeftRef.current <= 0 && t > endgameStart) {
         const next = currentShiftRef.current === "ours" ? "theirs" : "ours";
+        // Detect carryover from the ending shift
+        if (activeCycleRef.current) {
+          const co = isShootingRef.current ? "shooting" : "possession";
+          setCarryover(co);
+          // Carryover: robot still has the ball / is mid-shot going into new shift
+          // Reset shooting timer since we're crossing a shift boundary
+          shootStartTimeRef.current = null;
+          isShootingRef.current = false;
+          setIsShooting(false);
+          // activeCycle stays true — possession carries over
+        } else {
+          setCarryover(null);
+        }
         currentShiftRef.current = next;
         setCurrentShift(next);
         shiftTimeLeftRef.current = shiftLen;
@@ -1824,6 +1535,45 @@ export default function App() {
     intervalRef.current = setInterval(tick, 1000);
   };
 
+
+  const HOLD_DURATION = 3000;
+
+  const startHold = () => {
+    if (holdTimerRef.current) return;
+    setHoldProgress(0);
+    const startTime = Date.now();
+    const animTick = () => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(100, (elapsed / HOLD_DURATION) * 100);
+      setHoldProgress(pct);
+      if (elapsed >= HOLD_DURATION) {
+        cancelHold();
+        clearInterval(intervalRef.current);
+        setMatchOver(true);
+        setStats({ ...statsRef.current });
+        earlyEndReasonDraftRef.current = "";
+        setShowEarlyEndOverlay(true);
+      } else {
+        holdTimerRef.current = requestAnimationFrame(animTick);
+      }
+    };
+    holdTimerRef.current = requestAnimationFrame(animTick);
+  };
+
+  const cancelHold = () => {
+    if (holdTimerRef.current) {
+      cancelAnimationFrame(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    setHoldProgress(0);
+  };
+
+  const confirmEarlyEnd = () => {
+    setEarlyEndReason(earlyEndReasonDraftRef.current);
+    setShowEarlyEndOverlay(false);
+    goToResults();
+  };
+
   const setAutoWinner = (weWon) => {
     setShowAutoOverlay(false);
     autoWinnerSetRef.current = true;
@@ -1842,6 +1592,7 @@ export default function App() {
       setShiftTimeLeft(shiftLen);
       statsRef.current.shiftsCompleted++;
     }
+    intervalRef.current = setInterval(tick, 1000);
   };
 
   const handleAction = (btn) => {
@@ -1851,9 +1602,11 @@ export default function App() {
       case "startCycle":
         if (activeCycle) return;
         setActiveCycle(true);
+        activeCycleRef.current = true;
         cycleDefendedRef.current = false;
         shootStartTimeRef.current = null;
         setIsShooting(false);
+        isShootingRef.current = false;
         s.possessions++;
         if (ph === "auto") s.auto.possessions++;
         else if (ph === "shift" || ph === "transit") s.teleop.possessions++;
@@ -1862,6 +1615,7 @@ export default function App() {
         if (!activeCycle) return;
         shootStartTimeRef.current = performance.now();
         setIsShooting(true);
+        isShootingRef.current = true;
         break;
       case "finishFull": {
         if (!activeCycle) return;
@@ -1873,11 +1627,14 @@ export default function App() {
           shootStartTimeRef.current = null;
         }
         setIsShooting(false);
+        isShootingRef.current = false;
         s.fullScores++;
         if (ph === "auto") s.auto.fullScores++;
         else s.teleop.fullScores++;
         setActiveCycle(false);
+        activeCycleRef.current = false;
         cycleDefendedRef.current = false;
+        setCarryover(null);
         break;
       }
       case "finishPartial": {
@@ -1890,17 +1647,21 @@ export default function App() {
           shootStartTimeRef.current = null;
         }
         setIsShooting(false);
+        isShootingRef.current = false;
         s.partialScores++;
         if (ph === "auto") s.auto.partialScores++;
         else s.teleop.partialScores++;
         setActiveCycle(false);
+        activeCycleRef.current = false;
         cycleDefendedRef.current = false;
+        setCarryover(null);
         break;
       }
       case "finishFail":
         if (!activeCycle) return;
         shootStartTimeRef.current = null;
         setIsShooting(false);
+        isShootingRef.current = false;
         s.failedCycles++;
         if (ph === "auto") s.auto.failedCycles++;
         else s.teleop.failedCycles++;
@@ -1909,7 +1670,9 @@ export default function App() {
           s.teleop.defendedFails++;
         }
         setActiveCycle(false);
+        activeCycleRef.current = false;
         cycleDefendedRef.current = false;
+        setCarryover(null);
         break;
       case "defend":
         if (!activeCycle) return;
@@ -1963,6 +1726,8 @@ export default function App() {
     statsRef.current = initialStats();
     cycleDefendedRef.current = false;
     shootStartTimeRef.current = null;
+    activeCycleRef.current = false;
+    isShootingRef.current = false;
     setMatchTime(matchTotal);
     setPhase("auto");
     setCurrentShift(null);
@@ -1970,10 +1735,14 @@ export default function App() {
     setTransitTimeLeft(0);
     setActiveCycle(false);
     setIsShooting(false);
+    setCarryover(null);
     setShowAutoOverlay(false);
     setMatchOver(false);
     setStats(initialStats());
     setMetrics(null);
+    setMatchNotes("");
+    setEarlyEndReason("");
+    setShowEarlyEndOverlay(false);
     // Keep scout name + team, increment match number
     const meta = prevMeta || matchMeta;
     const nextMatch = meta.matchNumber
@@ -2067,15 +1836,9 @@ export default function App() {
           s.shootingTimes.length > 0 ? Math.min(...s.shootingTimes) : null,
         timedShots: s.shootingTimes.length,
       },
-      metrics: computedMetrics,
       fitScore,
-      equations: equations.map((eq) => ({
-        key: eq.key,
-        label: eq.label,
-        formula: eq.formula,
-        weight: eq.weight,
-        desc: eq.desc,
-      })),
+      notes: matchNotes || null,
+      earlyEnd: earlyEndReason ? { reason: earlyEndReason } : null,
     };
 
     setIsSubmitting(true);
@@ -2364,18 +2127,14 @@ export default function App() {
 
   return (
     <div
+      id="scout-root"
       className="scout-root"
-      style={{ position: "fixed", inset: 0, overflow: "hidden" }}
     >
       {/* ── START ─────────────────────────────────────────────── */}
       <div
+        id="screen-start"
         className="scout-screen"
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
           transform: screen === "start" ? "translateX(0)" : "translateX(-100%)",
           opacity: screen === "start" ? 1 : 0,
           pointerEvents: screen === "start" ? "auto" : "none",
@@ -2384,88 +2143,25 @@ export default function App() {
         }}
       >
         {/* Decorative rings */}
-        <div
-          style={{
-            position: "absolute",
-            width: 340,
-            height: 340,
-            borderRadius: "50%",
-            border: "1px solid #1e1e2e",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            width: 500,
-            height: 500,
-            borderRadius: "50%",
-            border: "1px solid #1e1e2e44",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-            pointerEvents: "none",
-          }}
-        />
+        <div id="start-ring-sm" />
+        <div id="start-ring-lg" />
 
-        <div
-          style={{
-            position: "relative",
-            textAlign: "center",
-            padding: "0 32px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: "0.25em",
-              color: "var(--scout-indigo)",
-              textTransform: "uppercase",
-              marginBottom: 20,
-            }}
-          >
+        <div id="start-content">
+          <div id="start-eyebrow">
             FRC Scouting · Team 935
           </div>
-          <div
-            style={{
-              fontSize: 52,
-              fontWeight: 900,
-              lineHeight: 1,
-              marginBottom: 8,
-              letterSpacing: "-0.03em",
-              color: "var(--scout-text-primary)",
-            }}
-          >
+          <div id="start-title">
             Match
             <br />
-            <span style={{ color: "var(--scout-indigo)" }}>Scout</span>
+            <span id="start-title-accent">Scout</span>
           </div>
-          <div
-            style={{
-              fontSize: 13,
-              color: "var(--scout-text-faint)",
-              marginBottom: 44,
-              fontWeight: 500,
-            }}
-          >
+          <div id="start-subtitle">
             REBUILT · Real-time match tracker
           </div>
           {/* Match metadata */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginBottom: 24,
-              textAlign: "left",
-            }}
-          >
+          <div id="start-meta-fields">
             <div>
-              <div className="scout-overline" style={{ marginBottom: 4 }}>
+              <div id="start-field-team-overline" className="scout-overline">
                 Team Number
               </div>
               <input
@@ -2480,7 +2176,7 @@ export default function App() {
               />
             </div>
             <div>
-              <div className="scout-overline" style={{ marginBottom: 4 }}>
+              <div id="start-field-match-overline" className="scout-overline">
                 Match Number
               </div>
               <input
@@ -2495,7 +2191,7 @@ export default function App() {
               />
             </div>
             <div>
-              <div className="scout-overline" style={{ marginBottom: 4 }}>
+              <div id="start-field-scout-overline" className="scout-overline">
                 Scout Name
               </div>
               <input
@@ -2511,45 +2207,18 @@ export default function App() {
           </div>
           {/* Sample data progress overlay */}
           {sampleProgress && (
-            <div
-              style={{
-                marginBottom: 18,
-                background: "var(--scout-bg-card)",
-                border: "1px solid var(--scout-border-card)",
-                borderRadius: 14,
-                padding: "16px 18px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: "var(--scout-indigo-soft)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
+            <div id="sample-progress-card">
+              <div id="sample-progress-header">
+                <span id="sample-progress-label">
                   GENERATING SAMPLE DATA
                 </span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: "var(--scout-text-faint)",
-                  }}
-                >
+                <span id="sample-progress-pct">
                   {sampleProgress.pct}%
                 </span>
               </div>
               <div
+                id="sample-progress-track"
                 className="scout-progress-track"
-                style={{ height: 6, marginBottom: 8 }}
               >
                 <div
                   style={{
@@ -2562,85 +2231,34 @@ export default function App() {
                   }}
                 />
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--scout-text-faint)",
-                  fontStyle: "italic",
-                }}
-              >
+              <div id="sample-progress-msg">
                 {sampleProgress.label}
               </div>
             </div>
           )}
           <button
+            id="btn-start-match"
             onClick={startMatch}
-            style={{
-              background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 18,
-              padding: "18px 52px",
-              fontSize: 16,
-              fontWeight: 800,
-              cursor: "pointer",
-              letterSpacing: "0.04em",
-              boxShadow:
-                "0 0 40px rgba(99,102,241,.27), 0 4px 20px rgba(0,0,0,.5)",
-              WebkitTapHighlightColor: "transparent",
-              display: "block",
-              width: "100%",
-              marginBottom: 12,
-            }}
           >
             START SCOUTING
           </button>
-          <div id="buttonCombo">
-            <button
-              onClick={() => setShowEditor(true)}
-              className="scout-btn-ghost"
-              style={{
-                borderRadius: 14,
-                padding: "12px 52px",
-                fontSize: 13,
-                letterSpacing: "0.04em",
-                WebkitTapHighlightColor: "transparent",
-                width: "100%",
-                marginBottom: 10,
-              }}
-            >
-              ⚙ FORMULA EDITOR
-            </button>
             <button
               id="sampleDataSubmit"
               onClick={handleSampleData}
               disabled={!!sampleProgress}
               className="scout-btn-ghost"
-              style={{
-                borderRadius: 14,
-                padding: "12px 52px",
-                fontSize: 13,
-                letterSpacing: "0.04em",
-                WebkitTapHighlightColor: "transparent",
-                width: "100%",
-                opacity: sampleProgress ? 0.5 : 1,
-                border: "1px dashed var(--scout-indigo)",
-                color: "var(--scout-indigo-soft)",
-              }}
+              style={{ opacity: sampleProgress ? 0.5 : 1 }}
             >
               ⚡ SAMPLE DATA SUBMIT
             </button>
-          </div>
         </div>
       </div>
 
       {/* ── SCOUT ─────────────────────────────────────────────── */}
       <div
+        id="screen-scout"
         className="scout-screen"
         style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
           transform:
             screen === "scout"
               ? "translateX(0)"
@@ -2649,8 +2267,21 @@ export default function App() {
                 : "translateX(-100%)",
           opacity: screen === "scout" ? 1 : 0,
           pointerEvents: screen === "scout" ? "auto" : "none",
+          position: "relative",
         }}
       >
+        {/* All scout content — blurred when overlay is active */}
+        <div
+          id="scout-content"
+          style={{
+            filter: showAutoOverlay ? "blur(4px)" : "none",
+            transition: "filter 0.2s ease",
+            pointerEvents: showAutoOverlay ? "none" : "auto",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+          }}
+        >
         {/* Scout header */}
         <div className="scout-header" style={{ paddingBottom: 10 }}>
           <div
@@ -2662,12 +2293,8 @@ export default function App() {
             }}
           >
             <div
+              id="phase-badge"
               style={{
-                fontSize: 9,
-                fontWeight: 900,
-                letterSpacing: "0.18em",
-                padding: "4px 10px",
-                borderRadius: 6,
                 background: phaseInfo.bg,
                 color: phaseInfo.accent,
                 border: `1px solid ${phaseInfo.accent}33`,
@@ -2675,21 +2302,12 @@ export default function App() {
             >
               {phaseInfo.label}
             </div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: "var(--scout-text-muted)",
-              }}
-            >
+            <div id="match-id-label">
               MATCH {matchMeta.matchNumber} / TEAM {matchMeta.teamNumber}
             </div>
             <div
+              id="match-timer"
               style={{
-                fontSize: 30,
-                fontWeight: 900,
-                fontVariantNumeric: "tabular-nums",
-                letterSpacing: "-0.03em",
                 color:
                   matchTime <= endgameStart
                     ? "#fb923c"
@@ -2700,7 +2318,6 @@ export default function App() {
                         : "var(--scout-text-primary)",
                 textShadow:
                   matchTime <= 10 ? "0 0 20px rgba(248,113,113,.67)" : "none",
-                transition: "color 0.3s",
               }}
             >
               {fmtTime(matchTime)}
@@ -2725,45 +2342,25 @@ export default function App() {
 
           {shiftAccent && (
             <div
+              id="shift-accent-bar"
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "6px 10px",
-                borderRadius: 9,
                 background: `${shiftAccent.color}15`,
                 border: `1px solid ${shiftAccent.color}30`,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <div id="shift-accent-inner">
                 <div
+                  id="shift-accent-dot"
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
                     background: shiftAccent.color,
                     boxShadow: `0 0 6px ${shiftAccent.color}`,
                   }}
                 />
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: "0.12em",
-                    color: shiftAccent.color,
-                  }}
-                >
+                <span id="shift-accent-label" style={{ color: shiftAccent.color }}>
                   {shiftAccent.label}
                 </span>
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: shiftAccent.color,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
+              <span id="shift-accent-time" style={{ color: shiftAccent.color }}>
                 {shiftAccent.time}s
               </span>
             </div>
@@ -2774,12 +2371,8 @@ export default function App() {
         <div className="scout-body">
           {phase !== "transit" && (
             <div
+              id="cycle-status-card"
               style={{
-                borderRadius: 12,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
                 background:
                   activeGroupKey === "offShift"
                     ? "#1a0a0a"
@@ -2788,11 +2381,8 @@ export default function App() {
               }}
             >
               <div
+                id="cycle-status-dot"
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  flexShrink: 0,
                   background: activeCycle
                     ? "var(--scout-green)"
                     : activeGroupKey === "offShift"
@@ -2801,74 +2391,32 @@ export default function App() {
                   boxShadow: activeCycle
                     ? "0 0 0 3px rgba(34,197,94,.2)"
                     : "none",
-                  transition: "all 0.2s",
                 }}
               />
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--scout-text-muted)",
-                  fontWeight: 600,
-                }}
-              >
+              <div id="cycle-status-text">
                 {activeGroupKey === "offShift" ? (
                   <>
-                    <span
-                      style={{
-                        color: "var(--scout-red-soft)",
-                        fontWeight: 800,
-                      }}
-                    >
-                      Their shift
-                    </span>{" "}
+                    <span id="cycle-status-offshift-label">Their shift</span>{" "}
                     — log off-shift activity
                   </>
                 ) : activeCycle && isShooting ? (
                   <>
-                    <span
-                      style={{
-                        color: "var(--scout-yellow-soft)",
-                        fontWeight: 800,
-                      }}
-                    >
-                      🎯 Aiming
-                    </span>{" "}
+                    <span id="cycle-status-aiming-label">🎯 Aiming</span>{" "}
                     — tap Full Score or Partial to stop timer
                   </>
                 ) : activeCycle ? (
                   <>
-                    <span
-                      style={{
-                        color: "var(--scout-text-body)",
-                        fontWeight: 800,
-                      }}
-                    >
-                      Cycle active
-                    </span>{" "}
+                    <span id="cycle-status-active-label">Cycle active</span>{" "}
                     — finish the cycle
                     {cycleDefendedRef.current ? (
-                      <span
-                        style={{
-                          color: "var(--scout-blue-soft)",
-                          marginLeft: 6,
-                        }}
-                      >
-                        🛡 defended
-                      </span>
+                      <span id="cycle-status-defended-badge">🛡 defended</span>
                     ) : (
                       ""
                     )}
                   </>
                 ) : (
                   <>
-                    <span
-                      style={{
-                        color: "var(--scout-text-body)",
-                        fontWeight: 800,
-                      }}
-                    >
-                      {phase === "auto" ? "Autonomous" : "Waiting"}
-                    </span>{" "}
+                    <span id="cycle-status-idle-label">{phase === "auto" ? "Autonomous" : "Waiting"}</span>{" "}
                     — tap Gain Possession
                   </>
                 )}
@@ -2877,33 +2425,45 @@ export default function App() {
           )}
 
           {phase === "transit" && (
+            <div id="transit-notice">
+              <div id="transit-notice-dot" />
+              <div id="transit-notice-text">
+                <span id="transit-notice-accent">Both hubs open</span>{" "}
+                — log what's happening
+              </div>
+            </div>
+          )}
+
+          {carryover && (
             <div
+              id="carryover-banner"
               style={{
-                borderRadius: 12,
-                padding: "10px 14px",
-                background: "#1c1205",
-                border: "1px solid rgba(251,191,36,.13)",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: carryover === "shooting"
+                  ? "var(--scout-yellow-bg)"
+                  : "var(--scout-indigo-bg-alt)",
+                border: `1px solid ${carryover === "shooting" ? "var(--scout-yellow)" : "var(--scout-indigo)"}`,
+                marginBottom: 4,
               }}
             >
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "var(--scout-yellow-soft)",
-                  boxShadow: "0 0 6px #fbbf24",
-                  flexShrink: 0,
-                }}
-              />
-              <div style={{ fontSize: 11, color: "#92400e", fontWeight: 700 }}>
-                <span style={{ color: "var(--scout-yellow-soft)" }}>
-                  Both hubs open
-                </span>{" "}
-                — log what's happening
+              <span style={{ fontSize: 18 }}>
+                {carryover === "shooting" ? "🎯" : "⚡"}
+              </span>
+              <div style={{ flex: 1, fontSize: 12, color: carryover === "shooting" ? "var(--scout-yellow-soft)" : "var(--scout-indigo-soft)" }}>
+                <strong>Carryover from last shift</strong>
+                {" — "}
+                {carryover === "shooting"
+                  ? "robot was mid-shot at shift end, cycle is active"
+                  : "robot had possession at shift end, cycle is active"}
               </div>
+              <button
+                onClick={() => { setCarryover(null); setActiveCycle(false); activeCycleRef.current = false; }}
+                style={{ background: "none", border: "none", color: "var(--scout-neutral-fg)", cursor: "pointer", fontSize: 16, padding: 2 }}
+              >✕</button>
             </div>
           )}
 
@@ -2928,110 +2488,118 @@ export default function App() {
             ))}
         </div>
 
+        {/* Hold-to-end bar — always visible during scouting */}
+        {!matchOver && (
+          <div id="match-over-bar" style={{ padding: "10px 16px" }}>
+            <button
+              id="btn-hold-end"
+              className="scout-btn-danger"
+              onPointerDown={startHold}
+              onPointerUp={cancelHold}
+              onPointerLeave={cancelHold}
+              style={{ position: "relative", overflow: "hidden", userSelect: "none", width: "100%" }}
+            >
+              {holdProgress > 0 && (
+                <div style={{
+                  position: "absolute", left: 0, top: 0, bottom: 0,
+                  width: `${holdProgress}%`,
+                  background: "rgba(255,255,255,0.18)",
+                  transition: "none",
+                  pointerEvents: "none",
+                }} />
+              )}
+              {holdProgress > 0 ? `ENDING MATCH… ${Math.round(holdProgress)}%` : "HOLD 3s TO END MATCH EARLY"}
+            </button>
+          </div>
+        )}
         {matchOver && (
-          <div style={{ padding: "0 14px 20px", flexShrink: 0 }}>
+          <div id="match-over-bar">
             <button
               onClick={goToResults}
+              id="btn-view-results"
               className="scout-btn-primary"
-              style={{
-                background: "linear-gradient(135deg,#7f1d1d,#9f1239)",
-                boxShadow: "0 0 30px rgba(239,68,68,.2)",
-              }}
             >
               VIEW RESULTS →
+            </button>
+          </div>
+        )}
+        </div>{/* end scout-content */}
+
+        {showEarlyEndOverlay && (
+          <div
+            style={{
+              position: "absolute", inset: 0,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 16, zIndex: 50,
+              background: "rgba(0,0,0,0.72)",
+              backdropFilter: "blur(3px)",
+              padding: 24,
+            }}
+          >
+            <div style={{ fontSize: 36 }}>⚠️</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "var(--scout-red-soft)", textAlign: "center" }}>
+              Match Ended Early
+            </div>
+            <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)", textAlign: "center" }}>
+              Briefly describe what happened (lost connection, breakdown, etc.)
+            </div>
+            <textarea
+              autoFocus
+              rows={3}
+              placeholder="e.g. Robot lost connection at 45s remaining"
+              defaultValue=""
+              onChange={(e) => { earlyEndReasonDraftRef.current = e.target.value; }}
+              className="scout-input"
+              style={{ width: "100%", maxWidth: 380, resize: "vertical", fontSize: 14 }}
+            />
+            <button
+              onClick={confirmEarlyEnd}
+              className="scout-btn-primary"
+              style={{ width: "100%", maxWidth: 380 }}
+            >
+              CONTINUE TO NOTES →
             </button>
           </div>
         )}
 
         {showAutoOverlay && (
           <div
+            id="auto-overlay"
             style={{
               position: "absolute",
               inset: 0,
-              background: "var(--scout-bg-overlay)",
-              backdropFilter: "blur(8px)",
-              zIndex: 100,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 24,
-              padding: 28,
+              gap: 20,
+              zIndex: 50,
+              background: "rgba(0,0,0,0.55)",
+              backdropFilter: "blur(2px)",
             }}
           >
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                background: "var(--scout-indigo-bg)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 24,
-              }}
-            >
-              🏁
-            </div>
+            <div id="auto-overlay-icon">🏁</div>
             <div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 900,
-                  textAlign: "center",
-                  marginBottom: 6,
-                  color: "var(--scout-text-body)",
-                }}
-              >
+              <div id="auto-overlay-title">
                 Auto Phase Over
               </div>
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "var(--scout-text-faint)",
-                  textAlign: "center",
-                  fontWeight: 500,
-                }}
-              >
+              <div id="auto-overlay-subtitle">
                 Who won autonomous?
               </div>
             </div>
             <div
-              style={{ display: "flex", gap: 12, width: "100%", maxWidth: 300 }}
+              id="auto-overlay-choices"
             >
               <button
+                id="btn-we-won"
                 onClick={() => setAutoWinner(true)}
-                style={{
-                  flex: 1,
-                  border: "1px solid rgba(22,163,74,.33)",
-                  borderRadius: 16,
-                  padding: "20px 10px",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  background: "rgba(20,83,45,.13)",
-                  color: "var(--scout-green-soft)",
-                  letterSpacing: "0.04em",
-                  WebkitTapHighlightColor: "transparent",
-                }}
               >
                 WE WON
               </button>
               <button
+                id="btn-they-won"
                 onClick={() => setAutoWinner(false)}
-                style={{
-                  flex: 1,
-                  border: "1px solid rgba(185,28,28,.33)",
-                  borderRadius: 16,
-                  padding: "20px 10px",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  background: "rgba(127,29,29,.13)",
-                  color: "var(--scout-red-soft)",
-                  letterSpacing: "0.04em",
-                  WebkitTapHighlightColor: "transparent",
-                }}
               >
                 THEY WON
               </button>
@@ -3042,588 +2610,77 @@ export default function App() {
 
       {/* ── RESULTS ─────────────────────────────────────────────── */}
       <div
+        id="screen-results"
         className="scout-screen"
         style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          overflow: "hidden",
           transform:
             screen === "results" ? "translateX(0)" : "translateX(100%)",
           opacity: screen === "results" ? 1 : 0,
           pointerEvents: screen === "results" ? "auto" : "none",
-          background: "var(--scout-bg-app)",
         }}
       >
         {/* Results header */}
         <div
-          style={{
-            padding: "20px 18px 16px",
-            background: "var(--scout-bg-surface)",
-            borderBottom: "1px solid var(--scout-border)",
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-          }}
+          id="results-header"
         >
           <div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: "0.2em",
-                color: "var(--scout-indigo)",
-                marginBottom: 4,
-              }}
-            >
+            <div id="results-eyebrow">
               MATCH COMPLETE
             </div>
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 900,
-                letterSpacing: "-0.02em",
-                color: "var(--scout-text-body)",
-              }}
-            >
+            <div id="results-title">
               Match Summary
             </div>
             <div
-              style={{
-                fontSize: 12,
-                color: "var(--scout-text-faint)",
-                marginTop: 2,
-                fontWeight: 500,
-              }}
+              id="results-meta"
             >
               Drive team preview · Team 935
             </div>
           </div>
           <button
+            id="results-formulas-btn"
             className="scout-btn-ghost"
-            style={{
-              borderRadius: 10,
-              padding: "7px 12px",
-              fontSize: 10,
-              flexShrink: 0,
-              marginTop: 4,
-            }}
             onClick={() => setShowEditor(true)}
           >
             ⚙ FORMULAS
           </button>
         </div>
 
-        {metrics &&
-          (() => {
-            const roles = getRoles(metrics, statsRef.current);
-            const s = statsRef.current;
-            const derived = buildDerivedVars(s);
-            return (
-              <div
-                style={{
-                  padding: "16px 14px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 18,
-                  flex: 1,
-                  overflowY: "auto",
-                  paddingBottom: 8,
-                }}
-              >
-                {/* Fit score */}
-                <div
-                  style={{
-                    borderRadius: 20,
-                    padding: "22px 20px",
-                    background:
-                      "linear-gradient(135deg, var(--scout-bg-card), rgba(26,29,46,.13))",
-                    border: "1px solid var(--scout-border-card)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 20,
-                  }}
-                >
-                  <div style={{ position: "relative", flexShrink: 0 }}>
-                    <RadialProgress
-                      value={fitScore}
-                      size={88}
-                      strokeWidth={7}
-                      color={fitColor}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 22,
-                          fontWeight: 900,
-                          color: fitColor,
-                          lineHeight: 1,
-                        }}
-                      >
-                        {fitScore}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 8,
-                          color: "var(--scout-text-faint)",
-                          fontWeight: 700,
-                          letterSpacing: "0.1em",
-                        }}
-                      >
-                        FIT
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color: "var(--scout-text-secondary)",
-                        fontWeight: 600,
-                        marginBottom: 4,
-                      }}
-                    >
-                      Alliance Fit Score
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--scout-text-faint)",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {fitScore >= 70
-                        ? "Strong alliance candidate"
-                        : fitScore >= 40
-                          ? "Moderate fit"
-                          : "Limited match potential"}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 6,
-                        marginTop: 10,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {[
-                        ["Full", s.fullScores],
-                        ["Part", s.partialScores],
-                        ["Fail", s.failedCycles],
-                        ["Def'd", s.defendedCycles],
-                      ].map(([l, v]) => (
-                        <span
-                          key={l}
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 800,
-                            background: "var(--scout-border-subtle)",
-                            color: "var(--scout-text-secondary)",
-                            padding: "3px 8px",
-                            borderRadius: 6,
-                            letterSpacing: "0.04em",
-                          }}
-                        >
-                          {v} {l}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+        {/* Early end notice */}
+        {earlyEndReason && (
+          <div style={{
+            margin: "12px 16px 0",
+            padding: "10px 14px",
+            borderRadius: 8,
+            background: "var(--scout-red-bg)",
+            border: "1px solid var(--scout-red)",
+            display: "flex", gap: 10, alignItems: "flex-start",
+          }}>
+            <span style={{ fontSize: 18 }}>⚠️</span>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--scout-red-soft)", marginBottom: 2 }}>MATCH ENDED EARLY</div>
+              <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)" }}>{earlyEndReason}</div>
+            </div>
+          </div>
+        )}
 
-                {/* Scoring metrics */}
-                <div>
-                  <SectionHeader>Scoring Metrics</SectionHeader>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      marginTop: 10,
-                    }}
-                  >
-                    {equations.map((eq) => {
-                      const rawVal = metrics[eq.key];
-                      const val =
-                        rawVal !== null && rawVal !== undefined
-                          ? Math.round(rawVal * 100)
-                          : null;
-                      const c =
-                        val === null
-                          ? "var(--scout-text-faint)"
-                          : val >= 70
-                            ? "var(--scout-green-soft)"
-                            : val >= 40
-                              ? "var(--scout-yellow-soft)"
-                              : "var(--scout-red-soft)";
-                      let substituted = eq.formula;
-                      Object.entries(derived).forEach(([k, v]) => {
-                        substituted = substituted.replace(
-                          new RegExp(`\\b${k}\\b`, "g"),
-                          `[${v}]`,
-                        );
-                      });
-                      return (
-                        <div key={eq.key} className="scout-card">
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              marginBottom: 8,
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: 10,
-                                color: "var(--scout-text-faint)",
-                                fontWeight: 800,
-                                letterSpacing: "0.1em",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              {eq.label}
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "flex-end",
-                                gap: 3,
-                              }}
-                            >
-                              {val !== null ? (
-                                <>
-                                  <span
-                                    style={{
-                                      fontSize: 22,
-                                      fontWeight: 900,
-                                      color: c,
-                                      lineHeight: 1,
-                                    }}
-                                  >
-                                    {val}
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontSize: 11,
-                                      color: "var(--scout-text-faint)",
-                                      fontWeight: 700,
-                                      marginBottom: 2,
-                                    }}
-                                  >
-                                    %
-                                  </span>
-                                </>
-                              ) : (
-                                <span
-                                  style={{
-                                    fontSize: 12,
-                                    color: "var(--scout-text-faint)",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  ERR
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="scout-progress-track">
-                            <div
-                              style={{
-                                height: "100%",
-                                borderRadius: 999,
-                                width: `${val ?? 0}%`,
-                                background: c,
-                                transition: "width 1s",
-                              }}
-                            />
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 9,
-                              color: "var(--scout-text-ghost)",
-                              lineHeight: 1.5,
-                              fontFamily: "monospace",
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: "var(--scout-text-darker)",
-                                fontWeight: 800,
-                              }}
-                            >
-                              f ={" "}
-                            </span>
-                            <span style={{ color: "var(--scout-text-dim)" }}>
-                              {eq.formula}
-                            </span>
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 9,
-                              color: "var(--scout-border-subtle)",
-                              lineHeight: 1.5,
-                              fontFamily: "monospace",
-                              marginTop: 2,
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: "var(--scout-text-darker)",
-                                fontWeight: 800,
-                              }}
-                            >
-                              ={" "}
-                            </span>
-                            <span
-                              style={{ color: "var(--scout-neutral-glow)" }}
-                            >
-                              {substituted}
-                            </span>
-                          </div>
-                          {eq.desc && (
-                            <div
-                              style={{
-                                fontSize: 9,
-                                color: "var(--scout-text-ghost)",
-                                marginTop: 4,
-                                lineHeight: 1.4,
-                              }}
-                            >
-                              {eq.desc}
-                            </div>
-                          )}
-                          <div
-                            style={{
-                              fontSize: 8,
-                              color: "var(--scout-text-darker)",
-                              marginTop: 3,
-                            }}
-                          >
-                            weight: {(eq.weight * 100).toFixed(0)}% of fit score
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Shot timing */}
-                {s.shootingTimes.length > 0 && (
-                  <div>
-                    <SectionHeader>Shot Timing</SectionHeader>
-                    <div
-                      className="scout-stat-grid-3"
-                      style={{ marginTop: 10 }}
-                    >
-                      {[
-                        [
-                          "Timed Shots",
-                          s.shootingTimes.length,
-                          "var(--scout-indigo-soft)",
-                        ],
-                        [
-                          "Avg Time",
-                          `${(s.shootingTimes.reduce((a, b) => a + b, 0) / s.shootingTimes.length / 1000).toFixed(2)}s`,
-                          "var(--scout-yellow-soft)",
-                        ],
-                        [
-                          "Fastest",
-                          `${(Math.min(...s.shootingTimes) / 1000).toFixed(2)}s`,
-                          "var(--scout-green-soft)",
-                        ],
-                        [
-                          "Slowest",
-                          `${(Math.max(...s.shootingTimes) / 1000).toFixed(2)}s`,
-                          "var(--scout-red-soft)",
-                        ],
-                      ].map(([lbl, val, color]) => (
-                        <div key={lbl} className="scout-stat-tile">
-                          <div className="scout-stat-label">{lbl}</div>
-                          <div className="scout-stat-value" style={{ color }}>
-                            {val}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Raw stats */}
-                <div>
-                  <SectionHeader>Raw Stats</SectionHeader>
-                  <div className="scout-stat-grid-3">
-                    {[
-                      [
-                        "Cycles",
-                        derived.totalCycles,
-                        "var(--scout-indigo-soft)",
-                      ],
-                      ["Full", s.fullScores, "var(--scout-green-soft)"],
-                      ["Partial", s.partialScores, "var(--scout-yellow-soft)"],
-                      ["Failed", s.failedCycles, "var(--scout-red-soft)"],
-                      [
-                        "Def'd Cycles",
-                        s.defendedCycles,
-                        "var(--scout-blue-soft)",
-                      ],
-                      ["Def'd Fails", s.defendedFails, "#f87171"],
-                      ["Breakdowns", s.failures, "var(--scout-red-soft)"],
-                      ["Climb ✓", s.climbSuccess, "var(--scout-green-soft)"],
-                      ["Climb ✗", s.climbFail, "var(--scout-red-soft)"],
-                    ].map(([lbl, val, color]) => (
-                      <div key={lbl} className="scout-stat-tile">
-                        <div className="scout-stat-label">{lbl}</div>
-                        <div
-                          className="scout-stat-value"
-                          style={{
-                            color:
-                              val > 0 ? color : "var(--scout-neutral-glow)",
-                          }}
-                        >
-                          {val}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Transition shift */}
-                <div>
-                  <SectionHeader>Transition Shift</SectionHeader>
-                  <div className="scout-stat-grid-3" style={{ gap: 8 }}>
-                    {[
-                      [
-                        "They Scored",
-                        s.transitScore,
-                        "var(--scout-green-soft)",
-                      ],
-                      ["They Missed", s.transitMiss, "var(--scout-red-soft)"],
-                      [
-                        "We Scored",
-                        s.transitWeScore,
-                        "var(--scout-green-soft)",
-                      ],
-                      [
-                        "We Collected",
-                        s.transitCollect,
-                        "var(--scout-indigo-soft)",
-                      ],
-                      ["We Defended", s.transitDefend, "var(--scout-blue)"],
-                      [
-                        "Nothing",
-                        s.transitNothing,
-                        "var(--scout-neutral-glow)",
-                      ],
-                    ].map(([lbl, val, color]) => (
-                      <div
-                        key={lbl}
-                        className="scout-stat-tile scout-stat-tile--lg"
-                      >
-                        <div className="scout-stat-label scout-stat-label--lg">
-                          {lbl}
-                        </div>
-                        <div
-                          className="scout-stat-value scout-stat-value--lg"
-                          style={{
-                            color:
-                              val > 0 ? color : "var(--scout-neutral-glow)",
-                          }}
-                        >
-                          {val}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Off-shift */}
-                <div>
-                  <SectionHeader>Off-Shift Activity</SectionHeader>
-                  <div className="scout-stat-grid-3" style={{ gap: 8 }}>
-                    {[
-                      ["Collect", s.offCollect, "var(--scout-indigo-soft)"],
-                      ["Push", s.offPush, "var(--scout-indigo-soft)"],
-                      ["Shoot", s.offShoot, "var(--scout-indigo-soft)"],
-                      ["Dispense", s.offDispense, "#78716c"],
-                      ["Defend", s.offDefend, "var(--scout-blue)"],
-                    ].map(([lbl, val, color]) => (
-                      <div
-                        key={lbl}
-                        className="scout-stat-tile scout-stat-tile--lg"
-                      >
-                        <div className="scout-stat-label scout-stat-label--lg">
-                          {lbl}
-                        </div>
-                        <div
-                          className="scout-stat-value scout-stat-value--lg"
-                          style={{
-                            color:
-                              val > 0 ? color : "var(--scout-neutral-glow)",
-                          }}
-                        >
-                          {val}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Roles */}
-                <div>
-                  <SectionHeader>Robot Roles</SectionHeader>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 7,
-                      marginTop: 10,
-                    }}
-                  >
-                    {roles.scoring.map((r) => (
-                      <span key={r} className="scout-role-badge--scoring">
-                        {r}
-                      </span>
-                    ))}
-                    {roles.offShift.map((r) => (
-                      <span key={r} className="scout-role-badge--offshift">
-                        {r}
-                      </span>
-                    ))}
-                    {roles.scoring.length === 0 &&
-                      roles.offShift.length === 0 && (
-                        <span
-                          style={{
-                            color: "var(--scout-neutral-glow)",
-                            fontSize: 12,
-                          }}
-                        >
-                          No roles assigned
-                        </span>
-                      )}
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
+        {/* Scouter notes */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px 16px 8px" }}>
+          <div className="scout-overline" style={{ marginBottom: 8 }}>Match Notes</div>
+          <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)", marginBottom: 10 }}>
+            Anything worth noting — strategy, fouls, unusual behavior, etc.
+          </div>
+          <textarea
+            rows={6}
+            placeholder="e.g. Drove under the stage consistently, seemed to target alliance partners for defense…"
+            value={matchNotes}
+            onChange={(e) => setMatchNotes(e.target.value)}
+            className="scout-input"
+            style={{ flex: 1, resize: "vertical", fontSize: 14, minHeight: 120 }}
+          />
+        </div>
 
         <div
-          style={{
-            padding: "12px 14px 32px",
-            flexShrink: 0,
-            background: "var(--scout-bg-surface)",
-            borderTop: "1px solid var(--scout-border)",
-          }}
+          id="results-submit-bar"
         >
           <button
             onClick={handleSubmit}
