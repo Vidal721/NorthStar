@@ -51,8 +51,6 @@ body {
   margin: 0;
   background-color: var(--bg);
   font-family: var(--font);
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;
   overflow: hidden;
 }
 

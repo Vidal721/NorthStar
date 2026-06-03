@@ -58,7 +58,7 @@ function MainMenu() {
         Welcome scouter!
       </h1>
       <div id="count"></div>
-      <div>
+      <div id="main-menu-container">
         <h1 className="headertext">choose what to start</h1>
 
         <button
