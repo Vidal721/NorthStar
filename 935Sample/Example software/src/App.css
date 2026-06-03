@@ -136,10 +136,244 @@ body,
   text-rendering: optimizeLegibility;
 }
 
-#main-menu-container {
-  width: 100%;
-  max-width: 1200px;
+/* =========================================================
+   MAIN MENU — LAYOUT ROOT
+   ========================================================= */
+
+.menu-root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Decorative background blobs */
+.menu-bg-circle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.menu-bg-circle--1 {
+  width: 520px;
+  height: 520px;
+  top: -160px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.18) 0%, transparent 70%);
+}
+
+.menu-bg-circle--2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.10) 0%, transparent 70%);
+}
+
+/* =========================================================
+   MAIN MENU — HEADER
+   ========================================================= */
+
+.menu-header {
+  position: relative;
+  z-index: 1;
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  backdrop-filter: var(--blur-lg);
+}
+
+.menu-header__inner {
+  max-width: 680px;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-team-badge {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: var(--btn-accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(250, 204, 21, 0.35);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  user-select: none;
+}
+
+.menu-team-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(250, 204, 21, 0.45);
+}
+
+.menu-team-badge:active {
+  transform: scale(0.95);
+}
+
+.menu-team-badge__number {
+  font-size: 22px;
+  font-weight: 900;
+  color: #1a1a18;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.menu-header__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-team-name {
+  font-size: clamp(1.3rem, 4vw, 1.8rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  margin: 0 !important;
+  line-height: 1.1 !important;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu-team-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.menu-hint {
+  font-size: 0.75rem;
+  color: var(--btn-accent-hover);
+  margin: 4px 0 0 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  animation: fadeIn 0.3s ease;
+}
+
+/* =========================================================
+   MAIN MENU — WELCOME STRIP
+   ========================================================= */
+
+.menu-welcome {
+  position: relative;
+  z-index: 1;
+  padding: 16px 24px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.menu-welcome__text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* =========================================================
+   MAIN MENU — CARDS GRID
+   ========================================================= */
+
+.menu-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  padding: 0 24px 32px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.menu-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  backdrop-filter: var(--blur-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal),
+    background var(--transition-normal);
+}
+
+.menu-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  background: var(--bg-elevated);
+}
+
+.menu-card--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.menu-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--accent-yellow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--btn-accent-hover);
+  flex-shrink: 0;
+}
+
+.menu-card__body {
+  flex: 1;
+}
+
+.menu-card__title {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.2 !important;
+}
+
+.menu-card__desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   MAIN MENU — FOOTER
+   ========================================================= */
+
+.menu-footer {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.menu-footer p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* =========================================================
@@ -152,7 +386,7 @@ h3,
 h4,
 h5,
 h6 {
-  margin: 10px;
+  margin-top: 10px;
 
   color: var(--text-primary);
 
@@ -213,47 +447,8 @@ body {
 
 /* =========================================================
    CONTAINERS
+   (Launch cards now use .menu-card — see MAIN MENU section)
    ========================================================= */
-
-.launchdiv {
-  color: var(--text-primary);
-
-  width: 96%;
-  max-width: 2000px;
-
-  margin: 10px auto;
-
-  padding: 16px 20px;
-
-  border-radius: var(--radius-lg);
-
-  background: var(--bg-surface);
-
-  border: 1px solid var(--border-subtle);
-
-  backdrop-filter: var(--blur-lg);
-
-  box-shadow: var(--shadow-sm);
-
-  transition:
-    transform var(--transition-normal),
-    box-shadow var(--transition-normal),
-    background var(--transition-normal);
-}
-
-.launchdiv h1 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.launchdiv:hover {
-  transform: translateY(-3px);
-
-  background: var(--bg-elevated);
-
-  box-shadow: var(--shadow-md);
-}
 
 /* =========================================================
    BUTTONS
@@ -367,25 +562,6 @@ body {
   transform: scale(0.97);
 }
 
-/* =========================================================
-   ICON TOGGLE
-   ========================================================= */
-
-[data-theme="dark"] .icon-sun {
-  display: inline;
-}
-
-[data-theme="dark"] .icon-moon {
-  display: none;
-}
-
-.icon-sun {
-  display: none;
-}
-
-.icon-moon {
-  display: inline;
-}
 
 /* =========================================================
    MODERN CARD
@@ -1154,4 +1330,3 @@ body {
   cursor: default;       /* Removes the pointer finger cursor */
   opacity: 0.5;          /* Visually grays it out */
 }
-
