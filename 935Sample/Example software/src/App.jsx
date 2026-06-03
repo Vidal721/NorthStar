@@ -12,6 +12,8 @@ import {
   faSun,
   faArrowUpRightFromSquare,
   faBinoculars,
+  faX,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
@@ -57,28 +59,35 @@ function ScouterMenu() {
       return nextCount;
     });
   };
+
+  function getUser(){
+
+    return localStorage.getItem("Current")
+  }
+
+  function handleLogOut (){
+    localStorage.setItem("Current", "")
+    navigate("/");
+  }
   return (
     <>
-      <img
-        src="/pwa-512x512-removebg.png"
-        alt="935 scouting logo"
-        className="logo"
-        id="logo"
-      />
       <div id="header">
+          <img
+            src="/pwa-512x512-removebg.png"
+            alt="935 scouting logo"
+            className="logo"
+            id="logo"
+          />
         <h1 className="headertext" onClick={handleHeaderClick}>
           North <strong id="strong">Star</strong>
         </h1>
-        <img
-          src="/pwa-512x512-removebg.png"
-          alt="935 scouting logo"
-          className="logo"
-          id="logo"
-        />
+        <button className="redZone2" onClick={handleLogOut}>
+          <FontAwesomeIcon icon={faRightFromBracket} />
+        </button>
       </div>
       <div id="count"></div>
       <div id="main-menu-container">
-        <h1 className="headertext">choose what to start</h1>
+        <h1 className="introtext">Welcome, {getUser()}</h1>
         <button
           className="theme-btn"
           onClick={toggleTheme}
@@ -94,7 +103,8 @@ function ScouterMenu() {
         </button>
         <div id="divs">
           <div id="datavis" className="launchdiv">
-            <h1>Data Table</h1>
+            <h1 className="divHeader">Vantage</h1>
+            <p>Data the simple way.</p>
             <Link
               to="/vis"
               target="_blank"
@@ -107,7 +117,10 @@ function ScouterMenu() {
           </div>
 
           <div id="pitscout" className="launchdiv">
-            <h1>Pitscouting</h1>
+            <h1 className="divHeader">
+              Corner<strong>Stone</strong>
+            </h1>
+            <p>Core technical specifications and pit diagnostics</p>
 
             <Link
               to={isDisabled ? "#" : "/pit"}
@@ -121,7 +134,8 @@ function ScouterMenu() {
           </div>
 
           <div id="mainscout" className="launchdiv">
-            <h1>Match Scouting</h1>
+            <h1 className="divHeader">Horizon</h1>
+            <p>Real-time match tracking and performance analytics.</p>
             <Link
               to="/match"
               target="_blank"
@@ -134,7 +148,8 @@ function ScouterMenu() {
           </div>
 
           <div id="formbuilder" className="launchdiv">
-            <h1>Form Builder</h1>
+            <h1 className="divHeader">Blueprint</h1>
+            <p>Dynamic data schema and form configuration.</p>
             <Link
               to="/form"
               target="_blank"
@@ -174,15 +189,33 @@ function MainMenu() {
     // Functional state update ensures accuracy if clicks happen rapidly
 
     const password = "team935!";
-    const userInput = prompt("Password");
-
+    const name = document.getElementById("username").value;
+    const userInput = document.getElementById("Password").value;
     if (userInput === password) {
+      localStorage.setItem("Current", name)
+      document.getElementById("failed").style.display = "none"
       navigate("/scoutdash");
+      handleClose()
+      
     } else {
-      alert("incorrect password");
-      navigate("/");
+      document.getElementById("failed").style.display = "block"
     }
   };
+
+  function handleLogin (){
+    const overlay = document.getElementById("loginDivBack");
+    const login = document.getElementById("loginDiv");
+
+    overlay.style.display = "block"
+    login.style.display = "block"
+  }
+  function handleClose (){
+    const overlay = document.getElementById("loginDivBack");
+    const login = document.getElementById("loginDiv");
+
+    overlay.style.display = "none"
+    login.style.display = "none"
+  }
 
   return (
     <>
@@ -194,7 +227,7 @@ function MainMenu() {
       />
       <div id="header">
         <h1 className="headertext">
-          North <strong id="strong">Star</strong>
+          North<strong id="strong">Star</strong>
         </h1>
         <img
           src="/pwa-512x512-removebg.png"
@@ -203,13 +236,13 @@ function MainMenu() {
           id="logo"
         />
 
-          <button onClick={handleScoutLogin} className="redZone">
-            <FontAwesomeIcon icon={faBinoculars} />
-          </button>
+        <button onClick={handleLogin} className="redZone">
+          <FontAwesomeIcon icon={faBinoculars} />
+        </button>
       </div>
       <div id="count"></div>
       <div id="main-menu-container">
-        <h1 className="headertext">Choose which app to launch</h1>
+        <h1 className="introtext">Choose which app to launch</h1>
         <button
           className="theme-btn"
           onClick={toggleTheme}
@@ -225,7 +258,8 @@ function MainMenu() {
         </button>
         <div id="divs">
           <div id="datavis" className="launchdiv">
-            <h1>Data visualization</h1>
+            <h1 className="divHeader">Vantage</h1>
+            <p>Data the simple way.</p>
             <Link
               to="/vis"
               target="_blank"
@@ -237,6 +271,16 @@ function MainMenu() {
             </Link>
           </div>
         </div>
+      </div>
+      <div id="loginDivBack"></div>
+      <div id="loginDiv">
+        <div id="close" onClick={handleClose}><FontAwesomeIcon icon={faX} /></div>
+        <h1>Welcome Scouter</h1>
+        <p>Login to continue</p>
+        <input type="text" id="username" placeholder="Name"/><br />
+        <p id="failed">Incorrect Password</p>
+        <input type="password" id="Password" placeholder="Password"/><br />
+        <button id="login" onClick={handleScoutLogin}>Login</button>
       </div>
     </>
   );

@@ -1177,14 +1177,14 @@ body {
 }
 .headertext {
   color: var(--text-primary);
-  font-family: "Quicksand", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
+  font-size: 50px;
+  font-family: "Birthstone", cursive;
+  font-weight: 700;
   font-style: normal;
 }
 #strong {
   color: var(--btn-accent-hover);
-  font-size: 40px;
+  font-size: 50px;
   font-family: "Birthstone", cursive;
   font-weight: 700;
   font-style: normal;
@@ -1210,4 +1210,75 @@ body {
   height: 50px;
   font-size: 20px;
   width: 50px;
+  box-shadow: var(--shadow-md);
+}
+#loginDiv {
+  background-color: var(--bg-app);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  z-index: 10000;
+  max-width: 300px;
+  width: 95%;
+  position: absolute;
+  height: 35%;
+  top: 32.5%;
+  display: none;
+}
+#loginDivBack {
+  background-color: var(--scout-bg-overlay);
+  backdrop-filter: blur(10px);
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  display: none;
+}
+#loginDiv input{
+  height: 35px;
+  border-radius: var(--radius-md);
+  width: 100%;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  padding: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+#loginDiv button {
+  margin-top: 25px;
+  padding: 10px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+#close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--scout-red);
+  background-color: var(--scout-red-bg);
+  padding: 5px;
+  height: 35px;
+  width: fit-content;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+.redZone2 {
+  position: absolute;
+  background-color: var(--scout-red-bg);
+  color: var(--scout-red);
+  border: var(--border-default);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  top: 10px;
+  right: 10px;
+  height: 50px;
+  font-size: 20px;
+  width: 50px;
+  box-shadow: var(--shadow-md);
+}
+#failed {
+  color: var(--scout-red);
+  display: none;
 }
