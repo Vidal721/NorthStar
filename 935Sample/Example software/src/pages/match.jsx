@@ -2092,7 +2092,7 @@ export default function App() {
     const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
     console.log(`${label} — sending`, matchData);
     try {
-      const res = await fetch(LOCAL_URL, {
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

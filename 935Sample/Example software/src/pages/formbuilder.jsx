@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/pit/save";
+const LOCAL_URL = "http://localhost:3000/pit/save";
+
 const initialSchema = {
   id: "frc_2026_pit_scouting",
   title: "Rapid React Engine",
@@ -440,7 +443,7 @@ export default function FormBuilder() {
   const saveSchema = async () => {
     setSaveStatus('saving');
     try {
-      const res = await fetch('http://localhost:3000/pit/save', {
+      const res = await fetch(API_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(schema),
       });
       if (!res.ok) throw new Error();
@@ -527,7 +530,7 @@ export default function FormBuilder() {
               minWidth: isMobile ? 'unset' : '80px',
             }}
           >
-            {saveStatus === 'saving' ? '…' : saveStatus === 'saved' ? '✓' : saveStatus === 'error' ? '✗' : 'Save'}
+            {saveStatus === 'saving' ? '…' : saveStatus === 'saved' ? '✓' : saveStatus === 'error' ? 'X' : 'Save'}
           </button>
         </div>
       </div>
