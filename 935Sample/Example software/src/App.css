@@ -1211,3 +1211,39 @@ body {
   font-size: 20px;
   width: 50px;
 }
+
+/* Style the fieldset wrapper to act as your outer input bounds */
+.fieldset-container {
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  padding: 0 10px 10px 10px;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+/* Update this specific class rule in your CSS stylesheet */
+.fieldset-legend {
+  font-size: 13px;
+  color: #666;
+  padding: 0 6px;     /* Breathing room for the border break */
+  margin-left: 0px;   /* Forces the break to align with the inner box edge */
+}
+s
+
+/* Clean up input boundaries inside the fieldset matrix */
+.fieldset-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 8px 0 0 0;
+  font-size: 16px;
+}
+
+/* Focus color fallback wrapper trigger */
+.fieldset-container:focus-within {
+  border-color: #007bff;
+}
+
+.fieldset-container:focus-within .fieldset-legend {
+  color: #007bff;
+}
