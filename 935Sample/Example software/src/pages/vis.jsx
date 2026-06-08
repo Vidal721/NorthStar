@@ -117,7 +117,7 @@ function getCellValue(row, def) {
   return row[def.section]?.[def.subKey];
 }
 
-// ── Compute profile metrics exactly as calc.html does ──────
+// ── Compute profile metrics like how calc.html does ──────
 function computeProfile(teamRows) {
   const matchCount = teamRows.length;
   let totalCyclesSum = 0, scoringCyclesSum = 0, fitScoreSum = 0, autoFullScoresSum = 0;
@@ -257,7 +257,7 @@ function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
     <div
       className="settings-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    > 
       <div className="team-modal">
         <div className="team-modal-header">
           <div className="team-modal-title">
