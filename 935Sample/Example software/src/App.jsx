@@ -12,6 +12,8 @@ import {
   faSun,
   faArrowUpRightFromSquare,
   faBinoculars,
+  faX,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";

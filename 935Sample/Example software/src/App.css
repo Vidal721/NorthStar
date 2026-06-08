@@ -1177,14 +1177,14 @@ body {
 }
 .headertext {
   color: var(--text-primary);
-  font-family: "Quicksand", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
+  font-size: 50px;
+  font-family: "Birthstone", cursive;
+  font-weight: 700;
   font-style: normal;
 }
 #strong {
   color: var(--btn-accent-hover);
-  font-size: 40px;
+  font-size: 50px;
   font-family: "Birthstone", cursive;
   font-weight: 700;
   font-style: normal;
@@ -1210,40 +1210,1165 @@ body {
   height: 50px;
   font-size: 20px;
   width: 50px;
+  box-shadow: var(--shadow-md);
 }
-
-/* Style the fieldset wrapper to act as your outer input bounds */
-.fieldset-container {
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  padding: 0 10px 10px 10px;
-  margin: 0;
-  font-family: sans-serif;
+#loginDiv {
+  background-color: var(--bg-app);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  z-index: 10000;
+  max-width: 300px;
+  width: 95%;
+  position: absolute;
+  height: 35%;
+  top: 32.5%;
+  display: none;
 }
-
-/* Update this specific class rule in your CSS stylesheet */
-.fieldset-legend {
-  font-size: 13px;
-  color: #666;
-  padding: 0 6px;     /* Breathing room for the border break */
-  margin-left: 0px;   /* Forces the break to align with the inner box edge */
-}
-s
-
-/* Clean up input boundaries inside the fieldset matrix */
-.fieldset-input {
-  border: none;
-  outline: none;
+#loginDivBack {
+  background-color: var(--scout-bg-overlay);
+  backdrop-filter: blur(10px);
+  height: 100%;
   width: 100%;
-  padding: 8px 0 0 0;
+  position: absolute;
+  display: none;
+}
+#loginDiv input{
+  height: 35px;
+  border-radius: var(--radius-md);
+  width: 100%;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  padding: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+#loginDiv button {
+  margin-top: 25px;
+  padding: 10px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+#close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--scout-red);
+  background-color: var(--scout-red-bg);
+  padding: 5px;
+  height: 35px;
+  width: fit-content;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+.redZone2 {
+  position: absolute;
+  background-color: var(--scout-red-bg);
+  color: var(--scout-red);
+  border: var(--border-default);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  top: 10px;
+  right: 10px;
+  height: 50px;
+  font-size: 20px;
+  width: 50px;
+  box-shadow: var(--shadow-md);
+}
+#failed {
+  color: var(--scout-red);
+  display: none;
+}
+
+/* ============================================================
+   match.css — Extracted from match.jsx
+   All static styles pulled from inline style props.
+   Dynamic/runtime values remain inline in the JSX.
+   ============================================================ */
+
+/* ── ActionButton ─────────────────────────────────────────── */
+#action-btn {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.1s, box-shadow 0.12s, background-color 0.1s;
+  border-radius: var(--radius-lg);
+  padding: 14px 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.2;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+#action-btn-icon {
+  font-size: 20px;
+}
+
+#action-btn-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+#action-btn-sub {
+  font-size: 9px;
+  opacity: 0.65;
+  text-align: center;
+}
+
+/* ── ButtonSection ────────────────────────────────────────── */
+#btn-section-header {
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── SectionHeader component ──────────────────────────────── */
+#section-header {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#section-header-text {
+  color: var(--scout-text-faint);
+}
+
+/* ── FormulaEditor ────────────────────────────────────────── */
+
+/* Header label */
+#editor-header-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--scout-indigo);
+}
+
+/* Header title */
+#editor-header-title {
   font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+  color: var(--scout-text-body);
 }
 
-/* Focus color fallback wrapper trigger */
-.fieldset-container:focus-within {
-  border-color: #007bff;
+/* Header button row */
+#editor-header-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.fieldset-container:focus-within .fieldset-legend {
-  color: #007bff;
+/* Save button (gradient override) */
+#editor-btn-save {
+  background: linear-gradient(135deg, #3730a3, #4f46e5);
+  color: #fff;
+  border: none;
+}
+
+/* Sidebar overline */
+#editor-sidebar-overline {
+  padding: 8px 10px;
+}
+
+/* Equation item label */
+#eq-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+/* Weight total panel */
+#eq-weight-total {
+  padding: 8px 10px;
+  border-top: 1px solid var(--scout-border);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+#eq-weight-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#eq-weight-bar-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--scout-border);
+}
+
+#eq-weight-pct {
+  font-size: 11px;
+  font-weight: 900;
+  min-width: 36px;
+  text-align: right;
+}
+
+#eq-weight-warning {
+  font-size: 8px;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* Add formula panel */
+#editor-add-formula {
+  padding: 10px;
+  border-top: 1px solid var(--scout-border);
+  margin-top: auto;
+}
+
+#editor-add-formula-overline {
+  margin-bottom: 6px;
+}
+
+#editor-add-btn {
+  margin-top: 6px;
+  width: 100%;
+  border-radius: 7px;
+  padding: 6px;
+  font-size: 10px;
+}
+
+/* Main panel: label + weight row */
+#editor-meta-row {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--scout-border);
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+#editor-label-col {
+  flex: 1;
+}
+
+#editor-label-overline {
+  margin-bottom: 4px;
+}
+
+#editor-weight-col {
+  width: 80px;
+}
+
+#editor-weight-overline {
+  margin-bottom: 4px;
+}
+
+#editor-weight-input {
+  color: var(--scout-yellow-soft);
+}
+
+#editor-delete-btn {
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 10px;
+}
+
+/* Description row */
+#editor-desc-row {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--scout-border);
+}
+
+#editor-desc-overline {
+  margin-bottom: 4px;
+}
+
+#editor-desc-input {
+  font-size: 11px;
+  color: var(--scout-text-secondary);
+}
+
+/* Formula input section */
+#editor-formula-section {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--scout-border);
+  position: relative;
+}
+
+#editor-formula-overline {
+  margin-bottom: 6px;
+}
+
+#editor-formula-wrap {
+  position: relative;
+}
+
+#editor-formula-input {
+  font-size: 10px;
+}
+
+/* Autocomplete item: variable name */
+#autocomplete-var-name {
+  font-size: 11px;
+  color: var(--scout-indigo-soft);
+  font-family: monospace;
+  font-weight: 700;
+}
+
+#autocomplete-var-desc {
+  font-size: 9px;
+  color: var(--scout-text-ghost);
+  margin-left: 8px;
+}
+
+/* Test result */
+#editor-test-result {
+  margin-top: 6px;
+  font-size: 10px;
+  font-family: monospace;
+}
+
+#editor-test-ok {
+  color: var(--scout-green-soft);
+}
+
+#editor-test-err {
+  color: var(--scout-red-soft);
+}
+
+/* Variables panel */
+#editor-vars-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 16px;
+}
+
+#editor-vars-overline {
+  margin-bottom: 8px;
+}
+
+/* Per-category header */
+#var-category-header {
+  font-size: 8px;
+  color: var(--scout-text-darker);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+#var-category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ── Equation sidebar item details ───────────────────────── */
+#eq-item-label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+#eq-item-status {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+#eq-item-weight {
+  font-size: 8px;
+  color: var(--scout-text-ghost);
+  margin-top: 2px;
+}
+
+#help-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--scout-bg-overlay);
+  z-index: 200;
+  overflow-y: auto;
+  padding: 20px 20px 40px;
+}
+
+#help-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#help-overlay-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--scout-text-body);
+}
+
+#help-overlay-close {
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 11px;
+}
+
+#help-ops-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+#help-op-card {
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+#help-op-label {
+  color: var(--scout-indigo-soft);
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+#help-op-desc {
+  color: var(--scout-text-secondary);
+  font-size: 10px;
+  margin-left: 10px;
+}
+
+#help-op-insert {
+  font-size: 9px;
+  color: var(--scout-text-ghost);
+  margin-top: 3px;
+  font-family: monospace;
+}
+
+#help-op-insert-val {
+  color: var(--scout-text-faint);
+}
+
+/* Formula rules card */
+#help-rules-card {
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+#help-rules-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--scout-yellow-soft);
+  margin-bottom: 8px;
+}
+
+#help-rules-body {
+  font-size: 10px;
+  color: var(--scout-text-secondary);
+  line-height: 1.7;
+  font-family: monospace;
+}
+
+/* Example formulas card */
+#help-examples-card {
+  border-radius: 10px;
+  padding: 14px;
+}
+
+#help-examples-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--scout-green-soft);
+  margin-bottom: 8px;
+}
+
+#help-example-item {
+  margin-bottom: 8px;
+}
+
+#help-example-name {
+  font-size: 9px;
+  color: var(--scout-text-faint);
+  font-weight: 700;
+}
+
+#help-example-formula {
+  font-size: 10px;
+  color: var(--scout-green-soft);
+  font-family: monospace;
+  background: var(--scout-bg-app);
+  padding: 5px 8px;
+  border-radius: 5px;
+  margin-top: 3px;
+}
+
+/* ── START SCREEN ──────────────────────────────────────────── */
+#screen-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#start-ring-sm {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  border: 1px solid #1e1e2e;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+#start-ring-lg {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  border: 1px solid #1e1e2e44;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+#start-content {
+  position: relative;
+  text-align: center;
+  padding: 0 32px;
+}
+
+#start-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  color: var(--scout-indigo);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+#start-title {
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+  color: var(--scout-text-primary);
+}
+
+#start-title-accent {
+  color: var(--scout-indigo);
+}
+
+#start-subtitle {
+  font-size: 13px;
+  color: var(--scout-text-faint);
+  margin-bottom: 44px;
+  font-weight: 500;
+}
+
+#start-meta-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+#start-field-team-overline,
+#start-field-match-overline,
+#start-field-scout-overline {
+  margin-bottom: 4px;
+}
+
+/* Sample progress card */
+#sample-progress-card {
+  margin-bottom: 18px;
+  background: var(--scout-bg-card);
+  border: 1px solid var(--scout-border-card);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+#sample-progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+#sample-progress-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--scout-indigo-soft);
+  letter-spacing: 0.1em;
+}
+
+#sample-progress-pct {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--scout-text-faint);
+}
+
+#sample-progress-track {
+  height: 6px;
+  margin-bottom: 8px;
+}
+
+#sample-progress-msg {
+  font-size: 11px;
+  color: var(--scout-text-faint);
+  font-style: italic;
+}
+
+/* Start button */
+#btn-start-match {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  padding: 18px 52px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.27), 0 4px 20px rgba(0, 0, 0, 0.5);
+  -webkit-tap-highlight-color: transparent;
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+#btn-formula-editor {
+  border-radius: 14px;
+  padding: 12px 52px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#btn-sample-data {
+  border-radius: 14px;
+  padding: 12px 52px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  border: 1px dashed var(--scout-indigo);
+  color: var(--scout-indigo-soft);
+}
+
+/* ── SCOUT SCREEN ──────────────────────────────────────────── */
+#screen-scout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Phase badge */
+#phase-badge {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  /* background & color set inline (runtime phaseInfo) */
+}
+
+#match-id-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--scout-text-muted);
+}
+
+#match-timer {
+  font-size: 30px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  transition: color 0.3s;
+  /* color set inline (runtime matchTime/phase) */
+}
+
+/* Shift accent bar */
+#shift-accent-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 9px;
+  /* background & border set inline (shiftAccent.color) */
+}
+
+#shift-accent-inner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+#shift-accent-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  /* background & boxShadow set inline */
+}
+
+#shift-accent-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  /* color set inline */
+}
+
+#shift-accent-time {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  /* color set inline */
+}
+
+/* Cycle status card */
+#cycle-status-card {
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* background & border set inline (activeCycle / activeGroupKey) */
+}
+
+#cycle-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  /* background & boxShadow set inline */
+}
+
+#cycle-status-text {
+  font-size: 11px;
+  color: var(--scout-text-muted);
+  font-weight: 600;
+}
+
+#cycle-status-offshift-label {
+  color: var(--scout-red-soft);
+  font-weight: 800;
+}
+
+#cycle-status-aiming-label {
+  color: var(--scout-yellow-soft);
+  font-weight: 800;
+}
+
+#cycle-status-active-label {
+  color: var(--scout-text-body);
+  font-weight: 800;
+}
+
+#cycle-status-defended-badge {
+  color: var(--scout-blue-soft);
+  margin-left: 6px;
+}
+
+#cycle-status-idle-label {
+  color: var(--scout-text-body);
+  font-weight: 800;
+}
+
+/* Transit notice */
+#transit-notice {
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #1c1205;
+  border: 1px solid rgba(251, 191, 36, 0.13);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#transit-notice-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--scout-yellow-soft);
+  box-shadow: 0 0 6px #fbbf24;
+  flex-shrink: 0;
+}
+
+#transit-notice-text {
+  font-size: 11px;
+  color: #92400e;
+  font-weight: 700;
+}
+
+#transit-notice-accent {
+  color: var(--scout-yellow-soft);
+}
+
+/* Match over → results button */
+#match-over-bar {
+  padding: 0 14px 20px;
+  flex-shrink: 0;
+}
+
+#btn-view-results {
+  background: linear-gradient(135deg, #7f1d1d, #9f1239);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+}
+
+/* Auto-winner overlay */
+#auto-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--scout-bg-overlay);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  transform: translate3d(0, 0, 0);
+  will-change: backdrop-filter;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 28px;
+}
+
+#auto-overlay-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--scout-indigo-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+#auto-overlay-title {
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 6px;
+  color: var(--scout-text-body);
+}
+
+#auto-overlay-subtitle {
+  font-size: 13px;
+  color: var(--scout-text-faint);
+  text-align: center;
+  font-weight: 500;
+}
+
+#auto-overlay-choices {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+}
+
+#btn-we-won {
+  flex: 1;
+  border: 1px solid rgba(22, 163, 74, 0.33);
+  border-radius: 16px;
+  padding: 20px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  background: rgba(20, 83, 45, 0.13);
+  color: var(--scout-green-soft);
+  letter-spacing: 0.04em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#btn-they-won {
+  flex: 1;
+  border: 1px solid rgba(185, 28, 28, 0.33);
+  border-radius: 16px;
+  padding: 20px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  background: rgba(127, 29, 29, 0.13);
+  color: var(--scout-red-soft);
+  letter-spacing: 0.04em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── RESULTS SCREEN ────────────────────────────────────────── */
+#screen-results {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--scout-bg-app);
+}
+
+/* Results header */
+#results-header {
+  padding: 20px 18px 16px;
+  background: var(--scout-bg-surface);
+  border-bottom: 1px solid var(--scout-border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+#results-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--scout-indigo);
+  margin-bottom: 4px;
+}
+
+#results-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--scout-text-body);
+}
+
+#results-meta {
+  font-size: 12px;
+  color: var(--scout-text-faint);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+#results-formulas-btn {
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* Results scrollable body */
+#results-body {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+/* Fit score card */
+#fit-score-card {
+  border-radius: 20px;
+  padding: 22px 20px;
+  background: linear-gradient(135deg, var(--scout-bg-card), rgba(26, 29, 46, 0.13));
+  border: 1px solid var(--scout-border-card);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+#fit-score-radial-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+#fit-score-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#fit-score-value {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  /* color set inline (fitColor) */
+}
+
+#fit-score-unit {
+  font-size: 8px;
+  color: var(--scout-text-faint);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+#fit-score-label {
+  font-size: 13px;
+  color: var(--scout-text-secondary);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+#fit-score-desc {
+  font-size: 11px;
+  color: var(--scout-text-faint);
+  line-height: 1.6;
+}
+
+#fit-score-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+#fit-score-chip {
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--scout-border-subtle);
+  color: var(--scout-text-secondary);
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* Scoring metrics section */
+#scoring-metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Per-equation card internals */
+#eq-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+#eq-card-label {
+  font-size: 10px;
+  color: var(--scout-text-faint);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+#eq-card-value-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+#eq-card-value {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  /* color set inline (dynamic c) */
+}
+
+#eq-card-pct {
+  font-size: 11px;
+  color: var(--scout-text-faint);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+#eq-card-err {
+  font-size: 12px;
+  color: var(--scout-text-faint);
+  font-weight: 700;
+}
+
+#eq-card-formula {
+  font-size: 9px;
+  color: var(--scout-text-ghost);
+  line-height: 1.5;
+  font-family: monospace;
+}
+
+#eq-card-formula-prefix {
+  color: var(--scout-text-darker);
+  font-weight: 800;
+}
+
+#eq-card-formula-expr {
+  color: var(--scout-text-dim);
+}
+
+#eq-card-substituted {
+  font-size: 9px;
+  color: var(--scout-border-subtle);
+  line-height: 1.5;
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+#eq-card-substituted-prefix {
+  color: var(--scout-text-darker);
+  font-weight: 800;
+}
+
+#eq-card-substituted-val {
+  color: var(--scout-neutral-glow);
+}
+
+#eq-card-desc {
+  font-size: 9px;
+  color: var(--scout-text-ghost);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+#eq-card-weight {
+  font-size: 8px;
+  color: var(--scout-text-darker);
+  margin-top: 3px;
+}
+
+/* Shot timing grid */
+#shot-timing-grid {
+  margin-top: 10px;
+}
+
+/* Raw stats / transition / off-shift grids with gap override */
+#transition-grid {
+  gap: 8px;
+}
+
+#offshift-grid {
+  gap: 8px;
+}
+
+/* Roles section */
+#roles-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+#roles-empty {
+  color: var(--scout-neutral-glow);
+  font-size: 12px;
+}
+
+/* Results footer / submit bar */
+#results-submit-bar {
+  padding: 12px 14px 32px;
+  flex-shrink: 0;
+  background: var(--scout-bg-surface);
+  border-top: 1px solid var(--scout-border);
+}
+
+/* Root layout */
+#scout-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
 }
