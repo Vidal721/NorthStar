@@ -1,3 +1,21 @@
+import { useState, useEffect } from "react"; // Added hooks
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Link,
+  useNavigate,
+} from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMoon,
+  faSun,
+  faArrowUpRightFromSquare,
+  faBinoculars,
+  faX,
+  faRightFromBracket,
+} from "@fortawesome/free-solid-svg-icons";
+
 export default function MainMenu() {
   // 1. Manage theme state inside the component
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
@@ -14,7 +32,6 @@ export default function MainMenu() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const [clickCount, setClickCount] = useState(0);
   const navigate = useNavigate();
 
   const handleScoutLogin = () => {

@@ -1,4 +1,4 @@
-@import url('https://googleapis.com');
+@import url("https://googleapis.com");
 
 /* =========================================================
    DESIGN TOKENS — light theme (default)
@@ -100,8 +100,6 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
-
-
 
 /* =========================================================
    GLOBAL RESET
@@ -256,7 +254,6 @@ body {
 
   box-shadow: var(--shadow-md);
 }
-
 
 /* =========================================================
    BUTTONS
@@ -1149,20 +1146,20 @@ body {
 
 /* Makes formula editor and sample data submit go next to eachother */
 #buttonCombo {
-  display: flex; 
+  display: flex;
   gap: 12px;
 }
 .disabled-link {
   pointer-events: none; /* Stops all mouse clicks */
-  cursor: default;       /* Removes the pointer finger cursor */
-  opacity: 0.5;          /* Visually grays it out */
+  cursor: default; /* Removes the pointer finger cursor */
+  opacity: 0.5; /* Visually grays it out */
 }
 .logo {
   width: 50px;
   top: 10px;
   left: 10px;
   position: absolute;
-  background-color: rgba(255, 255, 255, 0.85);;
+  background-color: rgba(255, 255, 255, 0.85);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
@@ -1191,12 +1188,12 @@ body {
 }
 #divs {
   display: grid;
-  
+
   /* Step 2: Create 2 equal-width columns (1 fraction of space each) */
   grid-template-columns: repeat(2, 1fr);
-  
+
   /* Step 3: Optional spacing between the blocks */
-  gap: 1px; 
+  gap: 1px;
   width: 95%;
 }
 .redZone {
@@ -1232,7 +1229,7 @@ body {
   position: absolute;
   display: none;
 }
-#loginDiv input{
+#loginDiv input {
   height: 35px;
   border-radius: var(--radius-md);
   width: 100%;
@@ -1292,7 +1289,10 @@ body {
 /* ── ActionButton ─────────────────────────────────────────── */
 #action-btn {
   border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: transform 0.1s, box-shadow 0.12s, background-color 0.1s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.12s,
+    background-color 0.1s;
   border-radius: var(--radius-lg);
   padding: 14px 8px;
   font-weight: 700;
@@ -1838,7 +1838,9 @@ body {
   font-weight: 800;
   cursor: pointer;
   letter-spacing: 0.04em;
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.27), 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 40px rgba(99, 102, 241, 0.27),
+    0 4px 20px rgba(0, 0, 0, 0.5);
   -webkit-tap-highlight-color: transparent;
   display: block;
   width: 100%;
@@ -2170,7 +2172,11 @@ body {
 #fit-score-card {
   border-radius: 20px;
   padding: 22px 20px;
-  background: linear-gradient(135deg, var(--scout-bg-card), rgba(26, 29, 46, 0.13));
+  background: linear-gradient(
+    135deg,
+    var(--scout-bg-card),
+    rgba(26, 29, 46, 0.13)
+  );
   border: 1px solid var(--scout-border-card);
   display: flex;
   align-items: center;
@@ -2373,4 +2379,100 @@ body {
   overflow: hidden;
 }
 
-/* Style the fieldset wrapper to act as your outer input bounds */ .fieldset-container { border: 2px solid #ccc; border-radius: 4px; padding: 0 10px 10px 10px; margin: 0; font-family: sans-serif; } /* Update this specific class rule in your CSS stylesheet */ .fieldset-legend { font-size: 13px; color: #666; padding: 0 6px;     /* Breathing room for the border break */ margin-left: 0px;   /* Forces the break to align with the inner box edge */ } s /* Clean up input boundaries inside the fieldset matrix */ .fieldset-input { border: none; outline: none; width: 100%; padding: 8px 0 0 0; font-size: 16px; } /* Focus color fallback wrapper trigger */ .fieldset-container:focus-within { border-color: #007bff; } .fieldset-container:focus-within .fieldset-legend { color: #007bff; }
+.fieldset-container {
+  width: 100%;
+  border: 2px solid #ccc;
+  border-radius: var(--radius-lg);
+  padding: 0 10px;
+  margin: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.fieldset-legend {
+  font-size: 13px;
+  color: #666;
+  padding: 0 6px;
+  text-align: left;
+  margin-left: 12px;
+  line-height: 1;
+}
+
+.fieldset-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 16px;
+  text-align: left;
+  caret-color: var(--btn-accent-text);
+  background-color: transparent;
+  height: 35px;
+  padding: 0;
+  font-weight: 700;
+  margin-top: -4px;
+  margin-bottom: 4px;
+  color: var(--btn-accent-text);
+}
+
+.fieldset-input::placeholder {
+  text-align: center;
+}
+
+.fieldset-container:focus-within {
+  border-color: var(--btn-accent-bg);
+}
+
+.fieldset-container:focus-within .fieldset-legend {
+  color: var(--btn-accent-bg);
+}
+
+#email:focus {
+  border: none;
+  outline: none;
+}
+
+#loginContainer {
+  background-color: var(--bg-elevated);
+  padding: 20px;
+  margin: auto;
+  border-radius: var(--radius-md);
+  max-width: 350px;
+  width: 90%;
+}
+
+#mainLogin {
+  width: 100%;
+  height: 35px;
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--btn-accent-bg);
+}
+/* #007bff */
+#guest {
+  width: 100%;
+  height: 35px;
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--btn-primary-bg);
+}
+#mainLogin:hover {
+  background-color: var(--btn-accent-hover);
+  transition: 0.3s;
+}
+#guest:hover {
+  background-color: var(--btn-primary-hover);
+  transition: 0.3s;
+}
+
+.mainLogo {
+  width: 100px;
+}
+
+
+
+
