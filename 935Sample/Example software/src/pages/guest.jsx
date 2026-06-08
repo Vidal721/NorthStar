@@ -34,19 +34,9 @@ export default function MainMenu() {
 
   const navigate = useNavigate();
 
-  const handleScoutLogin = () => {
-    // Functional state update ensures accuracy if clicks happen rapidly
-
-    const password = "team935!";
-    const userInput = prompt("Password");
-
-    if (userInput === password) {
-      navigate("/scoutdash");
-    } else {
-      alert("incorrect password");
-      navigate("/");
-    }
-  };
+  function logout () {
+    navigate("/")
+  }
 
   return (
     <>
@@ -67,8 +57,8 @@ export default function MainMenu() {
           id="logo"
         />
 
-          <button onClick={handleScoutLogin} className="redZone">
-            <FontAwesomeIcon icon={faBinoculars} />
+          <button onClick={logout} className="redZone">
+            <FontAwesomeIcon icon={faRightFromBracket} />
           </button>
       </div>
       <div id="count"></div>

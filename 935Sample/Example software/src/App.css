@@ -2451,6 +2451,8 @@ body {
   border-radius: var(--radius-md);
   border: none;
   background-color: var(--btn-accent-bg);
+  color: var(--btn-primary-text);
+  font-weight: 700;
 }
 /* #007bff */
 #guest {
@@ -2459,6 +2461,8 @@ body {
   border-radius: var(--radius-md);
   border: none;
   background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-weight: 700;
 }
 #mainLogin:hover {
   background-color: var(--btn-accent-hover);
