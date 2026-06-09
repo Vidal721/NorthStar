@@ -11,7 +11,7 @@ import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
 import AdminDashboard from "./pages/admin";
 import FormBuilder from "./pages/formbuilder";
-import GuestPage from "./pages/guest";
+import FamilyPage from "./pages/family";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
 import ProtectedLayout from "./componets/ProtectedLayout"; 
@@ -54,6 +54,8 @@ function LoginScreen() {
 
       if (data.role === "admin") {
         navigate("/admin");
+      } else if (data.role === "family") {
+        navigate("/family")
       } else {
         navigate("/scout");
       }
@@ -100,12 +102,12 @@ function LoginScreen() {
       <button id="mainLogin" onClick={handleLogin}>Login</button>
       
         <p>or</p>
-        <Link to="/guest">
+        <Link to="/family">
           <button id="guest">Continue as Guest</button>
         </Link>
-        <Link to="/register" style={{ color: "#4f46e5", textDecoration: "none", fontSize: "0.9rem" }}>
-          Create an Account
-        </Link>
+        <p style={{ marginTop: "15px" }}>
+        Don't have an account? <Link to="/register" style={{ color: "#4f46e5", textDecoration: "none" }}>Sign Up</Link>
+      </p>
     </div>
   );
 }
@@ -196,8 +198,8 @@ function RegisterScreen() {
           <label htmlFor="regRole">Account Clearance Level</label>
         </legend>
         <select id="regRole" className="fieldset-input" style={{ width: "100%", background: "transparent", color: "inherit", border: "none", outline: "none" }}>
-          <option value="scouter" style={{ background: "#222" }}>Standard Scouter</option>
-          <option value="admin" style={{ background: "#222" }}>Team Admin</option>
+          <option value="scouter" style={{ background: "#222" }}>Scouter</option>
+          <option value="family" style={{ background: "#222" }}>Family Member</option>
         </select>
       </fieldset>
 
@@ -219,7 +221,11 @@ function App() {
         {/* Public Hub Routes */}
         <Route path="/" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
-        <Route path="/guest" element={<GuestPage />} />
+        
+
+        <Route element={<ProtectedLayout allowedRoles={["admin", "family"]} />}>
+          <Route path="/family" element={<FamilyPage />} />
+        </Route>
 
         {/* Base Protection Level: Any Logged In Scouter */}
         <Route element={<ProtectedLayout allowedRoles={["scouter", "admin"]} />}>

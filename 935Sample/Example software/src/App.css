@@ -2530,3 +2530,279 @@ body {
 }
 
 
+/* ==========================================
+   Family Hub Panel & Feature Custom Styles
+   ========================================== */
+
+.hub-badge {
+  font-size: 0.45em;
+  background-color: var(--accent-color, #ffcc00);
+  color: #111;
+  padding: 3px 10px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.welcome-banner {
+  text-align: center;
+  margin: 15px auto 30px auto;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  max-width: 900px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.utility-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto 20px auto;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: inherit;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Dashboard Action Cards */
+.family-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.family-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.family-icon { color: #3b82f6; }
+.shout-icon { color: #ef4444; }
+
+/* In-Depth Feature Framework Wrapper */
+.feature-panel {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feature-panel h2 {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-panel > p {
+  opacity: 0.7;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+}
+
+.empty-msg {
+  opacity: 0.5;
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* Media Subsystem CSS */
+.file-upload-label {
+  display: inline-block;
+  background: #2563eb;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 30px;
+  transition: background 0.2s;
+}
+
+.file-upload-label:hover { background: #1d4ed8; }
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.preview-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #000;
+}
+
+.preview-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.upload-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* Schedule Table CSS */
+.family-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.family-table th, .family-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.family-table th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+}
+
+.table-badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Announcement Timeline CSS */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-item {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 4px solid #3b82f6;
+  border-radius: 0 8px 8px 0;
+}
+
+.timeline-time {
+  font-size: 0.8rem;
+  font-weight: bold;
+  opacity: 0.6;
+}
+
+.timeline-msg {
+  margin-top: 6px;
+  font-size: 1rem;
+}
+
+/* Shared Form Architecture */
+.feature-form, .shout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.feature-form textarea, .shout-form textarea, .shout-form input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: inherit;
+  font-family: inherit;
+}
+
+.feature-form textarea, .shout-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.submit-btn {
+  align-self: flex-end;
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-btn:hover { background: #059669; }
+.cheer-btn { background: #ef4444; }
+.cheer-btn:hover { background: #dc2626; }
+
+/* Parent Advice Panel Log */
+.submitted-advice-section h3 { margin-bottom: 12px; }
+.advice-node {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.advice-timestamp {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Cheer Display Grid */
+.cheer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.cheer-card {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.cheer-text {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.cheer-author {
+  margin-top: 10px;
+  text-align: right;
+  opacity: 0.8;
+  font-weight: 600;
+}

@@ -105,7 +105,7 @@ app.post("/auth/register", async (req, res) => {
       return res.status(400).json({ error: "Missing username, password, or role" });
     }
 
-    if (role !== "admin" && role !== "scouter") {
+    if (role !== "admin" && role !== "scouter" && role !== "family") {
       return res.status(400).json({ error: "Role must be either 'admin' or 'scouter'" });
     }
 
