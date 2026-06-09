@@ -1,194 +1,11 @@
 import { useState, useEffect } from "react";
 
-const PIT_FORM_URL = "http://localhost:3000/pit/form";
-const PIT_UPLOAD_URL = "http://localhost:3000/pit/upload";
+//const PIT_FORM_URL = "http://localhost:3000/pit/form";
+//const PIT_UPLOAD_URL = "http://localhost:3000/pit/upload";
 
-// ── Minimal shared styles matching the scout app's dark palette ──
-const s = {
-  root: {
-    minHeight: "100vh",
-    background: "var(--scout-bg, #0f1117)",
-    color: "var(--scout-text-body, #e2e8f0)",
-    fontFamily: "'DM Mono', 'Fira Mono', monospace",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "20px 12px 40px",
-  },
-  card: {
-    width: "100%",
-    maxWidth: 10000,
-    background: "var(--scout-bg-surface, #181c27)",
-    border: "1px solid var(--scout-border, #2a2f3e)",
-    borderRadius: 14,
-    overflow: "scroll",
-  },
-  header: {
-    padding: "14px 18px",
-    borderBottom: "1px solid var(--scout-border, #2a2f3e)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    background: "var(--scout-bg-raised, #1e2233)",
-  },
-  headerTitle: {
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: "0.18em",
-    color: "var(--scout-indigo, #818cf8)",
-    textTransform: "uppercase",
-  },
-  headerSub: {
-    fontSize: 17,
-    fontWeight: 900,
-    color: "var(--scout-text-body, #e2e8f0)",
-    marginTop: 2,
-    letterSpacing: "-0.02em",
-  },
-  body: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14},
-  fieldWrap: { display: "flex", flexDirection: "column", gap: 5 },
-  label: {
-    fontSize: 10,
-    fontWeight: 800,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: "var(--scout-text-secondary, #94a3b8)",
-  },
-  input: {
-    background: "var(--scout-bg, #0f1117)",
-    border: "1px solid var(--scout-border, #2a2f3e)",
-    borderRadius: 8,
-    color: "var(--scout-text-body, #e2e8f0)",
-    fontSize: 13,
-    padding: "9px 12px",
-    outline: "none",
-    fontFamily: "inherit",
-    transition: "border-color 0.15s",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  select: {
-    background: "var(--scout-bg, #0f1117)",
-    border: "1px solid var(--scout-border, #2a2f3e)",
-    borderRadius: 8,
-    color: "var(--scout-text-body, #e2e8f0)",
-    fontSize: 13,
-    padding: "9px 12px",
-    outline: "none",
-    fontFamily: "inherit",
-    width: "100%",
-    boxSizing: "border-box",
-    appearance: "none",
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M6 8L0 0h12z'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 12px center",
-    paddingRight: 32,
-  },
-  radioGroup: { display: "flex", gap: 7, flexWrap: "wrap" },
-  radioBtn: (checked) => ({
-    padding: "7px 13px",
-    borderRadius: 8,
-    border: `1px solid ${checked ? "var(--scout-indigo, #818cf8)" : "var(--scout-border, #2a2f3e)"}`,
-    background: checked ? "rgba(129,140,248,0.13)" : "var(--scout-bg, #0f1117)",
-    color: checked ? "var(--scout-indigo-soft, #c7d2fe)" : "var(--scout-text-secondary, #94a3b8)",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    fontFamily: "inherit",
-    transition: "all 0.12s",
-    letterSpacing: "0.04em",
-  }),
-  checkboxGroup: { display: "flex", flexDirection: "column", gap: 7 },
-  checkRow: (checked) => ({
-    display: "flex",
-    alignItems: "center",
-    gap: 9,
-    padding: "8px 12px",
-    borderRadius: 8,
-    border: `1px solid ${checked ? "var(--scout-indigo, #818cf8)" : "var(--scout-border, #2a2f3e)"}`,
-    background: checked ? "rgba(129,140,248,0.09)" : "transparent",
-    cursor: "pointer",
-    transition: "all 0.12s",
-  }),
-  checkDot: (checked) => ({
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    border: `2px solid ${checked ? "var(--scout-indigo, #818cf8)" : "#374151"}`,
-    background: checked ? "var(--scout-indigo, #818cf8)" : "transparent",
-    flexShrink: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    transition: "all 0.12s",
-  }),
-  textarea: {
-    background: "var(--scout-bg, #0f1117)",
-    border: "1px solid var(--scout-border, #2a2f3e)",
-    borderRadius: 8,
-    color: "var(--scout-text-body, #e2e8f0)",
-    fontSize: 13,
-    padding: "9px 12px",
-    outline: "none",
-    fontFamily: "inherit",
-    width: "100%",
-    boxSizing: "border-box",
-    resize: "vertical",
-    minHeight: 72,
-  },
-  footer: {
-    padding: "12px 18px 18px",
-    borderTop: "1px solid var(--scout-border, #2a2f3e)",
-  },
-  submitBtn: (disabled) => ({
-    width: "100%",
-    padding: "13px",
-    borderRadius: 10,
-    border: "none",
-    background: disabled
-      ? "#1e2233"
-      : "linear-gradient(135deg, #4f46e5, #818cf8)",
-    color: disabled ? "#4a5568" : "#fff",
-    fontSize: 12,
-    fontWeight: 900,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    cursor: disabled ? "not-allowed" : "pointer",
-    fontFamily: "inherit",
-    transition: "all 0.15s",
-  }),
-  status: (type) => ({
-    padding: "10px 14px",
-    borderRadius: 8,
-    fontSize: 12,
-    fontWeight: 700,
-    marginBottom: 10,
-    background: type === "error" ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.12)",
-    border: `1px solid ${type === "error" ? "rgba(239,68,68,0.3)" : "rgba(34,197,94,0.3)"}`,
-    color: type === "error" ? "#f87171" : "#4ade80",
-  }),
-  spinner: {
-    display: "inline-block",
-    width: 14,
-    height: 14,
-    border: "2px solid rgba(255,255,255,0.2)",
-    borderTopColor: "#fff",
-    borderRadius: "50%",
-    animation: "spin 0.7s linear infinite",
-    marginRight: 8,
-    verticalAlign: "middle",
-  },
-  divider: {
-    fontSize: 10,
-    fontWeight: 800,
-    letterSpacing: "0.2em",
-    textTransform: "uppercase",
-    color: "var(--scout-text-faint, #4a5568)",
-    padding: "4px 0 2px",
-    borderBottom: "1px solid var(--scout-border-subtle, #1e2233)",
-    marginBottom: 4,
-  },
-};
+const PIT_FORM_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/pit/form";
+const PIT_UPLOAD_URL =
+  "https://taco-childhood-jailbreak.ngrok-free.dev/pit/upload";
 
 // ─────────────────────────────────────────────
 //  Field renderer
@@ -197,24 +14,22 @@ function Field({ field, value, onChange }) {
   const { id, label, type, options, placeholder, required } = field;
 
   const lbl = (
-    <label style={s.label}>
+    <label className="pit-label">
       {label}
-      {required && <span style={{ color: "#f87171", marginLeft: 3 }}>*</span>}
+      {required && <span className="required-star">*</span>}
     </label>
   );
 
   if (type === "text" || type === "number") {
     return (
-      <div style={s.fieldWrap}>
+      <div className="pit-field-wrap">
         {lbl}
         <input
-          style={s.input}
+          className="pit-input"
           type={type}
           value={value ?? ""}
           placeholder={placeholder || ""}
           onChange={(e) => onChange(id, e.target.value)}
-          onFocus={(e) => (e.target.style.borderColor = "var(--scout-indigo, #818cf8)")}
-          onBlur={(e) => (e.target.style.borderColor = "var(--scout-border, #2a2f3e)")}
         />
       </div>
     );
@@ -222,15 +37,13 @@ function Field({ field, value, onChange }) {
 
   if (type === "textarea") {
     return (
-      <div style={s.fieldWrap}>
+      <div className="pit-field-wrap">
         {lbl}
         <textarea
-          style={s.textarea}
+          className="pit-textarea"
           value={value ?? ""}
           placeholder={placeholder || ""}
           onChange={(e) => onChange(id, e.target.value)}
-          onFocus={(e) => (e.target.style.borderColor = "var(--scout-indigo, #818cf8)")}
-          onBlur={(e) => (e.target.style.borderColor = "var(--scout-border, #2a2f3e)")}
         />
       </div>
     );
@@ -238,10 +51,10 @@ function Field({ field, value, onChange }) {
 
   if (type === "select") {
     return (
-      <div style={s.fieldWrap}>
+      <div className="pit-field-wrap">
         {lbl}
         <select
-          style={s.select}
+          className="pit-select"
           value={value ?? ""}
           onChange={(e) => onChange(id, e.target.value)}
         >
@@ -258,16 +71,16 @@ function Field({ field, value, onChange }) {
 
   if (type === "radio") {
     return (
-      <div style={s.fieldWrap}>
+      <div className="pit-field-wrap">
         {lbl}
-        <div style={s.radioGroup}>
+        <div className="pit-radio-group">
           {(options || []).map((o) => {
             const v = o.value ?? o;
             const checked = value === v;
             return (
               <button
                 key={v}
-                style={s.radioBtn(checked)}
+                className={`pit-radio-btn${checked ? " checked" : ""}`}
                 onClick={() => onChange(id, v)}
               >
                 {o.label ?? o}
@@ -282,31 +95,38 @@ function Field({ field, value, onChange }) {
   if (type === "checkbox") {
     const arr = Array.isArray(value) ? value : [];
     return (
-      <div style={s.fieldWrap}>
+      <div className="pit-field-wrap">
         {lbl}
-        <div style={s.checkboxGroup}>
+        <div className="pit-checkbox-group">
           {(options || []).map((o) => {
             const v = o.value ?? o;
             const checked = arr.includes(v);
             return (
               <div
                 key={v}
-                style={s.checkRow(checked)}
+                className={`pit-check-row${checked ? " checked" : ""}`}
                 onClick={() => {
-                  const next = checked ? arr.filter((x) => x !== v) : [...arr, v];
+                  const next = checked
+                    ? arr.filter((x) => x !== v)
+                    : [...arr, v];
                   onChange(id, next);
                 }}
               >
-                <div style={s.checkDot(checked)}>
+                <div className={`pit-check-dot${checked ? " checked" : ""}`}>
                   {checked && (
                     <svg width="8" height="6" viewBox="0 0 8 6">
-                      <path d="M1 3l2 2 4-4" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      <path
+                        d="M1 3l2 2 4-4"
+                        stroke="var(--btn-accent-text)"
+                        strokeWidth="1.5"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   )}
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, color: checked ? "var(--scout-text-body, #e2e8f0)" : "var(--scout-text-secondary, #94a3b8)" }}>
-                  {o.label ?? o}
-                </span>
+                <span className="pit-check-label">{o.label ?? o}</span>
               </div>
             );
           })}
@@ -315,12 +135,12 @@ function Field({ field, value, onChange }) {
     );
   }
 
-  // Fallback: plain text input
+  // Fallback
   return (
-    <div style={s.fieldWrap}>
+    <div className="pit-field-wrap">
       {lbl}
       <input
-        style={s.input}
+        className="pit-input"
         type="text"
         value={value ?? ""}
         onChange={(e) => onChange(id, e.target.value)}
@@ -337,9 +157,11 @@ export default function PitScouting() {
   const [loadError, setLoadError] = useState(null);
   const [values, setValues] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // { type: "ok"|"error", msg }
+  const [submitStatus, setSubmitStatus] = useState(null);
+  
+  // Track the index of the currently open section (defaulting to 0 for the first section)
+  const [openSectionIdx, setOpenSectionIdx] = useState(0);
 
-  // Fetch form schema on mount
   useEffect(() => {
     fetch(PIT_FORM_URL, {
       headers: { "ngrok-skip-browser-warning": "69420" },
@@ -348,13 +170,18 @@ export default function PitScouting() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((data) => {
-        setFormSchema(data);
+      .then((schema) => {
+        setFormSchema(schema);
+        // Ensure the first section is open when the form loads
+        setOpenSectionIdx(0);
       })
-      .catch((err) => {
-        setLoadError(err.message);
-      });
+      .catch((err) => setLoadError(err.message));
   }, []);
+
+  const toggleSection = (idx) => {
+    // If the clicked section is already open, close it (set to null), otherwise open it
+    setOpenSectionIdx((prevIdx) => (prevIdx === idx ? null : idx));
+  };
 
   const handleChange = (id, val) => {
     setValues((prev) => ({ ...prev, [id]: val }));
@@ -363,13 +190,15 @@ export default function PitScouting() {
   const handleSubmit = async () => {
     if (!formSchema) return;
 
-    // Basic required-field check
     const missing = (formSchema.fields || [])
       .filter((f) => f.required && !values[f.id] && values[f.id] !== 0)
       .map((f) => f.label);
 
     if (missing.length > 0) {
-      setSubmitStatus({ type: "error", msg: `Required: ${missing.join(", ")}` });
+      setSubmitStatus({
+        type: "error",
+        msg: `Required: ${missing.join(", ")}`,
+      });
       return;
     }
 
@@ -396,13 +225,21 @@ export default function PitScouting() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
-        setSubmitStatus({ type: "error", msg: err.detail || `Server error ${res.status}` });
+        setSubmitStatus({
+          type: "error",
+          msg: err.detail || `Server error ${res.status}`,
+        });
       } else {
         setSubmitStatus({ type: "ok", msg: "Submitted! Ready for next team." });
         setValues({});
+        // Reset to open the first section for the next team submission
+        setOpenSectionIdx(0);
       }
     } catch {
-      setSubmitStatus({ type: "error", msg: "Backend unreachable — check server." });
+      setSubmitStatus({
+        type: "error",
+        msg: "Backend unreachable — check server.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -412,13 +249,13 @@ export default function PitScouting() {
 
   if (loadError) {
     return (
-      <div style={s.root}>
-        <div style={{ ...s.card, padding: 24 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "#f87171", textTransform: "uppercase" }}>
-            FAILED TO LOAD FORM
+      <div className="pit-root">
+        <div className="pit-error-card">
+          <div className="pit-error-eyebrow">Failed to load form</div>
+          <div className="pit-error-msg">{loadError}</div>
+          <div className="pit-error-hint">
+            Check that <code>/pit/form</code> is reachable.
           </div>
-          <div style={{ fontSize: 13, marginTop: 8, color: "#94a3b8" }}>{loadError}</div>
-          <div style={{ fontSize: 11, marginTop: 6, color: "#4a5568" }}>Check that <code>/pit/form</code> is reachable.</div>
         </div>
       </div>
     );
@@ -426,68 +263,118 @@ export default function PitScouting() {
 
   if (!formSchema) {
     return (
-      <div style={s.root}>
-        <div style={{ ...s.card, padding: 28, textAlign: "center" }}>
-          <div style={{ display: "inline-block", width: 20, height: 20, border: "2px solid #4f46e5", borderTopColor: "#818cf8", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.16em", color: "#4a5568", marginTop: 10, textTransform: "uppercase" }}>Loading form…</div>
+      <div className="pit-root">
+        <div className="pit-loading">
+          <span className="pit-spinner" />
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: "0.16em",
+              color: "var(--text-muted)",
+              marginTop: 12,
+              textTransform: "uppercase",
+            }}
+          >
+            Loading form…
+          </div>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
-  const sections = formSchema.sections || [{ label: null, fields: formSchema.fields || [] }];
+  const sections = formSchema.sections || [
+    { label: null, fields: formSchema.fields || [] },
+  ];
 
   return (
-    <div style={s.root}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-
-      <div style={s.card}>
-        {/* Header */}
-        <div style={s.header}>
-          <div>
-            <div style={s.headerTitle}>Pit Scouting</div>
-            <div style={s.headerSub}>{formSchema.title || "Robot Inspection"}</div>
+    <>
+      {/* Header */}
+      <div className="pit-card-header">
+        <div>
+          <div className="pit-header-eyebrow">Pit Scouting</div>
+          <h1 className="pit-header-title">
+            {formSchema.title || "Robot Inspection"}
+          </h1>
+        </div>
+        {formSchema.event && (
+          <div className="pit-header-event">{formSchema.event}</div>
+        )}
+      </div>
+      <div className="pit-root">
+        <div className="pit-card">
+          {/* Fields */}
+          <div className="pit-body">
+            {sections.map((sec, si) => {
+              const isExpanded = openSectionIdx === si;
+              return (
+                <div
+                  key={si}
+                  style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 10 }}
+                >
+                  {sec.label && (
+                    <div 
+                      className="pit-section-divider" 
+                      onClick={() => toggleSection(si)}
+                      style={{ 
+                        cursor: "pointer", 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        alignItems: "center",
+                        userSelect: "none"
+                      }}
+                    >
+                      <span>{sec.label}</span>
+                      <svg 
+                        width="30" 
+                        height="30" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                        style={{ 
+                          transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+                          transition: "transform 0.2s ease"
+                        }}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Conditionally render fields based on active index state */}
+                  {isExpanded && (sec.fields || []).map((field) => (
+                    <Field
+                      key={field.id}
+                      field={field}
+                      value={values[field.id]}
+                      onChange={handleChange}
+                    />
+                  ))}
+                </div>
+              );
+            })}
           </div>
-          {formSchema.event && (
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--scout-text-faint, #4a5568)", textAlign: "right" }}>
-              {formSchema.event}
-            </div>
-          )}
-        </div>
-
-        {/* Fields */}
-        <div style={s.body}>
-          {sections.map((sec, si) => (
-            <div key={si} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {sec.label && <div style={s.divider}>{sec.label}</div>}
-              {(sec.fields || []).map((field) => (
-                <Field
-                  key={field.id}
-                  field={field}
-                  value={values[field.id]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-
-        {/* Footer / Submit */}
-        <div style={s.footer}>
-          {submitStatus && (
-            <div style={s.status(submitStatus.type)}>{submitStatus.msg}</div>
-          )}
-          <button
-            style={s.submitBtn(isSubmitting)}
-            disabled={isSubmitting}
-            onClick={handleSubmit}
-          >
-            {isSubmitting && <span style={s.spinner} />}
-            {isSubmitting ? "Submitting…" : "Submit Pit Data"}
-          </button>
         </div>
       </div>
-    </div>
+      {/* Footer */}
+      <div className="pit-footer">
+        {submitStatus && (
+          <div className={`pit-status ${submitStatus.type}`}>
+            {submitStatus.msg}
+          </div>
+        )}
+        <button
+          className="pit-submit-btn"
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+        >
+          {isSubmitting && <span className="pit-spinner" />}
+          {isSubmitting ? "Submitting…" : "Submit Pit Data"}
+        </button>
+      </div>
+    </>
   );
 }

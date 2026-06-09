@@ -1,4 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHandFist,
+  faPenToSquare,
+  faCircleCheck,
+  faHashtag,
+  faTrash,
+  faTriangleExclamation,
+  faCircle,
+  faShield,
+  faRocket,
+  faBomb,
+  faHandPointRight,
+  faCircleInfo,
+  faFloppyDisk,
+  faFileLines,
+  faSquareCaretDown,
+  faCircleDot,
+  faSquareCheck,
+  faDatabase,
+} from "@fortawesome/free-solid-svg-icons";
 
 const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/pit/save";
 const LOCAL_URL = "http://localhost:3000/pit/save";
@@ -17,404 +38,50 @@ const initialSchema = {
   ]
 };
 
-const FIELD_COLORS = {
-  number: '#f59e0b',
-  text: '#60a5fa',
-  textarea: '#34d399',
-  select: '#a78bfa',
-  radio: '#f472b6',
-  checkbox: '#fb923c',
-};
-
-const FIELD_TYPES = ['number', 'text', 'textarea', 'select', 'radio', 'checkbox'];
-
-const S = {
-  input: {
-    width: '100%',
-    padding: '9px 11px',
-    border: '1px solid #334155',
-    borderRadius: '6px',
-    fontSize: '14px',
-    backgroundColor: '#1e293b',
-    color: '#f1f5f9',
-    outline: 'none',
-    boxSizing: 'border-box',
-    WebkitAppearance: 'none',
-  },
-  label: {
-    display: 'block',
-    fontSize: '10px',
-    fontWeight: '600',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    marginBottom: '5px',
-  },
-  btn: (variant = 'default') => ({
-    padding: '8px 14px',
-    fontSize: '13px',
-    fontWeight: '600',
-    borderRadius: '6px',
-    border: 'none',
-    cursor: 'pointer',
-    WebkitTapHighlightColor: 'transparent',
-    ...(variant === 'primary' && { backgroundColor: '#4f46e5', color: '#fff' }),
-    ...(variant === 'ghost' && { backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155' }),
-    ...(variant === 'danger' && { backgroundColor: 'transparent', color: '#f87171', border: '1px solid #7f1d1d' }),
-    ...(variant === 'dashed' && { backgroundColor: '#1e293b', color: '#818cf8', border: '1px dashed #4f46e5' }),
-    ...(variant === 'default' && { backgroundColor: '#1e293b', color: '#cbd5e1', border: '1px solid #334155' }),
-  }),
-};
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 640);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
-  return isMobile;
-}
-
-function FieldPill({ type }) {
-  return (
-    <span style={{
-      fontSize: '10px',
-      fontWeight: '700',
-      fontFamily: 'monospace',
-      padding: '2px 6px',
-      borderRadius: '4px',
-      backgroundColor: FIELD_COLORS[type] + '22',
-      color: FIELD_COLORS[type],
-      border: `1px solid ${FIELD_COLORS[type]}55`,
-      textTransform: 'uppercase',
-      letterSpacing: '0.04em',
-      flexShrink: 0,
-    }}>{type}</span>
-  );
-}
-
-function AddFieldMenu({ onAdd }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler);
-    return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('touchstart', handler); };
-  }, [open]);
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          ...S.btn('primary'),
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 14px',
-        }}
-      >
-        <span style={{ fontSize: '16px', lineHeight: 1 }}>+</span>
-        Add Field
-        <span style={{ fontSize: '10px', opacity: 0.7 }}>▾</span>
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 6px)',
-          right: 0,
-          backgroundColor: '#1e293b',
-          border: '1px solid #334155',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          zIndex: 100,
-          minWidth: '160px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-        }}>
-          {FIELD_TYPES.map(type => (
-            <button
-              key={type}
-              onClick={() => { onAdd(type); setOpen(false); }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                width: '100%',
-                padding: '10px 14px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderBottom: '1px solid #0f172a',
-                cursor: 'pointer',
-                textAlign: 'left',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-              onMouseOver={e => e.currentTarget.style.backgroundColor = '#0f172a'}
-              onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <span style={{
-                width: '8px', height: '8px', borderRadius: '50%',
-                backgroundColor: FIELD_COLORS[type], flexShrink: 0,
-              }} />
-              <span style={{ fontSize: '13px', fontWeight: '600', fontFamily: 'monospace', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {type}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SectionDrawer({ sections, activeSectionIdx, onSelect, onAdd, open, onClose }) {
-  return (
-    <>
-      {/* Overlay */}
-      {open && (
-        <div
-          onClick={onClose}
-          style={{
-            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
-            zIndex: 200, backdropFilter: 'blur(2px)',
-          }}
-        />
-      )}
-      {/* Drawer */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        width: '260px',
-        backgroundColor: '#0a1121',
-        borderRight: '1px solid #1e293b',
-        zIndex: 201,
-        transform: open ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid #1e293b' }}>
-          <span style={{ fontSize: '13px', fontWeight: '700', color: '#818cf8', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Sections</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '22px', cursor: 'pointer', lineHeight: 1, padding: '0 2px' }}>×</button>
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-          {sections.map((sec, idx) => {
-            const active = activeSectionIdx === idx;
-            return (
-              <button
-                key={idx}
-                onClick={() => { onSelect(idx); onClose(); }}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  width: '100%', padding: '10px 12px', fontSize: '14px',
-                  fontWeight: active ? '700' : '500', borderRadius: '7px', border: 'none',
-                  backgroundColor: active ? '#1e1b4b' : 'transparent',
-                  color: active ? '#c7d2fe' : '#94a3b8',
-                  cursor: 'pointer', textAlign: 'left', marginBottom: '3px',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-              >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {sec.label || `Section ${idx + 1}`}
-                </span>
-                <span style={{ fontSize: '11px', color: active ? '#818cf8' : '#475569', flexShrink: 0, marginLeft: '6px' }}>
-                  {sec.fields.length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <div style={{ padding: '12px' }}>
-          <button onClick={onAdd} style={{ ...S.btn('dashed'), width: '100%' }}>+ New Section</button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function MetaDrawer({ schema, onChange, open, onClose }) {
-  return (
-    <>
-      {open && (
-        <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 200, backdropFilter: 'blur(2px)' }} />
-      )}
-      <div style={{
-        position: 'fixed',
-        top: 0, right: 0, bottom: 0,
-        width: '280px',
-        backgroundColor: '#0a1121',
-        borderLeft: '1px solid #1e293b',
-        zIndex: 201,
-        transform: open ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid #1e293b' }}>
-          <span style={{ fontSize: '13px', fontWeight: '700', color: '#818cf8', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Schema Info</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '22px', cursor: 'pointer', lineHeight: 1, padding: '0 2px' }}>×</button>
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {[['id', 'Schema ID'], ['title', 'Form Title'], ['event', 'Event']].map(([key, lbl]) => (
-            <div key={key}>
-              <label style={S.label}>{lbl}</label>
-              <input type="text" value={schema[key]} onChange={e => onChange(key, e.target.value)} style={S.input} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
-
-function FieldCard({ field, secIdx, fIdx, onUpdate, onRemove }) {
-  const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
-  const hasOptions = ['select', 'radio', 'checkbox'].includes(field.type);
-
-  const updateOption = (oIdx, key, val) => {
-    onUpdate(fIdx, 'options', field.options.map((o, k) => k === oIdx ? { ...o, [key]: val } : o));
-  };
-  const addOption = () => {
-    const count = field.options.length + 1;
-    onUpdate(fIdx, 'options', [...field.options, { value: `option_${count}`, label: `Option ${count}` }]);
-  };
-  const removeOption = (oIdx) => {
-    onUpdate(fIdx, 'options', field.options.filter((_, k) => k !== oIdx));
-  };
-
-  return (
-    <div style={{ border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#0f172a' }}>
-      {/* Collapsed row */}
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '11px 12px',
-          cursor: 'pointer',
-          userSelect: 'none',
-          backgroundColor: open ? '#1e293b' : 'transparent',
-          WebkitTapHighlightColor: 'transparent',
-          minHeight: '46px',
-        }}
-      >
-        <span style={{ color: '#475569', fontSize: '11px', flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-          <FieldPill type={field.type} />
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {field.label || '(unnamed)'}
-          </span>
-          {!isMobile && (
-            <span style={{ fontSize: '11px', color: '#475569', fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {field.id}
-            </span>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          {field.required && <span style={{ fontSize: '10px', color: '#f87171', fontWeight: '700' }}>REQ</span>}
-          {hasOptions && <span style={{ fontSize: '11px', color: '#64748b' }}>{field.options?.length}opts</span>}
-          <button
-            onClick={e => { e.stopPropagation(); onRemove(fIdx); }}
-            style={{ background: 'none', border: 'none', color: '#475569', fontSize: '20px', cursor: 'pointer', padding: '0 2px', lineHeight: 1, WebkitTapHighlightColor: 'transparent' }}
-          >×</button>
-        </div>
-      </div>
-
-      {/* Expanded editor */}
-      {open && (
-        <div style={{ padding: '14px 14px', borderTop: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
-            <div>
-              <label style={S.label}>Label</label>
-              <input type="text" value={field.label} onChange={e => onUpdate(fIdx, 'label', e.target.value)} style={S.input} />
-            </div>
-            <div>
-              <label style={S.label}>Key ID</label>
-              <input type="text" value={field.id} onChange={e => onUpdate(fIdx, 'id', e.target.value)} style={{ ...S.input, fontFamily: 'monospace' }} />
-            </div>
-          </div>
-
-          {!hasOptions && (
-            <div>
-              <label style={S.label}>Placeholder</label>
-              <input type="text" value={field.placeholder || ''} onChange={e => onUpdate(fIdx, 'placeholder', e.target.value)} style={S.input} />
-            </div>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <input
-              type="checkbox"
-              id={`req-${secIdx}-${fIdx}`}
-              checked={field.required}
-              onChange={e => onUpdate(fIdx, 'required', e.target.checked)}
-              style={{ width: '17px', height: '17px', cursor: 'pointer', accentColor: '#4f46e5', flexShrink: 0 }}
-            />
-            <label htmlFor={`req-${secIdx}-${fIdx}`} style={{ ...S.label, margin: 0, cursor: 'pointer' }}>Required field</label>
-          </div>
-
-          {hasOptions && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={S.label}>Options</label>
-                <button onClick={addOption} style={{ ...S.btn('dashed'), padding: '5px 10px', fontSize: '12px' }}>+ Add</button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {field.options?.map((opt, oIdx) => (
-                  <div key={oIdx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '6px', alignItems: 'center' }}>
-                    <input type="text" placeholder="Label" value={opt.label} onChange={e => updateOption(oIdx, 'label', e.target.value)} style={S.input} />
-                    <input type="text" placeholder="value_key" value={opt.value} onChange={e => updateOption(oIdx, 'value', e.target.value)} style={{ ...S.input, fontFamily: 'monospace' }} />
-                    <button onClick={() => removeOption(oIdx)} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '18px', cursor: 'pointer', padding: '4px', WebkitTapHighlightColor: 'transparent' }}>×</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
+// ── Main Component ───────────────────────────────────────
 export default function FormBuilder() {
   const [schema, setSchema] = useState(initialSchema);
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
-  const [saveStatus, setSaveStatus] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   const [tab, setTab] = useState('editor');
   const [sectionDrawer, setSectionDrawer] = useState(false);
   const [metaDrawer, setMetaDrawer] = useState(false);
   const isMobile = useIsMobile();
 
-  const handleMetaChange = (key, value) => setSchema(prev => ({ ...prev, [key]: value }));
+  // Keep activeSectionIdx in bounds if sections are deleted
+  const safeIdx = Math.min(activeSectionIdx, Math.max(0, schema.sections.length - 1));
+  const activeSection = schema.sections[safeIdx];
+
+  const handleMetaChange = (key, value) =>
+    setSchema(prev => ({ ...prev, [key]: value }));
 
   const addSection = () => {
     const newIdx = schema.sections.length;
-    setSchema(prev => ({ ...prev, sections: [...prev.sections, { label: "New Section", fields: [] }] }));
+    setSchema(prev => ({ ...prev, sections: [...prev.sections, { label: 'New Section', fields: [] }] }));
     setActiveSectionIdx(newIdx);
   };
 
   const updateSectionLabel = (idx, label) =>
-    setSchema(prev => ({ ...prev, sections: prev.sections.map((s, i) => i === idx ? { ...s, label } : s) }));
+    setSchema(prev => ({
+      ...prev,
+      sections: prev.sections.map((s, i) => i === idx ? { ...s, label } : s)
+    }));
 
   const removeSection = (idx) => {
+    if (schema.sections.length <= 1) return; // always keep at least one
     setSchema(prev => ({ ...prev, sections: prev.sections.filter((_, i) => i !== idx) }));
-    setActiveSectionIdx(0);
+    setActiveSectionIdx(prev => Math.max(0, prev >= idx ? prev - 1 : prev));
   };
 
   const addField = (secIdx, type) => {
     const newField = {
       id: `${type}_${Date.now().toString().slice(-5)}`,
       label: `New ${type.charAt(0).toUpperCase() + type.slice(1)} Field`,
-      type, required: false,
+      type,
+      required: false,
       ...(['select', 'radio', 'checkbox'].includes(type)
-        ? { options: [{ value: "option_1", label: "Option 1" }, { value: "option_2", label: "Option 2" }] }
-        : { placeholder: "Enter value..." })
+        ? { options: [{ value: 'option_1', label: 'Option 1' }, { value: 'option_2', label: 'Option 2' }] }
+        : { placeholder: 'Enter value...' })
     };
     setSchema(prev => ({
       ...prev,
@@ -428,7 +95,10 @@ export default function FormBuilder() {
     setSchema(prev => ({
       ...prev,
       sections: prev.sections.map((sec, i) =>
-        i !== secIdx ? sec : { ...sec, fields: sec.fields.map((f, j) => j !== fIdx ? f : { ...f, [key]: value }) }
+        i !== secIdx ? sec : {
+          ...sec,
+          fields: sec.fields.map((f, j) => j !== fIdx ? f : { ...f, [key]: value })
+        }
       )
     }));
 
@@ -442,28 +112,40 @@ export default function FormBuilder() {
 
   const saveSchema = async () => {
     setSaveStatus('saving');
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(schema),
-      });
-      if (!res.ok) throw new Error();
-      setSaveStatus('saved');
-    } catch { setSaveStatus('error'); }
+    for (const url of [API_URL, LOCAL_URL]) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420' },
+          body: JSON.stringify(schema),
+        });
+        if (res.ok) {
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus(null), 3000);
+          return;
+        }
+      } catch {
+        // try next URL
+      }
+    }
+    setSaveStatus('error');
     setTimeout(() => setSaveStatus(null), 3000);
   };
 
-  const activeSection = schema.sections[activeSectionIdx];
   const totalFields = schema.sections.reduce((a, s) => a + s.fields.length, 0);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#0f172a', fontFamily: "'Inter', 'DM Sans', sans-serif", color: '#f1f5f9', overflow: 'hidden' }}>
+  const saveBtnClass = `fb-btn ${
+    saveStatus === 'saved' ? 'saved' : saveStatus === 'error' ? 'save-error' : 'primary'
+  }`;
 
+  return (
+    <div className="fb-root">
       {/* Mobile drawers */}
       {isMobile && (
         <>
           <SectionDrawer
             sections={schema.sections}
-            activeSectionIdx={activeSectionIdx}
+            activeSectionIdx={safeIdx}
             onSelect={setActiveSectionIdx}
             onAdd={() => { addSection(); setSectionDrawer(false); }}
             open={sectionDrawer}
@@ -479,200 +161,320 @@ export default function FormBuilder() {
       )}
 
       {/* Top bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', height: '52px', borderBottom: '1px solid #1e293b',
-        flexShrink: 0, backgroundColor: '#0a1121',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div className="fb-topbar">
+        <div className="fb-topbar-left">
           {isMobile && (
-            <button
-              onClick={() => setSectionDrawer(true)}
-              style={{ background: 'none', border: '1px solid #334155', borderRadius: '6px', color: '#94a3b8', padding: '5px 8px', cursor: 'pointer', fontSize: '16px', WebkitTapHighlightColor: 'transparent' }}
-              title="Sections"
-            >☰</button>
+            <button className="fb-btn icon" onClick={() => setSectionDrawer(true)} title="Sections">☰</button>
           )}
-          <span style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: '700', color: '#818cf8', letterSpacing: '-0.02em' }}>
-            {isMobile ? 'FRC Builder' : 'FRC Form Builder'}
+          <span className="fb-topbar-title">
+            {isMobile ? 'Form Builder' : 'FRC Form Builder'}
           </span>
           {!isMobile && (
-            <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#1e293b', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+            <span className="fb-topbar-badge">
+              <FontAwesomeIcon icon={faShield} style={{ marginRight: '6px' }} />
               {schema.sections.length} sections · {totalFields} fields
             </span>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="fb-topbar-right">
           {isMobile && (
-            <button
-              onClick={() => setMetaDrawer(true)}
-              style={{ ...S.btn('ghost'), padding: '6px 10px', fontSize: '12px' }}
-            >Info</button>
+            <button className="fb-btn ghost fb-mobile-info-btn" onClick={() => setMetaDrawer(true)}>
+              <FontAwesomeIcon icon={faCircleInfo} style={{ marginRight: '4px' }} /> Info
+            </button>
           )}
-          {/* Tab toggle */}
-          <div style={{ display: 'flex', gap: '2px', backgroundColor: '#1e293b', padding: '3px', borderRadius: '7px' }}>
-            {['editor', 'json'].map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{
-                padding: '4px 10px', fontSize: '12px', fontWeight: '600', borderRadius: '5px', border: 'none',
-                cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
-                backgroundColor: tab === t ? '#312e81' : 'transparent',
-                color: tab === t ? '#c7d2fe' : '#64748b',
-              }}>{t === 'editor' ? 'Editor' : 'JSON'}</button>
-            ))}
+          <div className="fb-tab-row">
+            <button className={`fb-tab ${tab === 'editor' ? 'active' : ''}`} onClick={() => setTab('editor')}>
+              <FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: '6px' }} /> Editor
+            </button>
+            <button className={`fb-tab ${tab === 'json' ? 'active' : ''}`} onClick={() => setTab('json')}>
+              <FontAwesomeIcon icon={faDatabase} style={{ marginRight: '6px' }} /> JSON
+            </button>
           </div>
           <button
+            className={`${saveBtnClass} ${isMobile ? 'fb-save-btn-mobile' : 'fb-save-btn-desktop'}`}
             onClick={saveSchema}
-            style={{
-              ...S.btn('primary'),
-              backgroundColor: saveStatus === 'saved' ? '#16a34a' : saveStatus === 'error' ? '#dc2626' : '#4f46e5',
-              padding: isMobile ? '6px 10px' : '8px 14px',
-              fontSize: isMobile ? '12px' : '13px',
-              minWidth: isMobile ? 'unset' : '80px',
-            }}
+            disabled={saveStatus === 'saving'}
           >
-            {saveStatus === 'saving' ? '…' : saveStatus === 'saved' ? '✓' : saveStatus === 'error' ? 'X' : 'Save'}
+            {saveStatus === 'saving' && <FontAwesomeIcon icon={faBomb} spin style={{ marginRight: '6px' }} />}
+            {saveStatus === 'saved' && <FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: '6px' }} />}
+            {saveStatus === 'error' && <FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: '6px' }} />}
+            {saveStatus === null && <FontAwesomeIcon icon={faFloppyDisk} style={{ marginRight: '6px' }} />}
+            {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}
           </button>
         </div>
       </div>
 
       {/* Body */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+      <div className="fb-body">
         {tab === 'editor' ? (
           <>
             {/* Desktop sidebar */}
             {!isMobile && (
-              <div style={{ width: '200px', flexShrink: 0, borderRight: '1px solid #1e293b', display: 'flex', flexDirection: 'column', backgroundColor: '#0a1121' }}>
-                <div style={{ padding: '12px 14px', borderBottom: '1px solid #1e293b' }}>
-                  <span style={{ ...S.label, marginBottom: 0 }}>Sections</span>
+              <div className="fb-sidebar">
+                <div className="fb-sidebar-header">Sections</div>
+                <div className="fb-sidebar-list">
+                  {schema.sections.map((sec, idx) => (
+                    <button key={idx} className={`fb-sidebar-item${safeIdx === idx ? ' active' : ''}`} onClick={() => setActiveSectionIdx(idx)} >
+                      <span className="fb-sidebar-item-label">
+                        {sec.label || `Section ${idx + 1}`}
+                      </span>
+                      <span className="fb-sidebar-item-count">{sec.fields.length}</span>
+                    </button>
+                  ))}
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
-                  {schema.sections.map((sec, idx) => {
-                    const active = activeSectionIdx === idx;
-                    return (
-                      <button key={idx} onClick={() => setActiveSectionIdx(idx)} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        width: '100%', padding: '8px 10px', fontSize: '13px',
-                        fontWeight: active ? '700' : '500', borderRadius: '6px', border: 'none',
-                        backgroundColor: active ? '#1e1b4b' : 'transparent',
-                        color: active ? '#c7d2fe' : '#94a3b8',
-                        cursor: 'pointer', textAlign: 'left', marginBottom: '2px',
-                      }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sec.label || `Section ${idx + 1}`}</span>
-                        <span style={{ fontSize: '11px', color: active ? '#818cf8' : '#475569', flexShrink: 0, marginLeft: '4px' }}>{sec.fields.length}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div style={{ padding: '10px' }}>
-                  <button onClick={addSection} style={{ ...S.btn('dashed'), width: '100%' }}>+ Section</button>
+                <div className="fb-sidebar-footer">
+                  <button className="fb-btn dashed fb-w-full" onClick={addSection}>
+                    <FontAwesomeIcon icon={faCircleInfo} style={{ marginRight: '6px', transform: 'rotate(90deg)' }} /> + Section
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Main editor */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
+            <div className="fb-editor">
               {/* Desktop meta strip */}
               {!isMobile && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', padding: '12px 20px', borderBottom: '1px solid #1e293b', flexShrink: 0, backgroundColor: '#0a1121' }}>
+                <div className="fb-meta-strip">
                   {[['id', 'Schema ID'], ['title', 'Form Title'], ['event', 'Event']].map(([key, lbl]) => (
                     <div key={key}>
-                      <label style={S.label}>{lbl}</label>
-                      <input type="text" value={schema[key]} onChange={e => handleMetaChange(key, e.target.value)} style={S.input} />
+                      <label className="fb-label">{lbl}</label>
+                      <input type="text" className={`fb-input${key === 'id' ? ' mono' : ''}`} value={schema[key] || ''} onChange={e => handleMetaChange(key, e.target.value)} />
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Mobile: section selector pill row */}
+              {/* Mobile section pills */}
               {isMobile && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', overflowX: 'auto', borderBottom: '1px solid #1e293b', flexShrink: 0, backgroundColor: '#0a1121' }}>
-                  {schema.sections.map((sec, idx) => {
-                    const active = activeSectionIdx === idx;
-                    return (
-                      <button key={idx} onClick={() => setActiveSectionIdx(idx)} style={{
-                        flexShrink: 0, padding: '5px 12px', fontSize: '12px', fontWeight: active ? '700' : '500',
-                        borderRadius: '20px', border: active ? '1px solid #818cf8' : '1px solid #334155',
-                        backgroundColor: active ? '#1e1b4b' : '#1e293b',
-                        color: active ? '#c7d2fe' : '#94a3b8',
-                        cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {sec.label || `Section ${idx + 1}`}
-                        <span style={{ marginLeft: '5px', opacity: 0.6 }}>{sec.fields.length}</span>
-                      </button>
-                    );
-                  })}
+                <div className="fb-section-pills">
+                  {schema.sections.map((sec, idx) => (
+                    <button key={idx} className={`fb-section-pill${safeIdx === idx ? ' active' : ''}`} onClick={() => setActiveSectionIdx(idx)} >
+                      {sec.label || `Section ${idx + 1}`}
+                      <span className="fb-section-pill-count">{sec.fields.length}</span>
+                    </button>
+                  ))}
                 </div>
               )}
 
               {activeSection && (
                 <>
                   {/* Section header */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '10px 12px' : '10px 20px', borderBottom: '1px solid #1e293b', flexShrink: 0 }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={S.label}>Section name</label>
-                      <input
-                        type="text"
-                        value={activeSection.label}
-                        onChange={e => updateSectionLabel(activeSectionIdx, e.target.value)}
-                        style={{ ...S.input, fontSize: '14px', fontWeight: '600', maxWidth: isMobile ? '100%' : '280px' }}
-                      />
+                  <div className={`fb-section-header${isMobile ? ' mobile' : ''}`}>
+                    <div className="fb-flex-1">
+                      <label className="fb-label">Section name</label>
+                      <input type="text" className="fb-input section-title" value={activeSection.label} onChange={e => updateSectionLabel(safeIdx, e.target.value)} placeholder="e.g. Autonomous" />
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px', flexShrink: 0 }}>
-                      {/* Add field dropdown */}
-                      <AddFieldMenu onAdd={(type) => addField(activeSectionIdx, type)} />
-                      {!isMobile && (
-                        <button onClick={() => removeSection(activeSectionIdx)} style={{ ...S.btn('danger') }}>Delete</button>
-                      )}
-                    </div>
+                    <button className="fb-btn danger align-end" onClick={() => removeSection(safeIdx)} disabled={schema.sections.length <= 1}>
+                      <FontAwesomeIcon icon={faTrash} style={{ marginRight: '6px' }} /> Delete Section
+                    </button>
                   </div>
 
-                  {/* Mobile: delete section */}
-                  {isMobile && schema.sections.length > 1 && (
-                    <div style={{ padding: '0 12px 8px', display: 'flex', justifyContent: 'flex-end' }}>
-                      <button onClick={() => removeSection(activeSectionIdx)} style={{ ...S.btn('danger'), fontSize: '12px', padding: '5px 10px' }}>
-                        Delete section
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Fields list */}
-                  <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '10px 12px' : '14px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Fields workspace */}
+                  <div className="fb-fields-list">
                     {activeSection.fields.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '48px 20px', color: '#334155', fontSize: '13px', lineHeight: 1.8 }}>
-                        <div style={{ fontSize: '28px', marginBottom: '8px' }}>＋</div>
-                        No fields yet.<br />Tap "Add Field" above to get started.
+                      <div className="fb-empty-state">
+                        <div className="fb-empty-icon">
+                          <FontAwesomeIcon icon={faShield} style={{ opacity: 0.5, fontSize: '2.5rem' }} />
+                        </div>
+                        <p>No fields in this section yet.</p>
+                        <p className="fb-text-sm">Click any button below to add your first question.</p>
                       </div>
-                    ) : activeSection.fields.map((field, fIdx) => (
-                      <FieldCard
-                        key={field.id}
-                        field={field}
-                        secIdx={activeSectionIdx}
-                        fIdx={fIdx}
-                        onUpdate={(fIdx, key, val) => updateField(activeSectionIdx, fIdx, key, val)}
-                        onRemove={(fIdx) => removeField(activeSectionIdx, fIdx)}
-                      />
-                    ))}
-                    <div style={{ height: '20px' }} />
+                    ) : (
+                      activeSection.fields.map((field, fIdx) => (
+                        <FieldEditor
+                          key={field.id}
+                          field={field}
+                          fIdx={fIdx}
+                          onUpdate={(k, v) => updateField(safeIdx, fIdx, k, v)}
+                          onRemove={() => removeField(safeIdx, fIdx)}
+                        />
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Field Toolbox */}
+                  <div className="fb-toolbox">
+                    <div className="fb-toolbox-title">Add Question Field</div>
+                    <div className="fb-toolbox-grid">
+                      {[
+                        { type: 'text', icon: faFileLines, label: 'Short Text' },
+                        { type: 'number', icon: faHashtag, label: 'Number Input' },
+                        { type: 'select', icon: faSquareCaretDown, label: 'Dropdown Select' },
+                        { type: 'radio', icon: faCircleDot, label: 'Radio Choice' },
+                        { type: 'checkbox', icon: faSquareCheck, label: 'Checkbox Multiselect' }
+                      ].map(b => (
+                        <button key={b.type} className="fb-toolbox-btn" onClick={() => addField(safeIdx, b.type)}>
+                          <span className="fb-toolbox-icon">
+                            <FontAwesomeIcon icon={b.icon} />
+                          </span>
+                          <span>{b.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
             </div>
           </>
         ) : (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#020617' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 16px', borderBottom: '1px solid #1e293b' }}>
-              <button onClick={() => navigator.clipboard.writeText(JSON.stringify(schema, null, 2))} style={S.btn('ghost')}>
-                Copy JSON
+          <div className="fb-json-view">
+            <div className="fb-json-toolbar">
+              <button className="fb-btn dashed" onClick={() => navigator.clipboard.writeText(JSON.stringify(schema, null, 2))}>
+                <FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: '6px' }} /> Copy JSON Config
               </button>
             </div>
-            <pre style={{ flex: 1, overflow: 'auto', fontSize: '12px', fontFamily: 'monospace', lineHeight: '1.7', padding: '16px', margin: 0, color: '#34d399', userSelect: 'all' }}>
-              {JSON.stringify(schema, null, 2)}
-            </pre>
+            <textarea className="fb-json-textarea" value={JSON.stringify(schema, null, 2)} readOnly />
           </div>
         )}
       </div>
     </div>
   );
+}
+
+// ── Secondary Components ────────────────────────
+function FieldEditor({ field, fIdx, onUpdate, onRemove }) {
+  const hasOptions = ['select', 'radio', 'checkbox'].includes(field.type);
+
+  const updateOption = (oIdx, key, val) => {
+    const next = [...(field.options || [])];
+    next[oIdx] = { ...next[oIdx], [key]: val };
+    onUpdate('options', next);
+  };
+
+  const addOption = () => {
+    const next = [...(field.options || [])];
+    const nextNum = next.length + 1;
+    next.push({ value: `option_${nextNum}`, label: `Option ${nextNum}` });
+    onUpdate('options', next);
+  };
+
+  const removeOption = (oIdx) => {
+    onUpdate('options', (field.options || []).filter((_, i) => i !== oIdx));
+  };
+
+  const getBadgeIcon = (type) => {
+    switch (type) {
+      case 'text': return faHandFist;
+      case 'number': return faHashtag;
+      case 'select': return faHandPointRight;
+      case 'radio': return faCircle;
+      case 'checkbox': return faCircleCheck;
+      default: return faShield;
+    }
+  };
+
+  return (
+    <div className="fb-field-card">
+      <div className="fb-field-card-row">
+        <div className="fb-field-flex-info">
+          <span className="fb-field-badge">
+            <FontAwesomeIcon icon={getBadgeIcon(field.type)} style={{ marginRight: '5px' }} />
+            {field.type.toUpperCase()}
+          </span>
+          <code className="fb-field-code-id">{field.id}</code>
+        </div>
+        <button className="fb-field-delete-icon" onClick={onRemove} title="Remove Field">
+          <FontAwesomeIcon icon={faTrash} />
+        </button>
+      </div>
+
+      <div className="fb-field-inputs-grid">
+        <div>
+          <label className="fb-label">Question Label</label>
+          <input type="text" className="fb-input" value={field.label} onChange={e => onUpdate('label', e.target.value)} />
+        </div>
+        {!hasOptions && (
+          <div>
+            <label className="fb-label">Placeholder Hint</label>
+            <input type="text" className="fb-input" value={field.placeholder || ''} onChange={e => onUpdate('placeholder', e.target.value)} />
+          </div>
+        )}
+      </div>
+
+      <div className="fb-field-checkbox-row">
+        <input type="checkbox" id={`req-${fIdx}`} checked={!!field.required} onChange={e => onUpdate('required', e.target.checked)} className="fb-cursor-pointer" />
+        <label htmlFor={`req-${fIdx}`} className="fb-field-checkbox-label">Required field</label>
+      </div>
+
+      {hasOptions && (
+        <div className="fb-options-container">
+          <div className="fb-options-header">
+            <label className="fb-label">Options</label>
+            <button onClick={addOption} className="fb-btn dashed fb-options-add-btn">+ Add</button>
+          </div>
+          <div className="fb-options-list">
+            {field.options?.map((opt, oIdx) => (
+              <div key={oIdx} className="fb-options-item-grid">
+                <input type="text" placeholder="Label" value={opt.label} onChange={e => updateOption(oIdx, 'label', e.target.value)} className="fb-input" />
+                <input type="text" placeholder="value_key" value={opt.value} onChange={e => updateOption(oIdx, 'value', e.target.value)} className="fb-input mono" />
+                <button onClick={() => removeOption(oIdx)} className="fb-options-remove-btn">
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionDrawer({ sections, activeSectionIdx, onSelect, onAdd, open, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="fb-drawer-overlay" onClick={onClose}>
+      <div className="fb-drawer-content" onClick={e => e.stopPropagation()}>
+        <div className="fb-drawer-header">
+          <h3>Form Sections</h3>
+          <button className="fb-drawer-close" onClick={onClose}>
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        </div>
+        <div className="fb-drawer-body">
+          {sections.map((sec, idx) => (
+            <button key={idx} className={`fb-drawer-item${activeSectionIdx === idx ? ' active' : ''}`} onClick={() => { onSelect(idx); onClose(); }} >
+              {sec.label || `Section ${idx + 1}`}
+            </button>
+          ))}
+          <button className="fb-btn dashed fb-w-full fb-mt-4" onClick={onAdd}>+ Add New Section</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetaDrawer({ schema, onChange, open, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="fb-drawer-overlay" onClick={onClose}>
+      <div className="fb-drawer-content bottom" onClick={e => e.stopPropagation()}>
+        <div className="fb-drawer-header">
+          <h3>Form Metadata</h3>
+          <button className="fb-drawer-close" onClick={onClose}>
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        </div>
+        <div className="fb-drawer-body fb-flex-col fb-gap-4">
+          {[['id', 'Schema ID'], ['title', 'Form Title'], ['event', 'Event']].map(([key, lbl]) => (
+            <div key={key}>
+              <label className="fb-label">{lbl}</label>
+              <input type="text" className={`fb-input${key === 'id' ? ' mono' : ''}`} value={schema[key] || ''} onChange={e => onChange(key, e.target.value)} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
 }
