@@ -1,19 +1,19 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faHandFist,            // Gain Possession
-  faCrosshairs,          // Start Shooting / We Scored / Shoot (off)
-  faCircleCheck,         // Full Score / Scored
-  faBolt,                // Partial
-  faXmark,               // Failed / Missed
-  faTriangleExclamation, // Breakdown
-  faCircle,              // Collect
-  faShield,              // Defend
-  faMinus,               // Nothing
-  faRocket,              // Climb OK
-  faBomb,                // Climb Fail
-  faHandPointRight,      // Push
-  faArrowTurnUp,        // Dispense
+  faHandFist,
+  faCrosshairs,
+  faCircleCheck,
+  faBolt,
+  faXmark,
+  faTriangleExclamation,
+  faCircle,
+  faShield,
+  faMinus,
+  faRocket,
+  faBomb,
+  faHandPointRight,
+  faArrowTurnUp,
 } from "@fortawesome/free-solid-svg-icons";
 import "../App.css";
 

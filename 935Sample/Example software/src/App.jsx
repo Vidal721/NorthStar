@@ -100,11 +100,6 @@ function LoginScreen() {
         <input type="password" id="password" className="fieldset-input" />
       </fieldset>
       <button id="mainLogin" onClick={handleLogin}>Login</button>
-      
-        <p>or</p>
-        <Link to="/family">
-          <button id="guest">Continue as Guest</button>
-        </Link>
         <p style={{ marginTop: "15px" }}>
         Don't have an account? <Link to="/register" style={{ color: "#4f46e5", textDecoration: "none" }}>Sign Up</Link>
       </p>
