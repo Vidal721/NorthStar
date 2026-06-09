@@ -14,6 +14,10 @@ import {
   faBinoculars,
   faX,
   faRightFromBracket,
+  faPlus,
+  faClock,
+  faGear,
+  faChartColumn,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function MainMenu() {
@@ -32,31 +36,27 @@ export default function MainMenu() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const [clickCount, setClickCount] = useState(0);
   const navigate = useNavigate();
 
-  const handleScoutLogin = () => {
-    // Functional state update ensures accuracy if clicks happen rapidly
+  function logout() {
+    navigate("/");
+  }
 
-    const password = "team935!";
-    const userInput = prompt("Password");
+  function getInitials() {
+    const name = localStorage.getItem("currentUser");
 
-    if (userInput === password) {
-      navigate("/scoutdash");
-    } else {
-      alert("incorrect password");
-      navigate("/");
-    }
-  };
+    // 1. Check if a name actually exists in localStorage
+    if (!name) return "";
+
+    // 2. Clean up any extra spaces and get the very first character
+    const firstInitial = name.trim().charAt(0);
+
+    // 3. Return it in uppercase
+    return firstInitial.toUpperCase();
+  }
 
   return (
     <>
-      <img
-        src="/pwa-512x512-removebg.png"
-        alt="935 scouting logo"
-        className="logo"
-        id="logo"
-      />
       <div id="header">
         <h1 className="headertext">
           North <strong id="strong">Star</strong>
@@ -68,39 +68,61 @@ export default function MainMenu() {
           id="logo"
         />
 
-          <button onClick={handleScoutLogin} className="redZone">
-            <FontAwesomeIcon icon={faBinoculars} />
-          </button>
+        <button onClick={logout} className="avatar">
+          {getInitials()}
+        </button>
       </div>
       <div id="count"></div>
       <div id="main-menu-container">
-        <h1 className="headertext">Choose which app to launch</h1>
-        <button
-          className="theme-btn"
-          onClick={toggleTheme}
-          aria-label="Toggle dark mode"
-        >
-          <span className="icon-sun">
-            <FontAwesomeIcon icon={faSun} />
-          </span>
-          <span className="icon-moon">
-            <FontAwesomeIcon icon={faMoon} />
-          </span>
-          <span className="theme-text">Switch Theme</span>
-        </button>
         <div id="divs">
-          <div id="datavis" className="launchdiv">
-            <h1>New</h1>
-            <Link
-              to="/vis"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="launch-btn"
-              id="startVis"
-            >
-              New <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          <Link to="/match" rel="noopener noreferrer">
+            <div id="datavis" className="launchdiv">
+              <div className="divIcon">
+                <FontAwesomeIcon icon={faPlus} />
+              </div>
+              <h1>New Match</h1>
+              <p>Submit new match data</p>
+            </div>
             </Link>
-          </div>
+            <Link to="/pit" rel="noopener noreferrer">
+            <div id="datavis" className="launchdiv">
+              <div className="divIcon">
+                <FontAwesomeIcon icon={faPlus} />
+              </div>
+              <h1>New Pit</h1>
+              <p>Submit new pit data</p>
+            </div>
+            </Link>
+                        <Link to="/match" rel="noopener noreferrer">
+            <div id="datavis" className="launchdiv">
+              <div className="divIcon">
+                <FontAwesomeIcon icon={faChartColumn} />
+              </div>
+              <h1>View Data</h1>
+              <p>Look at the most recent data available</p>
+            </div>
+            </Link>
+            <Link to="" rel="noopener noreferrer">
+            <div id="datavis" className="launchdiv">
+              <div className="divIcon">
+                <FontAwesomeIcon icon={faClock} />
+              </div>
+              <h1>Schedule</h1>
+              <p>
+                View current upload schedulee, and see which teams you scout
+                next
+              </p>
+            </div>
+            </Link>
+            <Link to="/scoutSeettings" rel="noopener noreferrer">
+            <div id="datavis" className="launchdiv">
+              <div className="divIcon">
+                <FontAwesomeIcon icon={faGear} />
+              </div>
+              <h1>Settings</h1>
+              <p>Customize theme, and manage account</p>
+            </div>
+            </Link>
         </div>
       </div>
     </>

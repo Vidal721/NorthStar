@@ -1,5 +1,15 @@
 @import url("https://googleapis.com");
 
+/* Stop the browser from changing the background color on autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: var(--btn-accent-text); /* Change this to your desired text color */
+    transition: background-color 5000s ease-in-out 0s; /* Forces the background to stay transparent */
+}
+
 /* =========================================================
    DESIGN TOKENS — light theme (default)
    ========================================================= */
@@ -219,6 +229,8 @@ body {
   width: 96%;
   max-width: 2000px;
 
+  height: 90px;
+
   margin: 0px auto;
 
   padding: 16px 20px;
@@ -235,6 +247,10 @@ body {
 
   margin-top: 10px;
 
+    display: flex;
+    text-align: left;
+  align-items: center;
+
   transition:
     transform var(--transition-normal),
     box-shadow var(--transition-normal),
@@ -244,7 +260,20 @@ body {
 .launchdiv h1 {
   font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  text-decoration: none;
+  position: absolute;
+  top: 0;
+  left: 40px;
+}
+
+.launchdiv p {
+  font-size: 1rem;
+  font-weight: 300;
+  font-size: 14px;
+  text-decoration: none;
+  position: absolute;
+  top: 30px;
+  left: 50px;
 }
 
 .launchdiv:hover {
@@ -1187,14 +1216,23 @@ body {
   font-style: normal;
 }
 #divs {
-  display: grid;
-
-  /* Step 2: Create 2 equal-width columns (1 fraction of space each) */
-  grid-template-columns: repeat(2, 1fr);
-
-  /* Step 3: Optional spacing between the blocks */
+  display: flex;
+  flex-direction: column;
   gap: 1px;
   width: 95%;
+}
+.divIcon {
+  position: absolute;
+  left: 0px;
+  background-color: #0f0f0d;
+  height: 100%;
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
 }
 .redZone {
   position: absolute;
@@ -2477,6 +2515,18 @@ body {
   width: 100px;
 }
 
-
+.avatar {
+  position: absolute;
+  background-color: var(--btn-accent-hover);
+  border: var(--border-default);
+  padding: 10px;
+  border-radius: 50%;
+  top: 10px;
+  right: 10px;
+  height: 50px;
+  font-size: 20px;
+  width: 50px;
+  box-shadow: var(--shadow-md);
+}
 
 

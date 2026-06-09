@@ -38,14 +38,21 @@ export default function MainMenu() {
     navigate("/")
   }
 
+function getInitials() {
+  const name = localStorage.getItem("currentUser");
+  
+  // 1. Check if a name actually exists in localStorage
+  if (!name) return '';
+
+  // 2. Clean up any extra spaces and get the very first character
+  const firstInitial = name.trim().charAt(0);
+
+  // 3. Return it in uppercase
+  return firstInitial.toUpperCase();
+}
+
   return (
     <>
-      <img
-        src="/pwa-512x512-removebg.png"
-        alt="935 scouting logo"
-        className="logo"
-        id="logo"
-      />
       <div id="header">
         <h1 className="headertext">
           North <strong id="strong">Star</strong>
@@ -57,8 +64,8 @@ export default function MainMenu() {
           id="logo"
         />
 
-          <button onClick={logout} className="redZone">
-            <FontAwesomeIcon icon={faRightFromBracket} />
+          <button onClick={logout} className="avatar">
+            G
           </button>
       </div>
       <div id="count"></div>

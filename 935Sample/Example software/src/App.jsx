@@ -23,29 +23,51 @@ import AdminDashboard from "./pages/admin";
 import FormBuilder from "./pages/formbuilder";
 import GuestPage from "./pages/guest";
 import MainScout from "./pages/scout";
+import ScoutSettings from "./pages/settings"
 import "./App.css";
 
 function LoginScreen() {
   const navigate = useNavigate();
 
   function handleLogin () {
-
     const password = "1234";
     const userPassword = document.getElementById("password").value;
+    const username = document.getElementById("email").value;
 
     if(password === userPassword) {
+      localStorage.setItem("currentUser", username)
       navigate("/scout")
     }
   }
+
+  // --- GLOBAL ENTER KEY LISTENER ---
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Prevents default form quirkiness
+        handleLogin();
+      }
+    };
+
+    // Attach listener to the window
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Clean up the listener when leaving the login screen
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // Empty array ensures it only sets up once on mount
+  // ---------------------------------
+
   return (
     <>
       <div id="loginContainer">
-              <img
-        src="/pwa-512x512-removebg.png"
-        alt="935 scouting logo"
-        className="mainLogo"
-        id="mainLogo"
-      />
+        <img
+          src="/pwa-512x512-removebg.png"
+          alt="935 scouting logo"
+          className="mainLogo"
+          id="mainLogo"
+        />
         <p>Welcome! Please Login</p>
         <fieldset className="fieldset-container">
           <legend className="fieldset-legend">
@@ -81,6 +103,7 @@ function App() {
         <Route path="/form" element={<FormBuilder />} />
         <Route path="/scout" element={<MainScout />} />
         <Route path="/guest" element={<GuestPage />} />
+        <Route path="/scoutSeettings" element={<ScoutSettings />} />
       </Routes>
     </BrowserRouter>
   );
