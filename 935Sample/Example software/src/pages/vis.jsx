@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import {
   faGear,
   faArrowRightFromBracket,
-  faArrowUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import "./vis.css";
 
@@ -26,9 +25,7 @@ const DEFAULT_SECTION_COLORS = {
 };
 
 const DEFAULT_SUMMARY_COLS = [];
-
-const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/match/data";
-const LOCAL_URL = "http://localhost:3000/match/data";
+const BASE_API_URL = "http://localhost:3000";
 
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
@@ -117,7 +114,6 @@ function getCellValue(row, def) {
   return row[def.section]?.[def.subKey];
 }
 
-// ── Compute profile metrics like how calc.html does ──────
 function computeProfile(teamRows) {
   const matchCount = teamRows.length;
   let totalCyclesSum = 0, scoringCyclesSum = 0, fitScoreSum = 0, autoFullScoresSum = 0;
@@ -188,7 +184,6 @@ const OVERVIEW_STATS = [
   { key: "climbRate",                 label: "Climb Rate",                    target: "100.0%",          def: "The ultimate success verification footprint tracking standard endgame climbing accomplishments.", fmt: (v) => v },
 ];
 
-// ── Portal Tooltip ─────────────────────────────────────────
 function StatTooltip({ label, def, target, anchorRef }) {
   const [pos, setPos] = useState(null);
   const tipRef = useRef(null);
@@ -242,22 +237,16 @@ function StatCard({ label, target, def, value }) {
   );
 }
 
-// ── Team Overview Modal ────────────────────────────────────
 function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
-  const [tab, setTab] = useState("overview"); // "overview" | "detail"
+  const [tab, setTab] = useState("overview"); 
   const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
 
   const teamId = teamRows[0]?.meta?.teamNumber ?? teamRows[0]?.team ?? teamRows[0]?.id;
   const profile = computeProfile(teamRows);
-
-  // For detail view — all colDefs for the selected match
   const selectedMatch = teamRows[selectedMatchIdx];
 
   return (
-    <div
-      className="settings-overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    > 
+    <div className="settings-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}> 
       <div className="team-modal">
         <div className="team-modal-header">
           <div className="team-modal-title">
@@ -267,18 +256,8 @@ function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
             </span>
           </div>
           <div className="team-modal-actions">
-            <button
-              className={`team-modal-toggle${tab === "overview" ? " active" : ""}`}
-              onClick={() => setTab("overview")}
-            >
-              Overview
-            </button>
-            <button
-              className={`team-modal-toggle${tab === "detail" ? " active" : ""}`}
-              onClick={() => setTab("detail")}
-            >
-              Match Detail
-            </button>
+            <button className={`team-modal-toggle${tab === "overview" ? " active" : ""}`} onClick={() => setTab("overview")}>Overview</button>
+            <button className={`team-modal-toggle${tab === "detail" ? " active" : ""}`} onClick={() => setTab("detail")}>Match Detail</button>
             <button className="settings-close" onClick={onClose}>
               <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <line x1="2" y1="2" x2="14" y2="14" />
@@ -291,12 +270,10 @@ function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
         <div className="team-modal-body">
           {tab === "overview" && (
             <div className="team-overview-panel">
-              {/* FitScore badge */}
               <div className="team-overview-fitscore">
                 <span className="team-overview-fitscore-label">Avg FitScore</span>
                 <span className="team-overview-fitscore-value">{profile.avgFitScore}</span>
               </div>
-
               <div className="team-kv-grid">
                 {OVERVIEW_STATS.map(({ key, label, target, def, fmt }) => (
                   <StatCard key={key} label={label} target={target} def={def} value={fmt(profile[key])} />
@@ -307,34 +284,24 @@ function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
 
           {tab === "detail" && (
             <div className="team-detail-panel">
-              {/* Match selector */}
               <div className="team-match-selector">
                 {teamRows.map((r, i) => {
                   const matchNum = r.meta?.matchNumber ?? r.match ?? `#${i + 1}`;
                   return (
-                    <button
-                      key={i}
-                      className={`team-match-chip${selectedMatchIdx === i ? " active" : ""}`}
-                      onClick={() => setSelectedMatchIdx(i)}
-                    >
+                    <button key={i} className={`team-match-chip${selectedMatchIdx === i ? " active" : ""}`} onClick={() => setSelectedMatchIdx(i)}>
                       Match {matchNum}
                     </button>
                   );
                 })}
               </div>
 
-              {/* All data for selected match */}
               {selectedMatch && (
                 <div className="team-kv-grid">
                   {colDefs.map((def) => {
                     const color = sectionColors[def.section] || "#888";
                     const val = getCellValue(selectedMatch, def);
                     return (
-                      <div
-                        key={def.flatKey}
-                        className="team-kv-card"
-                        style={{ "--card-color": color }}
-                      >
+                      <div key={def.flatKey} className="team-kv-card" style={{ "--card-color": color }}>
                         <div className="team-kv-section" style={{ color }}>
                           {def.section === "_flat" ? "Info" : def.section.toUpperCase()}
                         </div>
@@ -355,28 +322,16 @@ function TeamModal({ teamRows, colDefs, sectionColors, onClose }) {
   );
 }
 
-// ── Settings Modal ─────────────────────────────────────────
 function SettingsModal({
-  onClose,
-  density,
-  setDensity,
-  freezeEnabled,
-  setFreezeEnabled,
-  frozenCols,
-  toggleFreezeCol,
-  columns,
-  sectionColors,
-  setSectionColors,
-  knownSections,
-  summaryCols,
-  setSummaryCols,
+  onClose, density, setDensity, freezeEnabled, setFreezeEnabled, frozenCols,
+  toggleFreezeCol, columns, sectionColors, setSectionColors, knownSections,
+  summaryCols, setSummaryCols,
 }) {
   const toggleSummaryCol = (fk) =>
     setSummaryCols((prev) =>
       prev.includes(fk) ? prev.filter((c) => c !== fk) : [...prev, fk],
     );
 
-  // Group columns by section for display
   const grouped = columns.reduce((acc, col) => {
     const sec = col.section === "_flat" ? "Info" : col.section;
     if (!acc[sec]) acc[sec] = [];
@@ -385,73 +340,40 @@ function SettingsModal({
   }, {});
 
   return (
-    <div
-      className="settings-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div className="settings-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="settings-modal">
         <div className="settings-header">
-          <h2>
-            <FontAwesomeIcon icon={faGear} /> Table Settings — Team 935
-          </h2>
+          <h2><FontAwesomeIcon icon={faGear} /> Table Settings</h2>
           <button className="settings-close" onClick={onClose}>
-            <svg
-              viewBox="0 0 16 16"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <line x1="2" y1="2" x2="14" y2="14" />
-              <line x1="14" y1="2" x2="2" y2="14" />
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="2" y1="2" x2="14" y2="14" /><line x1="14" y1="2" x2="2" y2="14" />
             </svg>
           </button>
         </div>
         <div className="settings-body">
-          {/* Density */}
           <div>
             <div className="settings-section-label">Row Density</div>
             <div className="density-options">
               {Object.entries(DENSITY).map(([key, val]) => (
-                <button
-                  key={key}
-                  className={`density-btn${density === key ? " active" : ""}`}
-                  onClick={() => setDensity(key)}
-                >
+                <button key={key} className={`density-btn${density === key ? " active" : ""}`} onClick={() => setDensity(key)}>
                   {val.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Section Colors */}
           <div>
             <div className="settings-section-label">Section Colors</div>
             <div className="section-color-list">
               {knownSections.map((sec) => (
                 <div key={sec} className="section-color-row">
-                  <span
-                    className="section-color-label"
-                    style={{
-                      borderLeft: `3px solid ${sectionColors[sec] || "#999"}`,
-                      paddingLeft: 8,
-                    }}
-                  >
-                    {sec === "_flat"
-                      ? "Other"
-                      : sec.charAt(0).toUpperCase() + sec.slice(1)}
+                  <span className="section-color-label" style={{ borderLeft: `3px solid ${sectionColors[sec] || "#999"}`, paddingLeft: 8 }}>
+                    {sec === "_flat" ? "Other" : sec.charAt(0).toUpperCase() + sec.slice(1)}
                   </span>
                   <input
                     type="color"
                     value={sectionColors[sec] || "#999999"}
-                    onChange={(e) =>
-                      setSectionColors((prev) => ({
-                        ...prev,
-                        [sec]: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setSectionColors((prev) => ({ ...prev, [sec]: e.target.value }))}
                     className="color-swatch-input"
                   />
                 </div>
@@ -459,27 +381,18 @@ function SettingsModal({
             </div>
           </div>
 
-          {/* Summary Columns */}
           <div>
             <div className="settings-section-label">Summary Columns</div>
-            <p className="settings-hint">
-              These appear in the team overview. Click to toggle.
-            </p>
+            <p className="settings-hint">These appear in the team overview. Click to toggle.</p>
             <div className="summary-col-sections">
               {Object.entries(grouped).map(([sec, cols]) => {
                 const color = sectionColors[cols[0].section] || "#888";
                 return (
                   <div key={sec} className="summary-col-group">
-                    <div className="summary-col-group-label" style={{ color }}>
-                      {sec}
-                    </div>
+                    <div className="summary-col-group-label" style={{ color }}>{sec}</div>
                     <div className="freeze-columns-list">
                       {cols.map((col) => (
-                        <button
-                          key={col.flatKey}
-                          className={`freeze-col-chip${summaryCols.includes(col.flatKey) ? " frozen" : ""}`}
-                          onClick={() => toggleSummaryCol(col.flatKey)}
-                        >
+                        <button key={col.flatKey} className={`freeze-col-chip${summaryCols.includes(col.flatKey) ? " frozen" : ""}`} onClick={() => toggleSummaryCol(col.flatKey)}>
                           {col.label}
                         </button>
                       ))}
@@ -490,34 +403,20 @@ function SettingsModal({
             </div>
           </div>
 
-          {/* Column Freeze */}
           <div>
             <div className="freeze-toggle-row">
               <span>Column Freezing</span>
               <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={freezeEnabled}
-                  onChange={(e) => setFreezeEnabled(e.target.checked)}
-                />
+                <input type="checkbox" checked={freezeEnabled} onChange={(e) => setFreezeEnabled(e.target.checked)} />
                 <span className="toggle-slider" />
               </label>
             </div>
             {freezeEnabled && columns.length > 0 && (
               <>
-                <div
-                  className="settings-section-label"
-                  style={{ marginBottom: 8 }}
-                >
-                  Select columns to freeze
-                </div>
+                <div className="settings-section-label" style={{ marginBottom: 8 }}>Select columns to freeze</div>
                 <div className="freeze-columns-list">
                   {columns.map((col) => (
-                    <button
-                      key={col.flatKey}
-                      className={`freeze-col-chip${frozenCols.includes(col.flatKey) ? " frozen" : ""}`}
-                      onClick={() => toggleFreezeCol(col.flatKey)}
-                    >
+                    <button key={col.flatKey} className={`freeze-col-chip${frozenCols.includes(col.flatKey) ? " frozen" : ""}`} onClick={() => toggleFreezeCol(col.flatKey)}>
                       {col.label}
                     </button>
                   ))}
@@ -531,7 +430,6 @@ function SettingsModal({
   );
 }
 
-// ── App ────────────────────────────────────────────────────
 export default function App() {
   const [data, setData] = useState([]);
   const [sortField, setSortField] = useState("");
@@ -544,35 +442,61 @@ export default function App() {
   const [frozenCols, setFrozenCols] = useState([]);
   const [sectionColors, setSectionColors] = useState(DEFAULT_SECTION_COLORS);
   const [summaryCols, setSummaryCols] = useState(DEFAULT_SUMMARY_COLS);
-  const [teamFocus, setTeamFocus] = useState(null); // { teamId, rows }
+  const [teamFocus, setTeamFocus] = useState(null); 
+  const [regionals, setRegionals] = useState([]);
+  const [selectedRegional, setSelectedRegional] = useState("");
 
   const thRefs = useRef({});
   const secThRefs = useRef({});
   const tableContainerRef = useRef(null);
   const [frozenOffsets, setFrozenOffsets] = useState({});
 
-
-
-
+  // 1. Initial Load: Fetch List of Regionals
   useEffect(() => {
-    async function fetchData() {
+    async function loadRegionals() {
       try {
-        setIsLoading(true);
-        const res = await fetch(API_URL, {
-          headers: {
-            "ngrok-skip-browser-warning": "69420",
-          },
-        });
-        if (!res.ok) throw new Error("Failed to fetch data from server.");
-        setData(await res.json());
+        const res = await fetch(`${BASE_API_URL}/regionals`);
+        if (!res.ok) throw new Error("Failed to load regionals list.");
+        const regionalData = await res.json();
+        setRegionals(regionalData);
+
+        if (regionalData.length > 0) {
+          // Default to the first available event in the list
+          setSelectedRegional(regionalData[0].name);
+        } else {
+          setIsLoading(false); // Drop loading screen if there's no data to query
+        }
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+      }
+    }
+    loadRegionals();
+  }, []);
+
+  // 2. Secondary Load: Query match data specific to the chosen regional
+  useEffect(() => {
+    if (!selectedRegional) return;
+
+    async function loadMatchData() {
+      setIsLoading(true);
+      try {
+        const encodedName = encodeURIComponent(selectedRegional);
+        const res = await fetch(`${BASE_API_URL}/match/Data/regional/${encodedName}`);
+        if (!res.ok) throw new Error(`Failed to load data for regional: ${selectedRegional}`);
+        
+        const matchRows = await res.json();
+        setData(matchRows);
+        setError(null);
       } catch (err) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchData();
-  }, []);
+
+    loadMatchData();
+  }, [selectedRegional]);
 
   const colDefs = buildColumnDefs(data);
 
@@ -619,10 +543,7 @@ export default function App() {
         const va = def ? String(getCellValue(a, def) ?? "") : "";
         const vb = def ? String(getCellValue(b, def) ?? "") : "";
         return (
-          va.localeCompare(vb, undefined, {
-            numeric: true,
-            sensitivity: "base",
-          }) * (order === "asc" ? 1 : -1)
+          va.localeCompare(vb, undefined, { numeric: true, sensitivity: "base" }) * (order === "asc" ? 1 : -1)
         );
       }),
     );
@@ -635,24 +556,11 @@ export default function App() {
 
   const isFrozen = (fk) => freezeEnabled && frozenCols.includes(fk);
 
-  // Total frozen width — labels should not overlap frozen cols
-  const totalFrozenWidth = Object.keys(frozenOffsets).length > 0
-    ? Math.max(...Object.keys(frozenOffsets).map((fk) => {
-        const el = thRefs.current[fk];
-        return (frozenOffsets[fk] ?? 0) + (el ? el.offsetWidth : 0);
-      }))
-    : 0;
-
-  // Snap frozen cols to nearest border:
-  // CSS `position:sticky; left:X` naturally does this: the element sticks only when scrolling
-  // would otherwise push it left of X. So it correctly stays at natural position until you reach it.
-
   const getStickyStyle = (fk) => {
     if (!isFrozen(fk)) return {};
     return { position: "sticky", left: frozenOffsets[fk] ?? 0, zIndex: 4 };
   };
 
-  // Find team column — look for a _flat col named "team" or first _flat col
   const teamColDef =
     colDefs.find((d) => d.section === "meta" && d.subKey === "teamNumber") ??
     colDefs.find((d) => d.section === "_flat");
@@ -661,40 +569,63 @@ export default function App() {
     e.stopPropagation();
     if (!teamColDef) return;
     const teamId = getCellValue(row, teamColDef);
-    // Gather all rows for this team
     const teamRows = data.filter((r) => getCellValue(r, teamColDef) === teamId);
     setTeamFocus({ teamId, rows: teamRows });
   };
-
-  if (isLoading)
-    return (
-      <div className="table-container message-box">Loading server data...</div>
-    );
-  if (error)
-    return (
-      <div className="table-container message-box error">Error: {error}</div>
-    );
 
   return (
     <>
       <div className="team-badge">935</div>
 
-      <div className="headerButtons">
-        <button className="settings-trigger">
-          <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
-            <FontAwesomeIcon icon={faArrowRightFromBracket} />
-          </Link>
-        </button>
+      {/* Control Navigation & Regional Selection Bar */}
+      <div className="action-header-bar" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 20px' }}>
+        <div className="regional-selector-container">
+          <label htmlFor="regional-select" style={{ marginRight: '8px', fontWeight: 'bold', color: '#ccc' }}>
+            Event Regional:
+          </label>
+          <select
+            id="regional-select"
+            value={selectedRegional}
+            onChange={(e) => setSelectedRegional(e.target.value)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '4px',
+              backgroundColor: '#222',
+              color: '#fff',
+              border: '1px solid #444',
+              cursor: 'pointer'
+            }}
+          >
+            {regionals.length === 0 ? (
+              <option value="">No Regionals Available</option>
+            ) : (
+              regionals.map((r) => (
+                <option key={r.id} value={r.name}>
+                  {r.name} {r.year ? `(${r.year})` : ""}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
 
-        <button
-          className="settings-trigger"
-          onClick={() => setShowSettings(true)}
-          aria-label="Open settings"
-          id="settingsIcon"
-        >
-          <FontAwesomeIcon icon={faGear} />
-        </button>
+        <div className="headerButtons" style={{ marginLeft: 'auto' }}>
+          <button className="settings-trigger">
+            <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
+              <FontAwesomeIcon icon={faArrowRightFromBracket} />
+            </Link>
+          </button>
+
+          <button
+            className="settings-trigger"
+            onClick={() => setShowSettings(true)}
+            aria-label="Open settings"
+            id="settingsIcon"
+          >
+            <FontAwesomeIcon icon={faGear} />
+          </button>
+        </div>
       </div>
+
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
@@ -722,130 +653,109 @@ export default function App() {
         />
       )}
 
-      <div className="table-wrapper">
-        <div className="table-container" ref={tableContainerRef}>
-          <table>
-            <thead>
-              {/* Row 1: Section group headers */}
-              <tr className="section-header-row">
-                {knownSections.map((sec) => {
-                  const color = sectionColors[sec] || "#888";
-                  const count = sectionGroups[sec].length;
-                  return (
-                    <th
-                      key={sec}
-                      colSpan={count}
-                      ref={(el) => { secThRefs.current[sec] = el; }}
-                      className="section-group-th"
-                      style={{ "--sec-color": color }}
-                    >
-                      <span
-                        className="section-group-label"
+      {/* Display States */}
+      {isLoading ? (
+        <div className="table-container message-box">Loading regional data matrix...</div>
+      ) : error ? (
+        <div className="table-container message-box error">Error: {error}</div>
+      ) : (
+        <div className="table-wrapper">
+          <div className="table-container" ref={tableContainerRef}>
+            <table>
+              <thead>
+                <tr className="section-header-row">
+                  {knownSections.map((sec) => {
+                    const color = sectionColors[sec] || "#888";
+                    const count = sectionGroups[sec].length;
+                    return (
+                      <th
+                        key={sec}
+                        colSpan={count}
+                        ref={(el) => { secThRefs.current[sec] = el; }}
+                        className="section-group-th"
+                        style={{ "--sec-color": color }}
                       >
-                        {sec === "_flat" ? "Info" : sec.toUpperCase()}
-                      </span>
-                    </th>
-                  );
-                })}
-              </tr>
-              {/* Row 2: Individual column headers */}
-              <tr className="col-header-row">
-                {colDefs.map((def) => {
-                  const color = sectionColors[def.section] || "#888";
-                  return (
-                    <th
-                      key={def.flatKey}
-                      ref={(el) => {
-                        thRefs.current[def.flatKey] = el;
-                      }}
-                      className={[
-                        sortField === def.flatKey ? "sort-active" : "",
-                        isFrozen(def.flatKey) ? "frozen" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      style={{
-                        ...getStickyStyle(def.flatKey),
-                        "--sec-color": color,
-                      }}
-                      onClick={() => handleSort(def.flatKey)}
-                    >
-                      {def.label}
-                      <span className="sort-indicator">
-                        {sortField === def.flatKey
-                          ? sortOrder === "asc"
-                            ? "▲"
-                            : "▼"
-                          : "⇅"}
-                      </span>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {data.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={colDefs.length || 1}
-                    style={{ textAlign: "center", color: "#888" }}
-                  >
-                    No data available.
-                  </td>
+                        <span className="section-group-label">
+                          {sec === "_flat" ? "Info" : sec.toUpperCase()}
+                        </span>
+                      </th>
+                    );
+                  })}
                 </tr>
-              ) : (
-                data.map((row, rowIdx) => (
-                  <tr key={row.id || rowIdx}>
-                    {colDefs.map((def) => {
-                      const color = sectionColors[def.section] || "#888";
-                      const val = getCellValue(row, def);
-                      const secDefs = sectionGroups[def.section];
-                      const isFirst = secDefs[0].flatKey === def.flatKey;
-                      const isLast =
-                        secDefs[secDefs.length - 1].flatKey === def.flatKey;
-                      const isTeamCol = def === teamColDef;
-
-                      return (
-                        <td
-                          key={def.flatKey}
-                          className={[
-                            "sectioned-cell",
-                            isFrozen(def.flatKey) ? "frozen" : "",
-                            isTeamCol ? "team-cell" : "",
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
-                          style={{
-                            ...getStickyStyle(def.flatKey),
-                            "--sec-color": color,
-                            borderLeft: isFirst
-                              ? `2px solid ${color}20`
-                              : undefined,
-                            borderRight: isLast
-                              ? `2px solid ${color}20`
-                              : undefined,
-                          }}
-                        >
-                          {isTeamCol ? (
-                            <button
-                              className="team-link"
-                              onClick={(e) => handleTeamClick(e, row)}
-                            >
-                              {renderCellValue(val, def.subKey)}
-                            </button>
-                          ) : (
-                            renderCellValue(val, def.subKey)
-                          )}
-                        </td>
-                      );
-                    })}
+                <tr className="col-header-row">
+                  {colDefs.map((def) => {
+                    const color = sectionColors[def.section] || "#888";
+                    return (
+                      <th
+                        key={def.flatKey}
+                        ref={(el) => { thRefs.current[def.flatKey] = el; }}
+                        className={[
+                          sortField === def.flatKey ? "sort-active" : "",
+                          isFrozen(def.flatKey) ? "frozen" : "",
+                        ].filter(Boolean).join(" ")}
+                        style={{ ...getStickyStyle(def.flatKey), "--sec-color": color }}
+                        onClick={() => handleSort(def.flatKey)}
+                      >
+                        {def.label}
+                        <span className="sort-indicator">
+                          {sortField === def.flatKey ? (sortOrder === "asc" ? "▲" : "▼") : "⇅"}
+                        </span>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {data.length === 0 ? (
+                  <tr>
+                    <td colSpan={colDefs.length || 1} style={{ textAlign: "center", color: "#888", padding: '20px' }}>
+                      No data available for {selectedRegional}.
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  data.map((row, rowIdx) => (
+                    <tr key={row.id || rowIdx}>
+                      {colDefs.map((def) => {
+                        const color = sectionColors[def.section] || "#888";
+                        const val = getCellValue(row, def);
+                        const secDefs = sectionGroups[def.section];
+                        const isFirst = secDefs[0].flatKey === def.flatKey;
+                        const isLast = secDefs[secDefs.length - 1].flatKey === def.flatKey;
+                        const isTeamCol = def === teamColDef;
+
+                        return (
+                          <td
+                            key={def.flatKey}
+                            className={[
+                              "sectioned-cell",
+                              isFrozen(def.flatKey) ? "frozen" : "",
+                              isTeamCol ? "team-cell" : "",
+                            ].filter(Boolean).join(" ")}
+                            style={{
+                              ...getStickyStyle(def.flatKey),
+                              "--sec-color": color,
+                              borderLeft: isFirst ? `2px solid ${color}20` : undefined,
+                              borderRight: isLast ? `2px solid ${color}20` : undefined,
+                            }}
+                          >
+                            {isTeamCol ? (
+                              <button className="team-link" onClick={(e) => handleTeamClick(e, row)}>
+                                {renderCellValue(val, def.subKey)}
+                              </button>
+                            ) : (
+                              renderCellValue(val, def.subKey)
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

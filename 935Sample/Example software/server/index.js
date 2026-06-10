@@ -3,7 +3,8 @@ import fs from "fs";
 import cors from "cors";
 import dotenv from "dotenv";
 import { exec } from "child_process";
-import bcrypt from "bcrypt"; // 1. IMPORT BCRYPT AT THE TOP
+import bcrypt from "bcrypt";
+import db, { getOrCreateRegional } from "./db.js";
 
 const app = express();
 const PORT = 3000;
@@ -154,58 +155,26 @@ app.get("/users", (req, res) => {
 // ==== Match endpoints ==== //
 app.get("/match/Data/:id", (req, res) => {
   const id = Number(req.params.id);
-  const team = getMatch().find((team) => team.id === id);
-  if (!team) return res.status(404).json({ error: "User not found" });
-  res.json(team);
+  const row = db.prepare(`SELECT payload FROM match_data WHERE id = ?`).get(id);
+  if (!row) return res.status(404).json({ error: "Match not found" });
+  res.json(JSON.parse(row.payload));
 });
 
 app.get("/match/Data", (req, res) => {
-  res.json(getMatch());
+  const rows = db.prepare(`SELECT payload FROM match_data ORDER BY created_at DESC`).all();
+  res.json(rows.map((r) => JSON.parse(r.payload)));
+});
+
+// All match data for a specific regional
+app.get("/match/Data/regional/:name", (req, res) => {
+  const regional = db.prepare(`SELECT id FROM regionals WHERE name = ?`).get(req.params.name);
+  if (!regional) return res.status(404).json({ error: "Regional not found" });
+  const rows = db.prepare(`SELECT payload FROM match_data WHERE regional_id = ? ORDER BY created_at DESC`).all(regional.id);
+  res.json(rows.map((r) => JSON.parse(r.payload)));
 });
 
 app.post("/match/upload", (req, res) => {
   try {
-    const users = getMatch();
-    const newData = req.body;
-
-    if (!newData || typeof newData !== "object") {
-      return res.status(400).json({ error: "Invalid request body" });
-    }
-
-    newData.id = Date.now(); 
-    users.push(newData);
-
-    fs.writeFileSync("matchData.json", JSON.stringify(users, null, 2));
-
-    console.log(
-      `[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}, scout ${newData.meta?.scoutName}`,
-    );
-    res.status(201).json(newData);
-  } catch (err) {
-    console.error("[upload] Failed to save match data:", err.message);
-    res.status(500).json({ error: "Failed to save match data", detail: err.message });
-  }
-});
-
-app.delete("/delete/match/:id", (req, res) => {
-  const matchData = getMatch();
-  const matchId = parseInt(req.params.id);
-  
-  const matchIndex = matchData.findIndex(match => match.id === matchId);
-  
-  if (matchIndex === -1) {
-    return res.status(404).json({ error: "Match not found" });
-  }
-
-  matchData.splice(matchIndex, 1);
-  fs.writeFileSync("matchData.json", JSON.stringify(matchData, null, 2));
-  return res.status(204).send(); 
-});
-
-// ==== Pit endpoints ==== //
-app.post("/pit/upload", (req, res) => {
-  try {
-    const users = getPit();
     const newData = req.body;
 
     if (!newData || typeof newData !== "object") {
@@ -213,9 +182,86 @@ app.post("/pit/upload", (req, res) => {
     }
 
     newData.id = Date.now();
-    users.push(newData);
 
-    fs.writeFileSync("pitData.json", JSON.stringify(users, null, 2));
+    let regionalId = null;
+
+    try {
+      const schema = getPitForm();
+      console.log("[upload] Active event:", schema.event);
+
+      regionalId = getOrCreateRegional(schema.event);
+
+      console.log("[upload] Regional ID:", regionalId);
+    } catch (err) {
+      console.error("[upload] Failed to load pit form:", err);
+    }
+
+    if (!regionalId) {
+      return res.status(400).json({
+        error: "No active regional configured"
+      });
+    }
+
+    db.prepare(`
+      INSERT INTO match_data (id, regional_id, team_number, match_number, scout_name, payload)
+      VALUES (@id, @regionalId, @teamNumber, @matchNumber, @scoutName, @payload)
+    `).run({
+      id: newData.id,
+      regionalId,
+      teamNumber: newData.meta?.teamNumber ?? null,
+      matchNumber: newData.meta?.matchNumber ?? null,
+      scoutName: newData.meta?.scoutName ?? null,
+      payload: JSON.stringify(newData),
+    });
+
+    console.log(
+      `[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}`
+    );
+
+    res.status(201).json(newData);
+  } catch (err) {
+    console.error("[upload] Failed to save match data:", err.message);
+    res.status(500).json({
+      error: "Failed to save match data",
+      detail: err.message
+    });
+  }
+});
+
+app.delete("/delete/match/:id", (req, res) => {
+  const matchId = parseInt(req.params.id);
+  const result = db.prepare(`DELETE FROM match_data WHERE id = ?`).run(matchId);
+  if (result.changes === 0) return res.status(404).json({ error: "Match not found" });
+  return res.status(204).send();
+});
+
+// ==== Pit endpoints ==== //
+app.post("/pit/upload", (req, res) => {
+  try {
+    const newData = req.body;
+
+    if (!newData || typeof newData !== "object") {
+      return res.status(400).json({ error: "Invalid request body" });
+    }
+
+    newData.id = Date.now();
+
+    // Resolve regional from the active pit form schema
+    let regionalId = null;
+    try {
+      const schema = JSON.parse(fs.readFileSync("pitForm.json", "utf8"));
+      regionalId = getOrCreateRegional(schema.event);
+    } catch {}
+
+    db.prepare(`
+      INSERT INTO pit_data (id, regional_id, form_id, payload)
+      VALUES (@id, @regionalId, @formId, @payload)
+    `).run({
+      id: newData.id,
+      regionalId,
+      formId: newData.meta?.formId ?? null,
+      payload: JSON.stringify(newData),
+    });
 
     console.log(`[upload] Pit data saved`);
     res.status(201).json(newData);
@@ -229,6 +275,14 @@ app.get("/pit/form", (req, res) => {
   res.json(getPitForm());
 });
 
+// All pit data for a specific regional
+app.get("/pit/data/regional/:name", (req, res) => {
+  const regional = db.prepare(`SELECT id FROM regionals WHERE name = ?`).get(req.params.name);
+  if (!regional) return res.status(404).json({ error: "Regional not found" });
+  const rows = db.prepare(`SELECT payload FROM pit_data WHERE regional_id = ? ORDER BY created_at DESC`).all(regional.id);
+  res.json(rows.map((r) => JSON.parse(r.payload)));
+});
+
 app.post('/pit/save', (req, res) => {
   const schema = req.body;
 
@@ -238,6 +292,13 @@ app.post('/pit/save', (req, res) => {
 
   try {
     fs.writeFileSync('pitForm.json', JSON.stringify(schema, null, 2), 'utf-8');
+
+    // Auto-register the regional in the DB whenever the form is saved
+    if (schema.event) {
+      getOrCreateRegional(schema.event);
+      console.log(`[form] Regional ensured in DB: ${schema.event}`);
+    }
+
     console.log(`[form] Pit form schema saved — id: ${schema.id}`);
     res.json({ success: true, file: 'pitForm.json' });
   } catch (err) {
@@ -270,6 +331,11 @@ app.post("/admin/upload", (req, res) => {
     console.error("[upload] Failed to save admin data:", err.message);
     res.status(500).json({ error: "Failed to save admin data", detail: err.message });
   }
+});
+
+// List all regionals
+app.get("/regionals", (req, res) => {
+  res.json(db.prepare(`SELECT * FROM regionals ORDER BY id DESC`).all());
 });
 
 app.listen(PORT, () => {

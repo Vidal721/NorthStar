@@ -1382,6 +1382,17 @@ export default function App() {
     document.documentElement.setAttribute("data-theme", saved);
   }, []);
 
+  // Pull event name from pit form schema
+  const [eventName, setEventName] = useState("");
+  useEffect(() => {
+    fetch(LOCAL_URL.replace("/match/upload", "/pit/form"), {
+      headers: { "ngrok-skip-browser-warning": "69420" },
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((schema) => { if (schema?.event) setEventName(schema.event); })
+      .catch(() => {});
+  }, []);
+
   const [screen, setScreen] = useState("start");
   const [matchTime, setMatchTime] = useState(matchTotal);
   const matchTimeRef = useRef(matchTotal);
@@ -1772,6 +1783,7 @@ export default function App() {
         teamNumber: matchMeta.teamNumber,
         matchNumber: matchMeta.matchNumber,
         scoutName: matchMeta.scoutName,
+        eventName: eventName || null,
         timestamp: new Date().toISOString(),
       },
       auto: {
@@ -1855,7 +1867,7 @@ export default function App() {
     const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
     console.log(`${label} — sending`, matchData);
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(LOCAL_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2633,7 +2645,7 @@ export default function App() {
             <div
               id="results-meta"
             >
-              Drive team preview · Team 935
+              {eventName ? eventName : "Match Scouting"}
             </div>
           </div>
           <button
