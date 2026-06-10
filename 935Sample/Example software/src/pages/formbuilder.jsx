@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHandFist,
@@ -20,9 +21,6 @@ import {
   faSquareCheck,
   faDatabase,
 } from "@fortawesome/free-solid-svg-icons";
-
-const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/pit/save";
-const LOCAL_URL = "http://localhost:3000/pit/save";
 
 const initialSchema = {
   id: "frc_2026_pit_scouting",
@@ -112,21 +110,19 @@ export default function FormBuilder() {
 
   const saveSchema = async () => {
     setSaveStatus('saving');
-    for (const url of [LOCAL_URL, LOCAL_URL]) {
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420' },
-          body: JSON.stringify(schema),
-        });
-        if (res.ok) {
-          setSaveStatus('saved');
-          setTimeout(() => setSaveStatus(null), 3000);
-          return;
-        }
-      } catch {
-        // try next URL
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/pit/save`, {
+        method: 'POST',
+        headers: getDefaultHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(schema),
+      });
+      if (res.ok) {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(null), 3000);
+        return;
       }
+    } catch {
+      // status handled below
     }
     setSaveStatus('error');
     setTimeout(() => setSaveStatus(null), 3000);

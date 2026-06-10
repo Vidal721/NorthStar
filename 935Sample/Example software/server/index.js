@@ -317,6 +317,34 @@ app.get("/api/regionals", (req, res) => {
   }
 });
 
+app.patch("/api/regionals/:id/visibility", (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const visible = req.body?.visible;
+
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "Invalid regional id" });
+    }
+
+    if (typeof visible !== "boolean") {
+      return res.status(400).json({ error: "Visibility must be true or false" });
+    }
+
+    const result = db
+      .prepare("UPDATE regionals SET visible_in_vis = ? WHERE id = ?")
+      .run(visible ? 1 : 0, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Regional not found" });
+    }
+
+    const updated = db.prepare("SELECT * FROM regionals WHERE id = ?").get(id);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update regional visibility", detail: err.message });
+  }
+});
+
 // ==== COMBINED SCOUTING DATA GATEWAY ==== //
 app.get("/admin/data", (req, res) => {
   try {
@@ -388,7 +416,11 @@ app.delete("/admin/wipe-all", (req, res) => {
 
 // List all regionals
 app.get("/regionals", (req, res) => {
-  res.json(db.prepare(`SELECT * FROM regionals ORDER BY id DESC`).all());
+  res.json(
+    db
+      .prepare(`SELECT * FROM regionals WHERE visible_in_vis = 1 ORDER BY id DESC`)
+      .all()
+  );
 });
 
 app.listen(PORT, () => {

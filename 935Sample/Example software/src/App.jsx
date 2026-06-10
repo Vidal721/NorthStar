@@ -15,9 +15,8 @@ import FamilyPage from "./pages/family";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
 import ProtectedLayout from "./componets/ProtectedLayout"; 
+import { getApiBaseUrl, getDefaultHeaders } from "./apiConfig";
 import "./App.css";
-
-const BACKEND_URL = "http://localhost:3000";
 
 function LoginScreen() {
   const navigate = useNavigate();
@@ -34,12 +33,9 @@ function LoginScreen() {
     }
 
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/login`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "69420",
-        },
+        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ username, password }),
       });
 
@@ -127,11 +123,9 @@ function RegisterScreen() {
     }
 
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/register`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ username, password, role }),
       });
 

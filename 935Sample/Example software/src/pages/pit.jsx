@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-
-//const PIT_FORM_URL = "http://localhost:3000/pit/form";
-//const PIT_UPLOAD_URL = "http://localhost:3000/pit/upload";
-
-const PIT_FORM_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/pit/form";
-const PIT_UPLOAD_URL =
-  "https://taco-childhood-jailbreak.ngrok-free.dev/pit/upload";
+import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
 
 // ─────────────────────────────────────────────
 //  Field renderer
@@ -163,8 +157,8 @@ export default function PitScouting() {
   const [openSectionIdx, setOpenSectionIdx] = useState(0);
 
   useEffect(() => {
-    fetch(PIT_FORM_URL, {
-      headers: { "ngrok-skip-browser-warning": "69420" },
+    fetch(`${getApiBaseUrl()}/pit/form`, {
+      headers: getDefaultHeaders(),
     })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -214,12 +208,9 @@ export default function PitScouting() {
     };
 
     try {
-      const res = await fetch(PIT_UPLOAD_URL, {
+      const res = await fetch(`${getApiBaseUrl()}/pit/upload`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "69420",
-        },
+        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 

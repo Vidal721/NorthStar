@@ -9,7 +9,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS regionals (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    year INTEGER
+    year INTEGER,
+    visible_in_vis INTEGER NOT NULL DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS match_data (
@@ -30,6 +31,11 @@ db.exec(`
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+const regionalColumns = db.prepare(`PRAGMA table_info(regionals)`).all();
+if (!regionalColumns.some((column) => column.name === "visible_in_vis")) {
+  db.exec(`ALTER TABLE regionals ADD COLUMN visible_in_vis INTEGER NOT NULL DEFAULT 1`);
+}
 
 // Helper: get or create a regional by name, returns its id
 export function getOrCreateRegional(name) {

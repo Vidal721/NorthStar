@@ -15,10 +15,8 @@ import {
   faHandPointRight,
   faArrowTurnUp,
 } from "@fortawesome/free-solid-svg-icons";
+import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
 import "../App.css";
-
-const API_URL = "https://taco-childhood-jailbreak.ngrok-free.dev/match/upload";
-const LOCAL_URL = "http://localhost:3000/match/upload";
 
 // ============================================================
 //    MATCH TIMING
@@ -1385,8 +1383,8 @@ export default function App() {
   // Pull event name from pit form schema
   const [eventName, setEventName] = useState("");
   useEffect(() => {
-    fetch(LOCAL_URL.replace("/match/upload", "/pit/form"), {
-      headers: { "ngrok-skip-browser-warning": "69420" },
+    fetch(`${getApiBaseUrl()}/pit/form`, {
+      headers: getDefaultHeaders(),
     })
       .then((r) => r.ok ? r.json() : null)
       .then((schema) => { if (schema?.event) setEventName(schema.event); })
@@ -1867,12 +1865,9 @@ export default function App() {
     const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
     console.log(`${label} — sending`, matchData);
     try {
-      const res = await fetch(LOCAL_URL, {
+      const res = await fetch(`${getApiBaseUrl()}/match/upload`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "69420",
-        },
+        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(matchData),
       });
       if (!res.ok) {

@@ -7,6 +7,7 @@ import {
   faArrowRightFromBracket,
   faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
+import { getApiBaseUrl } from "../apiConfig";
 import "./vis.css";
 
 const DENSITY = {
@@ -26,8 +27,6 @@ const DEFAULT_SECTION_COLORS = {
 };
 
 const DEFAULT_SUMMARY_COLS = [];
-const BASE_API_URL = "http://localhost:3000";
-
 function formatHeader(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
 }
@@ -457,7 +456,7 @@ export default function App() {
   useEffect(() => {
     async function loadRegionals() {
       try {
-        const res = await fetch(`${BASE_API_URL}/regionals`);
+        const res = await fetch(`${getApiBaseUrl()}/regionals`);
         if (!res.ok) throw new Error("Failed to load regionals list.");
         const regionalData = await res.json();
         setRegionals(regionalData);
@@ -481,7 +480,7 @@ export default function App() {
       setIsLoading(true);
       try {
         const encodedName = encodeURIComponent(selectedRegional);
-        const res = await fetch(`${BASE_API_URL}/match/Data/regional/${encodedName}`);
+        const res = await fetch(`${getApiBaseUrl()}/match/Data/regional/${encodedName}`);
         if (!res.ok) throw new Error(`Failed to load data for regional: ${selectedRegional}`);
         
         const matchRows = await res.json();
@@ -582,13 +581,13 @@ export default function App() {
       <div className="regional-picker-screen">
         <div className="regional-picker-card">
           <h1>Select an Event Regional</h1>
-          <p className="picker-subtitle">Choose a location below to query match tracking schemas</p>
+          <p className="picker-subtitle">Choose an admin-enabled event to view match tracking data</p>
           
           {error && <div className="picker-error-msg">Error: {error}</div>}
 
           <div className="regional-pills-grid">
             {regionals.length === 0 ? (
-              <div className="no-regionals-alert">No regionals found in database grid.</div>
+              <div className="no-regionals-alert">No regionals are currently enabled for the data page.</div>
             ) : (
               regionals.map((r) => (
                 <button
