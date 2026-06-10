@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import {
   faGear,
   faArrowRightFromBracket,
+  faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import "./vis.css";
 
@@ -434,7 +435,8 @@ export default function App() {
   const [data, setData] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [density, setDensity] = useState("comfortable");
@@ -459,24 +461,21 @@ export default function App() {
         if (!res.ok) throw new Error("Failed to load regionals list.");
         const regionalData = await res.json();
         setRegionals(regionalData);
-
-        if (regionalData.length > 0) {
-          // Default to the first available event in the list
-          setSelectedRegional(regionalData[0].name);
-        } else {
-          setIsLoading(false); // Drop loading screen if there's no data to query
-        }
       } catch (err) {
         setError(err.message);
-        setIsLoading(false);
+      } finally {
+        setInitialLoading(false);
       }
     }
     loadRegionals();
   }, []);
 
-  // 2. Secondary Load: Query match data specific to the chosen regional
+  // 2. Load Match Data whenever selectedRegional becomes populated
   useEffect(() => {
-    if (!selectedRegional) return;
+    if (!selectedRegional) {
+      setData([]);
+      return;
+    }
 
     async function loadMatchData() {
       setIsLoading(true);
@@ -573,42 +572,57 @@ export default function App() {
     setTeamFocus({ teamId, rows: teamRows });
   };
 
+  // ── SCREEN A: FULL-SCREEN REGIONAL SELECTION VIEW ──
+  if (initialLoading) {
+    return <div className="regional-loading-screen">Loading system resources...</div>;
+  }
+
+  if (!selectedRegional) {
+    return (
+      <div className="regional-picker-screen">
+        <div className="regional-picker-card">
+          <h1>Select an Event Regional</h1>
+          <p className="picker-subtitle">Choose a location below to query match tracking schemas</p>
+          
+          {error && <div className="picker-error-msg">Error: {error}</div>}
+
+          <div className="regional-pills-grid">
+            {regionals.length === 0 ? (
+              <div className="no-regionals-alert">No regionals found in database grid.</div>
+            ) : (
+              regionals.map((r) => (
+                <button
+                  key={r.id}
+                  className="regional-pill-btn"
+                  onClick={() => setSelectedRegional(r.name)}
+                >
+                  <span className="pill-name">{r.name}</span>
+                  {r.year && <span className="pill-year">{r.year}</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── SCREEN B: TRADITIONAL METRIC DATA VIEW ──
   return (
     <>
       <div className="team-badge">935</div>
 
-      {/* Control Navigation & Regional Selection Bar */}
-      <div className="action-header-bar" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 20px' }}>
-        <div className="regional-selector-container">
-          <label htmlFor="regional-select" style={{ marginRight: '8px', fontWeight: 'bold', color: '#ccc' }}>
-            Event Regional:
-          </label>
-          <select
-            id="regional-select"
-            value={selectedRegional}
-            onChange={(e) => setSelectedRegional(e.target.value)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '4px',
-              backgroundColor: '#222',
-              color: '#fff',
-              border: '1px solid #444',
-              cursor: 'pointer'
-            }}
-          >
-            {regionals.length === 0 ? (
-              <option value="">No Regionals Available</option>
-            ) : (
-              regionals.map((r) => (
-                <option key={r.id} value={r.name}>
-                  {r.name} {r.year ? `(${r.year})` : ""}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
+      {/* Control Actions & Navigation Toolbar */}
+      <div className="action-header-bar">
+        <button className="back-to-picker-btn" onClick={() => setSelectedRegional("")}>
+          <FontAwesomeIcon icon={faChevronLeft} /> Change Regional
+        </button>
+        
+        <span className="current-regional-header-label">
+          {selectedRegional} Data Matrix
+        </span>
 
-        <div className="headerButtons" style={{ marginLeft: 'auto' }}>
+        <div className="headerButtons">
           <button className="settings-trigger">
             <Link to="/" style={{ color: "#888", textDecoration: "none" }}>
               <FontAwesomeIcon icon={faArrowRightFromBracket} />
@@ -653,9 +667,9 @@ export default function App() {
         />
       )}
 
-      {/* Display States */}
+      {/* Internal loading states inside data grid view */}
       {isLoading ? (
-        <div className="table-container message-box">Loading regional data matrix...</div>
+        <div className="table-container message-box">Querying target metrics matrix...</div>
       ) : error ? (
         <div className="table-container message-box error">Error: {error}</div>
       ) : (
@@ -708,8 +722,8 @@ export default function App() {
               <tbody>
                 {data.length === 0 ? (
                   <tr>
-                    <td colSpan={colDefs.length || 1} style={{ textAlign: "center", color: "#888", padding: '20px' }}>
-                      No data available for {selectedRegional}.
+                    <td colSpan={colDefs.length || 1} style={{ textAlign: "center", color: "#888", padding: '30px' }}>
+                      No match data entries saved for {selectedRegional}.
                     </td>
                   </tr>
                 ) : (

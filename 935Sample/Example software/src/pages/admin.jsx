@@ -1,67 +1,84 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faTrash, 
   faRightFromBracket, 
-  faNetworkWired, 
   faDatabase, 
   faExclamationTriangle,
-  faSliders,
   faTrophy,
   faUsers,
-  faUserShield,
   faCircleCheck,
-  faTowerBroadcast,
   faUser,
-  faShieldHalved
+  faShieldHalved,
+  faFilter
 } from "@fortawesome/free-solid-svg-icons"; 
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("matches"); 
+  const [localUrl, setLocalUrl] = useState("http://localhost:3000");
   
-  // Tab Management State
-  const [activeTab, setActiveTab] = useState("dashboard"); 
+  // Data State Arrays
+  const [matches, setMatches] = useState([]);
+  const [pits, setPits] = useState([]);
+  const [regionals, setRegionals] = useState([]);
+  const [selectedRegional, setSelectedRegional] = useState("");
+  const [users, setUsers] = useState([]);
   
-  const [localUrl, setLocalUrl] = useState("https://taco-childhood-jailbreak.ngrok-free.dev");
-  const [data, setData] = useState([]);
-  const [users, setUsers] = useState([]); // Dynamic system users state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const currentScout = localStorage.getItem("currentUser") || "Unknown Admin";
 
   useEffect(() => {
-    fetchAllSystemData({ showFullScreenLoader: true });
-  }, [localUrl]); 
+    fetchRegionalsList();
+  }, [localUrl]);
 
-  // Combined fetch handler to pull database entries and backend user directory
+  useEffect(() => {
+    fetchAllSystemData({ showFullScreenLoader: true });
+  }, [localUrl, selectedRegional]); 
+
+  async function fetchRegionalsList() {
+    try {
+      const res = await fetch(`${localUrl}/api/regionals`, {
+        headers: { "ngrok-skip-browser-warning": "69420" }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setRegionals(json);
+      }
+    } catch (err) {
+      console.error("Could not fetch regionals listing:", err);
+    }
+  }
+
   async function fetchAllSystemData(options = { showFullScreenLoader: false }) {
     try {
-      if (options.showFullScreenLoader) {
-        setIsLoading(true);
-      }
+      if (options.showFullScreenLoader) setIsLoading(true);
       const authIdentity = localStorage.getItem("currentUser") || "";
       const headersConfig = {
         "ngrok-skip-browser-warning": "69420",
         "Authorization": `Bearer ${authIdentity}` 
       };
 
-      // 1. Fetch Match Telemetry Records
-      const matchRes = await fetch(`${localUrl}/match/data`, { headers: headersConfig });
-      if (!matchRes.ok) throw new Error("Failed to fetch match metrics from telemetry grid.");
-      const matchJson = await matchRes.json();
-      setData(matchJson);
+      // Query data filtered by active selector
+      let url = `${localUrl}/admin/data`;
+      if (selectedRegional) url += `?regional_id=${selectedRegional}`;
 
-      // 2. Fetch User Profiles Directory from index.js backend
+      const dataRes = await fetch(url, { headers: headersConfig });
+      if (!dataRes.ok) throw new Error("Failed to fetch analytical metrics from core grid.");
+      const dataJson = await dataRes.ok && await dataRes.json();
+      
+      setMatches(dataJson.matches || []);
+      setPits(dataJson.pits || []);
+
+      // Pull active users tracking table safely
       const usersRes = await fetch(`${localUrl}/users`, { headers: headersConfig });
       if (usersRes.ok) {
         const usersJson = await usersRes.json();
         setUsers(usersJson);
-      } else {
-        console.warn("Could not retrieve users list from /users gateway.");
       }
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -69,28 +86,37 @@ export default function AdminDashboard() {
     }
   }
 
-  async function deleteItem(id) {
+  async function deleteItem(type, id) {
+    if (!window.confirm(`Are you sure you want to remove this ${type} record?`)) return;
     try {
       const authIdentity = localStorage.getItem("currentUser") || "";
-      const response = await fetch(`${localUrl}/delete/match/${id}`, {
+      const response = await fetch(`${localUrl}/delete/${type}/${id}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${authIdentity}` 
-        }
+        headers: { "Authorization": `Bearer ${authIdentity}` }
       });
       if (response.ok) {
         fetchAllSystemData({ showFullScreenLoader: false });
       } else {
-        throw new Error("Failed to delete item from server.");
+        throw new Error("Failed to delete entry asset.");
       }
     } catch (err) {
-      setError(err.message);
+      alert(err.message);
     }
   }
 
   const deleteAll = async () => {
-    if (!window.confirm("ARE YOU SURE?? This deletes EVERYTHING")) return;
-    alert("Delete all not implemented on server yet.");
+    if (!window.confirm("🚨 CRITICAL WARNING: This completely purges ALL match telemetry data and pit analytics permanently. Proceed?")) return;
+    try {
+      const response = await fetch(`${localUrl}/admin/wipe-all`, { method: "DELETE" });
+      if (response.ok) {
+        alert("System databases purged safely.");
+        fetchAllSystemData({ showFullScreenLoader: false });
+      } else {
+        throw new Error("Purge transaction declined by service node.");
+      }
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const handleLogout = () => {
@@ -98,269 +124,168 @@ export default function AdminDashboard() {
     navigate("/"); 
   };
 
-  // UI styling generator for Tab Buttons matching scout.jsx tokens
-  const tabBtnStyle = (tabId) => ({
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "10px 16px",
-    borderRadius: "var(--radius-md)",
-    border: "1px solid " + (activeTab === tabId ? "var(--border-default)" : "transparent"),
-    background: activeTab === tabId ? "var(--bg-elevated)" : "transparent",
-    color: activeTab === tabId ? "var(--text-primary)" : "var(--text-muted)",
-    cursor: "pointer",
-    fontWeight: "700",
-    fontSize: "12px",
-    letterSpacing: "0.05em",
-    textTransform: "uppercase",
-    transition: "all var(--transition-fast)"
-  });
+  if (isLoading) return (
+    <div className="flex-center column" style={{ height: "100vh", gap: "16px", background: "var(--bg-app)" }}>
+      <FontAwesomeIcon icon={faDatabase} style={{ color: "var(--btn-accent-bg)", fontSize: "2rem" }} className="fade-in" />
+      <span className="scout-overline">Loading Telemetry Core...</span>
+    </div>
+  );
 
-  if (isLoading)
-    return (
-      <div className="flex-center column" style={{ height: "100vh", gap: "16px", background: "var(--bg-app)" }}>
-        <FontAwesomeIcon icon={faDatabase} style={{ color: "var(--btn-accent-bg)", fontSize: "2rem" }} className="fade-in" />
-        <span className="scout-overline">Loading System Core...</span>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="flex-center column" style={{ height: "100vh", gap: "16px", background: "var(--bg-app)" }}>
-        <FontAwesomeIcon icon={faExclamationTriangle} style={{ color: "var(--scout-red)", fontSize: "2rem" }} />
-        <h3 style={{ color: "var(--scout-red)" }}>System Error</h3>
-        <p className="text-muted text-center" style={{ maxWidth: "400px", padding: "0 20px" }}>{error}</p>
-        <button onClick={() => fetchAllSystemData({ showFullScreenLoader: true })} className="scout-btn-ghost" style={{ marginTop: "10px" }}>
-          Retry Connection
-        </button>
-      </div>
-    );
+  if (error) return (
+    <div className="flex-center column" style={{ height: "100vh", gap: "16px", background: "var(--bg-app)" }}>
+      <FontAwesomeIcon icon={faExclamationTriangle} style={{ color: "var(--scout-red)", fontSize: "2rem" }} />
+      <h3 style={{ color: "var(--scout-red)" }}>System Connection Timeout</h3>
+      <p className="text-muted text-center" style={{ maxWidth: "400px", padding: "0 20px" }}>{error}</p>
+      <button onClick={() => fetchAllSystemData({ showFullScreenLoader: true })} className="scout-btn-ghost" style={{ marginTop: "10px" }}>
+        Retry Interface Link
+      </button>
+    </div>
+  );
 
   return (
-    <div className="page-content fade-in" style={{ padding: "24px", minHeight: "100vh", background: "var(--bg-app)" }}>
-      
-      {/* HEADER BAR */}
-      <div className="flex-between" style={{ borderBottom: "1px solid var(--border-default)", paddingBottom: "16px", marginBottom: "20px" }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: "1.4rem" }}>ADMIN PORTAL</h1>
-          <span className="scout-overline" style={{ color: "var(--scout-indigo-soft)" }}>
-            Authorized Operator: {currentScout}
-          </span>
+    <div className="admin-container fade-in">
+      {/* Control Top Bar */}
+      <header className="admin-header">
+        <div className="flex column">
+          <span className="scout-overline">HQ Administration Control Node</span>
+          <h2>Scouter Analytics Panel</h2>
         </div>
-        
-        <button onClick={handleLogout} className="scout-btn-danger" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <FontAwesomeIcon icon={faRightFromBracket} />
-          Logout
+        <div className="admin-profile-badge">
+          <FontAwesomeIcon icon={faUser} />
+          <span>{currentScout}</span>
+          <button onClick={handleLogout} className="admin-logout-btn" title="Terminate Session">
+            <FontAwesomeIcon icon={faRightFromBracket} />
+          </button>
+        </div>
+      </header>
+
+      {/* Control Row Elements */}
+      <div className="admin-controls-card">
+        <div className="admin-filter-group">
+          <FontAwesomeIcon icon={faFilter} className="text-muted" />
+          <select 
+            value={selectedRegional} 
+            onChange={(e) => setSelectedRegional(e.target.value)}
+            className="admin-select-input"
+          >
+            <option value="">🌐 View All Registered Regionals</option>
+            {regionals.map((r) => (
+              <option key={r.id} value={r.id}>{r.year} - {r.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-tab-row">
+          <button className={`admin-tab-btn ${activeTab === "matches" ? "active" : ""}`} onClick={() => setActiveTab("matches")}>
+            Match Entries ({matches.length})
+          </button>
+          <button className={`admin-tab-btn ${activeTab === "pits" ? "active" : ""}`} onClick={() => setActiveTab("pits")}>
+            Pit Profiles ({pits.length})
+          </button>
+          <button className={`admin-tab-btn ${activeTab === "users" ? "active" : ""}`} onClick={() => setActiveTab("users")}>
+            Operator Indexes ({users.length})
+          </button>
+        </div>
+
+        <button onClick={deleteAll} className="admin-btn-danger-wipe">
+          Purge Cache System
         </button>
       </div>
 
-      {/* TABS NAVIGATION PANEL */}
-      <div className="scout-card" style={{ padding: "6px", display: "flex", gap: "6px", marginBottom: "24px", background: "var(--bg-surface)", overflowX: "auto" }}>
-        <button onClick={() => setActiveTab("dashboard")} style={tabBtnStyle("dashboard")}>
-          <FontAwesomeIcon icon={faSliders} /> Dashboard
-        </button>
-        <button onClick={() => setActiveTab("data")} style={tabBtnStyle("data")}>
-          <FontAwesomeIcon icon={faDatabase} /> Data ({data.length})
-        </button>
-        <button onClick={() => setActiveTab("competition")} style={tabBtnStyle("competition")}>
-          <FontAwesomeIcon icon={faTrophy} /> Competition
-        </button>
-        <button onClick={() => setActiveTab("users")} style={tabBtnStyle("users")}>
-          <FontAwesomeIcon icon={faUsers} /> Current Users ({users.length || 1})
-        </button>
-      </div>
-
-      {/* ==================== TAB CONTENT: DASHBOARD ==================== */}
-      {activeTab === "dashboard" && (
-        <div className="fade-in flex column gap-lg">
-          <div className="scout-card scout-card--alt flex-between" style={{ flexWrap: "wrap", gap: "16px" }}>
-            <div className="flex-center gap-md">
-              <div className="divIcon" style={{ position: "static", borderRadius: "var(--radius-md)", height: "40px", width: "40px", color: "var(--btn-accent-text)", background: "var(--btn-accent-bg)" }}>
-                <FontAwesomeIcon icon={faNetworkWired} />
-              </div>
-              <div className="flex column">
-                <span className="scout-overline">Network Environment</span>
-                <label className="flex-center gap-sm" style={{ cursor: "pointer", fontWeight: "600", fontSize: "14px", marginTop: "2px" }}>
-                  <input 
-                    type="checkbox" 
-                    className="scout-input" 
-                    style={{ width: "16px", height: "16px", margin: 0, accentColor: "var(--btn-accent-bg)" }}
-                    checked={localUrl === "http://localhost:3000"} 
-                    onChange={(e) => {
-                      setLocalUrl(e.target.checked ? "http://localhost:3000" : "https://taco-childhood-jailbreak.ngrok-free.dev");
-                    }} 
-                  />
-                  Competition Server?
-                </label>
-              </div>
-            </div>
-
-            <div className="flex column" style={{ minWidth: "250px" }}>
-              <span className="scout-overline">Active Data Gateway Target</span>
-              <code className="scout-input--formula" style={{ background: "var(--input-bg)", padding: "6px 12px", borderRadius: "var(--radius-md)", marginTop: "4px", border: "1px solid var(--border-subtle)" }}>
-                {localUrl}
-              </code>
-            </div>
-          </div>
-
-          <div className="scout-stat-grid-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
-            <div className="scout-stat-tile scout-stat-tile--lg">
-              <span className="scout-stat-label scout-stat-label--lg">Database Density</span>
-              <span className="scout-stat-value scout-stat-value--lg" style={{ color: "var(--scout-indigo-soft)" }}>{data.length} Records</span>
-            </div>
-            <div className="scout-stat-tile scout-stat-tile--lg">
-              <span className="scout-stat-label scout-stat-label--lg">Server Status</span>
-              <span className="scout-stat-value scout-stat-value--lg" style={{ color: "var(--scout-green-soft)", display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", fontWeight: "800", marginTop: "4px" }}>
-                <FontAwesomeIcon icon={faTowerBroadcast} /> ONLINE
-              </span>
-            </div>
-            <div className="scout-stat-tile scout-stat-tile--lg">
-              <span className="scout-stat-label scout-stat-label--lg">Registered Scouts</span>
-              <span className="scout-stat-value scout-stat-value--lg" style={{ color: "var(--btn-accent-bg)", display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", fontWeight: "800", marginTop: "4px" }}>
-                <FontAwesomeIcon icon={faUsers} /> {users.length || "1 Core"} Users
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB CONTENT: DATA ==================== */}
-      {activeTab === "data" && (
-        <div className="fade-in">
-          <div className="flex-between" style={{ marginBottom: "12px", alignItems: "flex-end" }}>
-            <span className="scout-overline">Telemetry Database Rows ({data.length})</span>
-            <button onClick={deleteAll} className="scout-btn-danger" style={{ padding: "6px 12px", fontSize: "11px" }}>
-              Purge Global Storage
-            </button>
-          </div>
-
-          <div className="scout-card" style={{ padding: 0, overflowX: "auto", boxShadow: "var(--shadow-md)" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "13px" }}>
-              <thead>
-                <tr style={{ background: "var(--bg-elevated)", borderBottom: "1px solid var(--border-default)" }}>
-                  <th style={{ padding: "14px 16px", color: "var(--text-secondary)" }} className="scout-overline">ID</th>
-                  <th style={{ padding: "14px 16px", color: "var(--text-secondary)" }} className="scout-overline">Team</th>
-                  <th style={{ padding: "14px 16px", color: "var(--text-secondary)" }} className="scout-overline">Match</th>
-                  <th style={{ padding: "14px 16px", color: "var(--text-secondary)" }} className="scout-overline">Scout</th>
-                  <th style={{ padding: "14px 16px", color: "var(--text-secondary)" }} className="scout-overline">Timestamp</th>
-                  <th style={{ padding: "14px 16px", color: "var(--text-secondary)", textAlign: "center" }} className="scout-overline">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="text-muted text-center" style={{ padding: "32px", fontSize: "14px" }}>
-                      No match telemetry entries returned from gateway node.
-                    </td>
-                  </tr>
-                ) : (
-                  data.map((row, index) => {
-                    const time = row.meta?.timestamp ? row.meta.timestamp.replace("T", " ").split(".")[0] : "???";
-                    return (
-                      <tr key={row.id} style={{ borderBottom: index === data.length - 1 ? "none" : "1px solid var(--border-subtle)", background: index % 2 === 0 ? "transparent" : "var(--bg-surface)" }}>
-                        <td style={{ padding: "14px 16px", fontWeight: "600", fontFamily: "monospace" }}>{row.id}</td>
-                        <td style={{ padding: "14px 16px" }}>
-                          <span className="scout-role-badge--scoring" style={{ background: "var(--accent-yellow-soft)", color: "var(--text-primary)", borderColor: "var(--border-default)" }}>
-                            #{row.meta?.teamNumber || "???"}
-                          </span>
-                        </td>
-                        <td style={{ padding: "14px 16px", fontWeight: "700" }}>{row.meta?.matchNumber || "???"}</td>
-                        <td style={{ padding: "14px 16px", color: "var(--text-secondary)" }}>{row.meta?.scoutName || "???"}</td>
-                        <td style={{ padding: "14px 16px", color: "var(--text-muted)", fontFamily: "monospace" }}>{time}</td>
-                        <td style={{ padding: "14px 16px", textAlign: "center" }}>
-                          <button onClick={() => deleteItem(row.id)} className="scout-btn-danger" style={{ padding: "8px 12px" }}>
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB CONTENT: COMPETITION ==================== */}
-      {activeTab === "competition" && (
-        <div className="fade-in flex column gap-md">
-          <span className="scout-overline">Competition Engine Config</span>
-          <div className="scout-card" style={{ background: "var(--bg-surface)" }}>
-            <h3 style={{ margin: "0 0 8px 0" }}>Event Tracking Configuration</h3>
-            <p className="text-muted" style={{ margin: "0 0 16px 0", fontSize: "13px" }}>
-              Manage tournament status rules, schedule imports, and pipeline criteria parameters.
-            </p>
-            <div className="flex column gap-sm" style={{ maxWidth: "400px" }}>
-              <label className="scout-overline" style={{ fontSize: "9px" }}>Active Event Name / Code</label>
-              <input type="text" className="scout-input" defaultValue="2026_KSRG_Regional" placeholder="e.g. 2026_KSRG" style={{ background: "var(--bg-elevated)" }} />
-              <button className="scout-btn-primary" style={{ marginTop: "8px", padding: "12px", width: "100%" }} onClick={() => alert("Settings updated locally")}>
-                Save Active Competition Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB CONTENT: CURRENT USERS ==================== */}
-      {activeTab === "users" && (
-        <div className="fade-in flex column gap-md">
-          <span className="scout-overline">System Accounts Registry ({users.length || 1})</span>
-          
-          <div className="flex column gap-sm">
-            {users.length === 0 ? (
-              /* Fallback view showcasing current user fallback info if server array is empty */
-              <div className="scout-card flex-between" style={{ background: "var(--bg-surface)" }}>
-                <div className="flex-center gap-md">
-                  <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "var(--btn-accent-bg)", color: "var(--btn-primary-text)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    {currentScout.charAt(0).toUpperCase()}
+      {/* Dynamic Data Content Area */}
+      <div className="admin-content-viewport">
+        {activeTab === "matches" && (
+          <div className="admin-grid-layout">
+            {matches.length === 0 ? (
+              <p className="text-muted text-center p-md">No telemetry records indexed under this scope.</p>
+            ) : (
+              matches.map((item) => (
+                <div key={item.id} className="admin-data-card">
+                  <div className="admin-card-header">
+                    <div>
+                      <span className="admin-badge-team">Team {item.team_number}</span>
+                      <span className="admin-badge-match">Match {item.match_number}</span>
+                    </div>
+                    <button onClick={() => deleteItem("match", item.id)} className="admin-row-delete-btn">
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
                   </div>
-                  <div className="flex column">
-                    <span style={{ fontWeight: "700", fontSize: "14px" }}>{currentScout}</span>
-                    <span className="text-muted" style={{ fontSize: "11px" }}>Authorized Connected Session</span>
+                  <div className="admin-card-body">
+                    <p><strong>Regional Context:</strong> {item.regional_name}</p>
+                    <p><strong>Captured By:</strong> {item.scout_name || "Anonymous Node"}</p>
+                    <div className="admin-payload-dump">
+                      {Object.entries(item.payload).map(([k, v]) => (
+                        <div key={k} className="payload-row">
+                          <span className="key">{k}:</span> <span className="val">{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <span className="scout-role-badge--scoring" style={{ background: "var(--scout-green-bg)", color: "var(--scout-green-soft)", borderColor: "rgba(34, 197, 94, 0.2)" }}>
-                  <FontAwesomeIcon icon={faCircleCheck} /> CURRENT ADMIN
-                </span>
-              </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === "pits" && (
+          <div className="admin-grid-layout">
+            {pits.length === 0 ? (
+              <p className="text-muted text-center p-md">No specific layout definitions saved.</p>
             ) : (
-              /* Map through all registered records pulled dynamically from users.json */
+              pits.map((item) => (
+                <div key={item.id} className="admin-data-card">
+                  <div className="admin-card-header">
+                    <div>
+                      <span className="admin-badge-team accent">Form ID: {item.form_id || "Global"}</span>
+                    </div>
+                    <button onClick={() => deleteItem("pit", item.id)} className="admin-row-delete-btn">
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </div>
+                  <div className="admin-card-body">
+                    <p><strong>Regional Mapping:</strong> {item.regional_name}</p>
+                    <div className="admin-payload-dump">
+                      {Object.entries(item.payload).map(([k, v]) => (
+                        <div key={k} className="payload-row">
+                          <span className="key">{k}:</span> <span className="val">{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === "users" && (
+          <div className="admin-users-list">
+            {users.length === 0 ? (
+              <p className="text-muted text-center p-md">No operators logged in current user matrix.</p>
+            ) : (
               users.map((account, index) => {
                 const isSelf = account.username === currentScout;
                 return (
-                  <div key={index} className="scout-card flex-between" style={{ background: "var(--bg-surface)", borderLeft: isSelf ? "4px solid var(--btn-accent-bg)" : "1px solid var(--border-subtle)" }}>
-                    <div className="flex-center gap-md">
-                      <div style={{ 
-                        width: "38px", 
-                        height: "38px", 
-                        borderRadius: "50%", 
-                        background: isSelf ? "var(--btn-accent-bg)" : "var(--bg-elevated)", 
-                        color: isSelf ? "var(--btn-primary-text)" : "var(--text-secondary)", 
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "center", 
-                        fontWeight: "700",
-                        border: "1px solid var(--border-subtle)"
-                      }}>
-                        <FontAwesomeIcon icon={faUser} style={{ fontSize: "12px" }} />
+                  <div key={index} className="admin-user-row">
+                    <div className="flex items-center gap-md">
+                      <div className="admin-avatar-icon">
+                        <FontAwesomeIcon icon={faUser} />
                       </div>
                       <div className="flex column">
-                        <span style={{ fontWeight: "700", fontSize: "14px" }}>{account.username}</span>
+                        <span style={{ fontWeight: "700" }}>{account.username}</span>
                         <span className="text-muted" style={{ fontSize: "11px", fontFamily: "monospace" }}>
-                          Encrypted Token Segment: {account.password ? account.password.substring(0, 10) + "..." : "No Hash Set"}
+                          Token: {account.passwordHash ? account.passwordHash.substring(0, 15) + "..." : "No Security Hash Set"}
                         </span>
                       </div>
                     </div>
-
-                    <div className="flex-center gap-sm">
+                    <div className="flex gap-sm">
                       {isSelf && (
-                        <span className="scout-role-badge--scoring" style={{ background: "var(--scout-green-bg)", color: "var(--scout-green-soft)", borderColor: "rgba(34, 197, 94, 0.15)" }}>
-                          <FontAwesomeIcon icon={faCircleCheck} /> ACTIVE SESSION
+                        <span className="admin-status-pill active">
+                          <FontAwesomeIcon icon={faCircleCheck} /> ACTIVE CONSOLE
                         </span>
                       )}
-                      <span className="scout-role-badge" style={{ textTransform: "uppercase", fontSize: "10px", display: "flex", alignItems: "center", gap: "4px" }}>
-                        <FontAwesomeIcon icon={faShieldHalved} /> Scout Operator
+                      <span className="admin-status-pill">
+                        <FontAwesomeIcon icon={faShieldHalved} /> {account.role || "Operator"}
                       </span>
                     </div>
                   </div>
@@ -368,9 +293,8 @@ export default function AdminDashboard() {
               })
             )}
           </div>
-        </div>
-      )}
-
+        )}
+      </div>
     </div>
   );
 }

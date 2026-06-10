@@ -112,7 +112,7 @@ export default function FormBuilder() {
 
   const saveSchema = async () => {
     setSaveStatus('saving');
-    for (const url of [API_URL, LOCAL_URL]) {
+    for (const url of [LOCAL_URL, LOCAL_URL]) {
       try {
         const res = await fetch(url, {
           method: 'POST',

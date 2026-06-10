@@ -307,29 +307,82 @@ app.post('/pit/save', (req, res) => {
   }
 });
 
-// ==== Admin endpoints ==== //
-app.get("/admin/data", (req, res) => {
-  res.json(getAdmin());
+// ==== REGIONALS GATEWAY ==== //
+app.get("/api/regionals", (req, res) => {
+  try {
+    const rows = db.prepare("SELECT * FROM regionals ORDER BY year DESC, name ASC").all();
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch regionals", detail: err.message });
+  }
 });
 
-app.post("/admin/upload", (req, res) => {
+// ==== COMBINED SCOUTING DATA GATEWAY ==== //
+app.get("/admin/data", (req, res) => {
   try {
-    const data = getAdmin();
-    const newData = req.body;
+    const regionalId = req.query.regional_id;
 
-    if (!newData || typeof newData !== "object") {
-      return res.status(400).json({ error: "Invalid request body" });
-    }
+    let matchQuery = `
+      SELECT match_data.*, regionals.name as regional_name 
+      FROM match_data 
+      JOIN regionals ON match_data.regional_id = regionals.id
+    `;
+    let pitQuery = `
+      SELECT pit_data.*, regionals.name as regional_name 
+      FROM pit_data 
+      JOIN regionals ON pit_data.regional_id = regionals.id
+    `;
 
-    data.push(newData);
-    // Fixed file reference here from 'users' to 'data' to prevent runtime crash
-    fs.writeFileSync("adminData.json", JSON.stringify(data, null, 2));
+    const matchRows = regionalId 
+      ? db.prepare(`${matchQuery} WHERE match_data.regional_id = ? ORDER BY match_data.created_at DESC`).all(regionalId)
+      : db.prepare(`${matchQuery} ORDER BY match_data.created_at DESC`).all();
 
-    console.log(`[upload] Admin layout saved successfully`);
-    res.status(201).json(newData);
+    const pitRows = regionalId
+      ? db.prepare(`${pitQuery} WHERE pit_data.regional_id = ? ORDER BY pit_data.created_at DESC`).all(regionalId)
+      : db.prepare(`${pitQuery} ORDER BY pit_data.created_at DESC`).all();
+
+    // Parse JSON text payloads for client app processing
+    const matches = matchRows.map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+    const pits = pitRows.map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+
+    res.json({ matches, pits });
   } catch (err) {
-    console.error("[upload] Failed to save admin data:", err.message);
-    res.status(500).json({ error: "Failed to save admin data", detail: err.message });
+    res.status(500).json({ error: "Failed to compile admin telemetry metrics.", detail: err.message });
+  }
+});
+
+// ==== SINGLE DELETE ROUTERS ==== //
+app.delete("/delete/match/:id", (req, res) => {
+  try {
+    const result = db.prepare("DELETE FROM match_data WHERE id = ?").run(req.params.id);
+    if (result.changes > 0) res.json({ success: true });
+    else res.status(404).json({ error: "Match entity records not found" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/delete/pit/:id", (req, res) => {
+  try {
+    const result = db.prepare("DELETE FROM pit_data WHERE id = ?").run(req.params.id);
+    if (result.changes > 0) res.json({ success: true });
+    else res.status(404).json({ error: "Pit template records not found" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==== WIPE EVERYTHING ENDPOINT ==== //
+app.delete("/admin/wipe-all", (req, res) => {
+  try {
+    const delMatches = db.prepare("DELETE FROM match_data").run();
+    const delPits = db.prepare("DELETE FROM pit_data").run();
+    res.json({ 
+      success: true, 
+      message: `Cleared ${delMatches.changes} match telemetry entries and ${delPits.changes} pit configurations.` 
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Database purge transaction failed", detail: err.message });
   }
 });
 
