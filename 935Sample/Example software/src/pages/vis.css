@@ -625,7 +625,7 @@ table {
   border-left: 3px solid var(--sec-color, #888);
   padding: 0 8px 0 10px;
   position: sticky;
-  left: 0;
+  left: 5px;
 }
 
 /* ── Col Header Row ── */
@@ -1015,26 +1015,25 @@ td {
 /* ── Interactive Pill Grid Configurations ── */
 .regional-pills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-top: 8px;
 }
 
 .regional-pill-btn {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   background-color: var(--surface);
   border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 500px;
   color: var(--text-body);
   cursor: pointer;
-  min-height: 112px;
+  padding: 5px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
   transition: border-color 0.15s, background-color 0.15s, transform 0.1s, box-shadow 0.15s;
   font-family: var(--font);
+  width: 100%;
 }
 
 .regional-pill-btn:hover {
@@ -1052,7 +1051,6 @@ td {
   font-size: 16px;
   font-weight: 800;
   color: var(--text-head);
-  margin-bottom: 10px;
   text-align: left;
   word-break: break-word;
 }

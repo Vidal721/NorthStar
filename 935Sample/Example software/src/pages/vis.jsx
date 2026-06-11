@@ -580,8 +580,8 @@ export default function App() {
     return (
       <div className="regional-picker-screen">
         <div className="regional-picker-card">
-          <h1>Select an Event Regional</h1>
-          <p className="picker-subtitle">Choose an admin-enabled event to view match tracking data</p>
+          <h1>Select a Regional</h1>
+          <p className="picker-subtitle">Choose a regional to view the accociated data</p>
           
           {error && <div className="picker-error-msg">Error: {error}</div>}
 
