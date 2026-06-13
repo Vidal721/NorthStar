@@ -10,7 +10,7 @@ const ThemeCtx = createContext({ dark: true })
 //const useTheme = () => useContext(ThemeCtx)
 
 // ── Backend context ───────────────────────────────────────────
-const BackendCtx = createContext({ isBackend: false, backendUrl: 'http://localhost:3000' })
+const BackendCtx = createContext({ isBackend: false, backendUrl: 'https://taco-childhood-jailbreak.ngrok-free.dev' })
 const useBackend = () => useContext(BackendCtx)
 
 async function apiFetch(backendUrl, path, options = {}) {
@@ -60,7 +60,7 @@ const DEFAULT_SETTINGS = {
   teamNumber: '935', teamName: 'RaileRobotics',
   adminRoles: ['coach', 'lead'],
   rpiEnabled: true,
-  backendUrl: 'http://localhost:3000',
+  backendUrl: 'https://taco-childhood-jailbreak.ngrok-free.dev',
   mlBetaEnabled: false,
 }
 
@@ -1803,7 +1803,7 @@ function PageSettings({ settings, onSave, t }) {
   const [adminRoles, setAdminRoles] = useState(settings.adminRoles || [])
   const [perUser, setPerUser] = useState(!!settings.perUserDashboard)
   const [rpiEnabled, setRpiEnabled] = useState(!!settings.rpiEnabled)
-  const [backendUrl, setBackendUrl] = useState(settings.backendUrl || 'http://localhost:3000')
+  const [backendUrl, setBackendUrl] = useState(settings.backendUrl || 'https://taco-childhood-jailbreak.ngrok-free.dev')
   const [mlBetaEnabled, setMlBetaEnabled] = useState(!!settings.mlBetaEnabled)
   const [saved, setSaved] = useState(false)
   const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
@@ -1884,7 +1884,7 @@ function PageSettings({ settings, onSave, t }) {
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
                   style={{ ...inputStyle, flex: 1, minWidth: 220 }}
-                  placeholder="http://localhost:3000"
+                  placeholder="https://taco-childhood-jailbreak.ngrok-free.dev"
                   value={backendUrl}
                   onChange={e => { setBackendUrl(e.target.value); setTestStatus(null) }}
                   spellCheck={false}
@@ -2488,7 +2488,7 @@ export default function AdminView({ onLogout }) {
     if (editGameId === id) setEditGameId(null)
     // Also sync to backend if connected
     try {
-      await apiFetch(settings.backendUrl || 'http://localhost:3000', `/api/main/${id}`, { method: 'DELETE' })
+      await apiFetch(settings.backendUrl || 'https://taco-childhood-jailbreak.ngrok-free.dev', `/api/main/${id}`, { method: 'DELETE' })
     } catch { /* backend not required */ }
   }
   // Auto-save on any state change
@@ -2531,7 +2531,7 @@ export default function AdminView({ onLogout }) {
   }
 
   return (
-    <BackendCtx.Provider value={{ isBackend: !!settings.rpiEnabled, backendUrl: settings.backendUrl || 'http://localhost:3000' }}>
+    <BackendCtx.Provider value={{ isBackend: !!settings.rpiEnabled, backendUrl: settings.backendUrl || 'https://taco-childhood-jailbreak.ngrok-free.dev' }}>
       <ThemeCtx.Provider value={{ dark }}>
         <style>{FONTS}</style>
         <style>{`* { box-sizing: border-box; } body { margin: 0; }`}</style>
