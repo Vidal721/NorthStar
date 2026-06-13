@@ -6,9 +6,9 @@ export const API_ENDPOINTS = {
 };
 
 export function getConnectionMode() {
-  return localStorage.getItem(CONNECTION_MODE_KEY) === "online"
-    ? "online"
-    : "local";
+  return localStorage.getItem(CONNECTION_MODE_KEY) === "local"
+    ? "local"
+    : "online";
 }
 
 export function getApiBaseUrl() {
