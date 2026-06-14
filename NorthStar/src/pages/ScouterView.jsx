@@ -264,7 +264,7 @@ export default function ScouterView({ user, dark: initialDark = true, onLogout }
               description="Log field actions, auto & teleop scoring, endgame results, and driver ratings during live matches."
               accentColor={t.blue}
               badgeLabel="Active"
-              onClick={() => launch('http://localhost:3000/scout.html')}
+              onClick={() => launch('https://taco-childhood-jailbreak.ngrok-free.dev/scout.html')}
               t={t}
             />
             <LaunchCard
@@ -273,7 +273,7 @@ export default function ScouterView({ user, dark: initialDark = true, onLogout }
               subtitle="Inspect robots in the pits"
               description="Record robot specs, drivetrain type, capabilities, and team notes between matches in the pit area."
               accentColor={t.purple}
-              onClick={() => launch('http://localhost:3000')}
+              onClick={() => launch('https://taco-childhood-jailbreak.ngrok-free.dev')}
               t={t}
             />
           </div>

@@ -461,3 +461,6 @@ sudo python3 ~/Scouting-App/Server/bt_server.py
 | `Server/bt_server.py` | Bluetooth server for drive tablet on Pi |
 | `Server/Server.js` | Dashboard web server on Pi |
 | `Server/data/scouting_database.json` | All scouting records |
+
+
+changes to make sync work

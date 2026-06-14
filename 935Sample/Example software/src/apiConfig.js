@@ -1,14 +1,14 @@
 export const CONNECTION_MODE_KEY = "connectionMode";
 
 export const API_ENDPOINTS = {
-  local: "http://localhost:3000",
+  local: "https://taco-childhood-jailbreak.ngrok-free.dev",
   online: "https://taco-childhood-jailbreak.ngrok-free.dev",
 };
 
 export function getConnectionMode() {
-  return localStorage.getItem(CONNECTION_MODE_KEY) === "online"
-    ? "online"
-    : "local";
+  return localStorage.getItem(CONNECTION_MODE_KEY) === "local"
+    ? "local"
+    : "online";
 }
 
 export function getApiBaseUrl() {

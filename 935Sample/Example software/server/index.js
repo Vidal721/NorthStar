@@ -428,5 +428,5 @@ app.get("/regionals", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+  console.log(`Server is running at https://taco-childhood-jailbreak.ngrok-free.dev`);
 });
