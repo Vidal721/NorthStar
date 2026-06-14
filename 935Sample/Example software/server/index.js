@@ -5,16 +5,20 @@ import dotenv from "dotenv";
 import { exec } from "child_process";
 import bcrypt from "bcrypt";
 import db, { getOrCreateRegional } from "./db.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = 3000;
 
-dotenv.config();
-
 app.use(express.json());
 app.use(cors());
 
-// ==== GitHub Logic ==== //
 console.log("Deploy key:", process.env.DEPLOY_KEY);
 
 app.post("/deploy", (req, res) => {
