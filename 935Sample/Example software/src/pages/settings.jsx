@@ -20,12 +20,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function settingsPage () {
-    // 1. Manage theme state inside the component
+  const navigate = useNavigate();
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const isDisabled = false;
 
-  // 2. Update the HTML attribute whenever the theme changes
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
@@ -34,8 +33,20 @@ export default function settingsPage () {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
+
+  function goBackToPage () {
+    let currentRole = localStorage.getItem("userRole");
+    if (currentRole === "admin"){
+      navigate("/admin");
+    } else if (currentRole === "scout"){
+      navigate("/scout")
+    } else {
+      navigate("/")
+    }
+  }
     return(
         <>
+        <button onClick={goBackToPage}>Back</button>
         <h1>Theme</h1>
                <button
           className="theme-btn"

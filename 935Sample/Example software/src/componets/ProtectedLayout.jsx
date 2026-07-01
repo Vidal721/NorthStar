@@ -2,7 +2,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 
 export default function ProtectedLayout({ allowedRoles }) {
   const username = localStorage.getItem('currentUser');
-  const role = localStorage.getItem('userRole');
+  const role = localStorage.getItem('userRole')?.toLowerCase();
+  const normalizedAllowedRoles = allowedRoles?.map((allowedRole) => allowedRole.toLowerCase());
 
   // 1. If not authenticated at all, kick out to main screen login
   if (!username) {
@@ -10,7 +11,7 @@ export default function ProtectedLayout({ allowedRoles }) {
   }
 
   // 2. If authenticated but role isn't inside allowed bounds, force back to secure user space hub
-  if (allowedRoles && !allowedRoles.includes(role)) {
+  if (normalizedAllowedRoles && !normalizedAllowedRoles.includes(role)) {
     return <Navigate to="/scout" replace />;
   }
 

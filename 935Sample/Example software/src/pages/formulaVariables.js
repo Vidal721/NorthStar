@@ -1,6 +1,3 @@
-// ============================================================
-//  📐 VARIABLES available in formulas
-// ============================================================
 export const FORMULA_VARIABLES = [
   { name: "fullScores", desc: "Number of full scores", category: "scoring" },
   {

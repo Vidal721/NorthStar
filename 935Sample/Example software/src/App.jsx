@@ -13,6 +13,7 @@ import PitScout from "./pages/pit";
 import AdminDashboard from "./pages/admin";
 import FormBuilder from "./pages/formbuilder";
 import FamilyPage from "./pages/family";
+import HelperPage from "./pages/helper";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
 import ProtectedLayout from "./componets/ProtectedLayout"; 
@@ -50,10 +51,14 @@ function LoginScreen() {
       localStorage.setItem("currentUser", data.username);
       localStorage.setItem("userRole", data.role);
 
-      if (data.role === "admin") {
+      const userRole = String(data.role).toLowerCase();
+
+      if (userRole === "admin") {
         navigate("/admin");
-      } else if (data.role === "family") {
+      } else if (userRole === "family") {
         navigate("/family")
+      } else if (userRole === "helper") {
+        navigate("/helper");
       } else {
         navigate("/scout");
       }
@@ -189,8 +194,10 @@ function RegisterScreen() {
           <label htmlFor="regRole">Account Clearance Level</label>
         </legend>
         <select id="regRole" className="fieldset-input" style={{ width: "100%", background: "transparent", color: "inherit", border: "none", outline: "none" }}>
+          <option value="teamMember" style={{ background: "#222" }}>Team Member</option>
           <option value="scouter" style={{ background: "#222" }}>Scouter</option>
           <option value="family" style={{ background: "#222" }}>Family Member</option>
+          <option value="helper" style={{ background: "#222" }}>Mentor/Helper</option>
         </select>
       </fieldset>
 
@@ -212,10 +219,15 @@ function App() {
         {/* Public Hub Routes */}
         <Route path="/" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
+        <Route path="/helper" element={<HelperPage />} />
         
 
         <Route element={<ProtectedLayout allowedRoles={["admin", "family"]} />}>
           <Route path="/family" element={<FamilyPage />} />
+        </Route>
+
+        <Route element={<ProtectedLayout allowedRoles={["admin", "helper"]} />}>
+          
         </Route>
 
         {/* Base Protection Level: Any Logged In Scouter */}

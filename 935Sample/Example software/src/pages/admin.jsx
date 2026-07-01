@@ -21,6 +21,8 @@ import {
   faBars,
   faX,
   faWrench,
+  faShapes,
+  faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   API_ENDPOINTS,
@@ -324,8 +326,9 @@ export default function AdminDashboard() {
             toggleMobileSidebar();
           }}
         >
-          Apps
+          <FontAwesomeIcon icon={faShapes} /> Apps
         </button>
+        <Link to="/scoutSeettings" rel="noopener noreferrer" className="admin-tab-btn-mobile"><FontAwesomeIcon icon={faGear} /> Settings</Link>
       </div>
 
       <header className="admin-header">
@@ -646,11 +649,11 @@ export default function AdminDashboard() {
             </div>
 
             <div className="admin-regionals-list">
-              <Link to="/form" rel="noopener noreferrer">Form Builder</Link>
-              <Link to="/pit" rel="noopener noreferrer">Pit Scouting</Link>
-              <Link to="/match" rel="noopener noreferrer">Match Scouting</Link>
-              <Link to="/vis" rel="noopener noreferrer">Visualization</Link>
-              <Link to="/scoutSeettings" rel="noopener noreferrer">Settings</Link>
+              <Link to="/form" rel="noopener noreferrer" className="adminApps">Form Builder</Link>
+              <Link to="/pit" rel="noopener noreferrer" className="adminApps">Pit Scouting</Link>
+              <Link to="/match" rel="noopener noreferrer" className="adminApps">Match Scouting</Link>
+              <Link to="/vis" rel="noopener noreferrer" className="adminApps">Visualization</Link>
+              <Link to="/scoutSeettings" rel="noopener noreferrer" className="adminApps">Settings</Link>
             </div>
           </section>
         )}
