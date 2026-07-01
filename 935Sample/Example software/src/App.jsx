@@ -194,6 +194,7 @@ function RegisterScreen() {
           <label htmlFor="regRole">Account Clearance Level</label>
         </legend>
         <select id="regRole" className="fieldset-input" style={{ width: "100%", background: "transparent", color: "inherit", border: "none", outline: "none" }}>
+        <option value="admin" style={{ background: "#222" }}>Admin</option>
           <option value="teamMember" style={{ background: "#222" }}>Team Member</option>
           <option value="scouter" style={{ background: "#222" }}>Scouter</option>
           <option value="family" style={{ background: "#222" }}>Family Member</option>

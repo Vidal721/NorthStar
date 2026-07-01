@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "49f8a2c6-b555-42eb-b55a-23d0eb4b6b2a"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.lucidesystem.935sample",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
