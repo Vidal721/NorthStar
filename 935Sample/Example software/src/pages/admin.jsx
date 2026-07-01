@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
@@ -18,6 +18,9 @@ import {
   faCloud,
   faRotateRight,
   faChartColumn,
+  faBars,
+  faX,
+  faWrench,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   API_ENDPOINTS,
@@ -33,7 +36,6 @@ export default function AdminDashboard() {
   const [connectionMode, setConnectionModeState] =
     useState(getConnectionMode());
 
-  // Data State Arrays
   const [matches, setMatches] = useState([]);
   const [pits, setPits] = useState([]);
   const [regionals, setRegionals] = useState([]);
@@ -42,6 +44,7 @@ export default function AdminDashboard() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const currentScout = localStorage.getItem("currentUser") || "Unknown Admin";
   const apiBaseUrl = getApiBaseUrl();
@@ -126,7 +129,6 @@ export default function AdminDashboard() {
         Authorization: `Bearer ${authIdentity}`,
       };
 
-      // Query data filtered by active selector
       let url = `${getApiBaseUrl()}/admin/data`;
       if (selectedRegional) url += `?regional_id=${selectedRegional}`;
 
@@ -138,7 +140,6 @@ export default function AdminDashboard() {
       setMatches(dataJson.matches || []);
       setPits(dataJson.pits || []);
 
-      // Pull active users tracking table safely
       const usersRes = await fetch(`${getApiBaseUrl()}/users`, {
         headers: headersConfig,
       });
@@ -172,10 +173,14 @@ export default function AdminDashboard() {
     }
   }
 
+  const toggleMobileSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   const deleteAll = async () => {
     if (
       !window.confirm(
-        "🚨 CRITICAL WARNING: This completely purges ALL match telemetry data and pit analytics permanently. Proceed?",
+        "圷 CRITICAL WARNING: This completely purges ALL match telemetry data and pit analytics permanently. Proceed?",
       )
     )
       return;
@@ -193,6 +198,15 @@ export default function AdminDashboard() {
       alert(err.message);
     }
   };
+
+  const openLogout = () => {
+    const signoutBtn = document.getElementById("logoutSection")
+    if(signoutBtn.style.display === "block") {
+      signoutBtn.style.display = "none"
+    } else {
+      signoutBtn.style.display = "block"
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
@@ -261,22 +275,75 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-container fade-in">
-      {/* Control Top Bar */}
+      <div className={`mobileSidebarOverlay ${isSidebarOpen ? 'active' : ''}`} onClick={toggleMobileSidebar}>
+        <FontAwesomeIcon icon={faX} id="closeBTN" onClick={toggleMobileSidebar}/>
+      </div>
+      
+      <div className={`mobileSidebar ${isSidebarOpen ? 'active' : ''}`}>
+        <button
+          className={`admin-tab-btn-mobile ${activeTab === "matches" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("matches");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faDatabase} /> Match Data ({matches.length})
+        </button>
+        <button
+          className={`admin-tab-btn-mobile ${activeTab === "pits" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("pits");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faDatabase} /> Pit Data ({pits.length})
+        </button>
+        <button
+          className={`admin-tab-btn-mobile ${activeTab === "users" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("users");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faUser} /> Users ({users.length})
+        </button>
+        <button
+          className={`admin-tab-btn-mobile ${activeTab === "visibility" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("visibility");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faWrench} /> Manage Regionals ({visibleRegionalCount}/{regionals.length})
+        </button>
+        <button
+          className={`admin-tab-btn-mobile ${activeTab === "visibility" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("apps");
+            toggleMobileSidebar();
+          }}
+        >
+          Apps
+        </button>
+      </div>
+
       <header className="admin-header">
-        <div className="flex column">
-          <h2>Admin Panel</h2>
-        </div>
-        <div className="admin-profile-badge">
+          <img src="./pwa-512x512.png" id="imageLogo" height={60} alt="" />
+          <FontAwesomeIcon icon={faBars} id="mobileLogo" onClick={toggleMobileSidebar}/>
+        <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon icon={faUser} />
-          <span>{currentScout}</span>
+        </div>
+        <div id="logoutSection">
+          <h2>Hello, {currentScout}</h2>
           <button
             onClick={handleLogout}
             className="admin-logout-btn"
+            id="adminLogout"
             title="Terminate Session"
           >
-            <FontAwesomeIcon icon={faRightFromBracket} />
+            <FontAwesomeIcon icon={faRightFromBracket} /> Sign Out
           </button>
-        </div>
+          </div>
       </header>
 
       <div className="admin-tab-row">
@@ -304,35 +371,38 @@ export default function AdminDashboard() {
         >
           Manage Visibility ({visibleRegionalCount}/{regionals.length})
         </button>
-      </div>
-
-      {/* Control Row Elements */}
-      <div className="admin-controls-card">
-        <div className="admin-filter-group">
-          <FontAwesomeIcon icon={faFilter} className="text-muted" />
-          <select
-            value={selectedRegional}
-            onChange={(e) => setSelectedRegional(e.target.value)}
-            className="admin-select-input"
-          >
-            <option value="">🌐 View All Regionals</option>
-            {regionals.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.year} - {r.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button onClick={deleteAll} className="admin-btn-danger-wipe">
-          Purge Cache System
+        <button
+          className={`admin-tab-btn ${activeTab === "apps" ? "active" : ""}`}
+          onClick={() => setActiveTab("apps")}
+        >
+          Apps
         </button>
       </div>
 
-      {/* Dynamic Data Content Area */}
       <div className="admin-content-viewport">
         {activeTab === "matches" && (
           <div className="admin-grid-layout">
+            <div className="admin-controls-card">
+              <div className="admin-filter-group">
+                <FontAwesomeIcon icon={faFilter} className="text-muted" />
+                <select
+                  value={selectedRegional}
+                  onChange={(e) => setSelectedRegional(e.target.value)}
+                  className="admin-select-input"
+                >
+                  <option value="">倹 View All Regionals</option>
+                  {regionals.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.year} - {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button onClick={deleteAll} className="admin-btn-danger-wipe">
+                Delete all data
+              </button>
+            </div>
             {matches.length === 0 ? (
               <p className="text-muted text-center p-md">
                 No telemetry records indexed under this scope.
@@ -366,7 +436,6 @@ export default function AdminDashboard() {
                           <span className="key">{k}:</span>{" "}
                           <span className="val">
                             {typeof v === "object" && v !== null ? (
-                              // If it's an object, map its nested properties
                               <div
                                 className="nested-payload"
                                 style={{ paddingLeft: "15px" }}
@@ -398,6 +467,27 @@ export default function AdminDashboard() {
 
         {activeTab === "pits" && (
           <div className="admin-grid-layout">
+            <div className="admin-controls-card">
+              <div className="admin-filter-group">
+                <FontAwesomeIcon icon={faFilter} className="text-muted" />
+                <select
+                  value={selectedRegional}
+                  onChange={(e) => setSelectedRegional(e.target.value)}
+                  className="admin-select-input"
+                >
+                  <option value="">倹 View All Regionals</option>
+                  {regionals.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.year} - {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button onClick={deleteAll} className="admin-btn-danger-wipe">
+                Delete all data
+              </button>
+            </div>
             {pits.length === 0 ? (
               <p className="text-muted text-center p-md">
                 No specific layout definitions saved.
@@ -407,9 +497,7 @@ export default function AdminDashboard() {
                 <div key={item.id} className="admin-data-card">
                   <div className="admin-card-header">
                     <div>
-                      <span className="admin-badge-team accent">
-                        Pit Data
-                      </span>
+                      <span className="admin-badge-team accent">Pit Data</span>
                     </div>
                     <button
                       onClick={() => deleteItem("pit", item.id)}
@@ -425,7 +513,6 @@ export default function AdminDashboard() {
                           <span className="key">{k}:</span>{" "}
                           <span className="val">
                             {typeof v === "object" && v !== null ? (
-                              // If it's an object, map its nested properties
                               <div
                                 className="nested-payload"
                                 style={{ paddingLeft: "15px" }}
@@ -533,23 +620,36 @@ export default function AdminDashboard() {
                         <span className="admin-regional-name">
                           {regional.name}
                         </span>
-                        <span className="admin-regional-meta">
-                          {regional.year || "No year set"} - ID {regional.id}
-                        </span>
                       </div>
                       <button
                         className={`admin-visibility-toggle ${visible ? "visible" : "hidden"}`}
                         onClick={() => toggleRegionalVisibility(regional)}
                       >
                         <FontAwesomeIcon icon={visible ? faEye : faEyeSlash} />
-                        {visible
-                          ? "Visible on Data Page"
-                          : "Hidden from Data Page"}
                       </button>
                     </div>
                   );
                 })
               )}
+            </div>
+          </section>
+        )}
+
+        {activeTab === "apps" && (
+          <section className="admin-regionals-panel">
+            <div className="admin-regionals-panel-header">
+              <div>
+                <span className="scout-overline">Apps</span>
+                <h3>Apps</h3>
+              </div>
+            </div>
+
+            <div className="admin-regionals-list">
+              <Link to="/form" rel="noopener noreferrer">Form Builder</Link>
+              <Link to="/pit" rel="noopener noreferrer">Pit Scouting</Link>
+              <Link to="/match" rel="noopener noreferrer">Match Scouting</Link>
+              <Link to="/vis" rel="noopener noreferrer">Visualization</Link>
+              <Link to="/scoutSeettings" rel="noopener noreferrer">Settings</Link>
             </div>
           </section>
         )}
