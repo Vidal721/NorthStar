@@ -19,6 +19,7 @@ import {
   faGear,
   faChartColumn,
 } from "@fortawesome/free-solid-svg-icons";
+import { useURL } from "../urlConfig"
 
 export default function MainMenu() {
   // 1. Manage theme state inside the component

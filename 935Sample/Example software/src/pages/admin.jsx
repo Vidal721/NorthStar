@@ -29,6 +29,7 @@ import {
   getDefaultHeaders,
   setConnectionMode as saveConnectionMode,
 } from "../apiConfig";
+import { useURL } from "../urlConfig"
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const currentScout = localStorage.getItem("currentUser") || "Unknown Admin";
-  const apiBaseUrl = getApiBaseUrl();
+  const apiBaseUrl = useURL();
 
   useEffect(() => {
     fetchRegionalsList();
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
 
   async function fetchRegionalsList() {
     try {
-      const res = await fetch(`${getApiBaseUrl()}/api/regionals`, {
+      const res = await fetch(`${apiBaseUrl}/api/regionals`, {
         headers: getDefaultHeaders(),
       });
       if (res.ok) {
@@ -91,7 +92,7 @@ export default function AdminDashboard() {
     try {
       const authIdentity = localStorage.getItem("currentUser") || "";
       const response = await fetch(
-        `${getApiBaseUrl()}/api/regionals/${regional.id}/visibility`,
+        `${apiBaseUrl}/api/regionals/${regional.id}/visibility`,
         {
           method: "PATCH",
           headers: getDefaultHeaders({
@@ -129,7 +130,7 @@ export default function AdminDashboard() {
         Authorization: `Bearer ${authIdentity}`,
       };
 
-      let url = `${getApiBaseUrl()}/admin/data`;
+      let url = `${apiBaseUrl}/admin/data`;
       if (selectedRegional) url += `?regional_id=${selectedRegional}`;
 
       const dataRes = await fetch(url, { headers: headersConfig });
@@ -140,7 +141,7 @@ export default function AdminDashboard() {
       setMatches(dataJson.matches || []);
       setPits(dataJson.pits || []);
 
-      const usersRes = await fetch(`${getApiBaseUrl()}/users`, {
+      const usersRes = await fetch(`${apiBaseUrl}/users`, {
         headers: headersConfig,
       });
       if (usersRes.ok) {
@@ -159,7 +160,7 @@ export default function AdminDashboard() {
       return;
     try {
       const authIdentity = localStorage.getItem("currentUser") || "";
-      const response = await fetch(`${getApiBaseUrl()}/delete/${type}/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/delete/${type}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${authIdentity}` },
       });
@@ -185,7 +186,7 @@ export default function AdminDashboard() {
     )
       return;
     try {
-      const response = await fetch(`${getApiBaseUrl()}/admin/wipe-all`, {
+      const response = await fetch(`${apiBaseUrl}/admin/wipe-all`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -331,7 +332,7 @@ export default function AdminDashboard() {
           <img src="./pwa-512x512.png" id="imageLogo" height={60} alt="" />
           <FontAwesomeIcon icon={faBars} id="mobileLogo" onClick={toggleMobileSidebar}/>
         <div className="admin-profile-badge" onClick={openLogout}>
-          <FontAwesomeIcon icon={faUser} />
+          <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
         <div id="logoutSection">
           <h2>Hello, {currentScout}</h2>

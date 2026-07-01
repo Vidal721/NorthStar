@@ -5,6 +5,7 @@ import {
   Routes,
   Link,
   useNavigate,
+  useActionData,
 } from "react-router-dom";
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
@@ -16,6 +17,7 @@ import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
 import ProtectedLayout from "./componets/ProtectedLayout"; 
 import { getApiBaseUrl, getDefaultHeaders } from "./apiConfig";
+import { useURL } from "./urlConfig"
 import "./App.css";
 
 function LoginScreen() {
@@ -33,7 +35,7 @@ function LoginScreen() {
     }
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
+      const response = await fetch(`${useURL()}/auth/login`, {
         method: "POST",
         headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ username, password }),
@@ -76,7 +78,7 @@ function LoginScreen() {
       <img
         src="/pwa-512x512-removebg.png"
         alt="935 scouting logo"
-        className="mainLogo"
+       className="mainLogo"
         id="mainLogo"
       />
       <p>Welcome! Please Login</p>
@@ -123,7 +125,7 @@ function RegisterScreen() {
     }
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/auth/register`, {
+      const response = await fetch(`${useURL()}/auth/register`, {
         method: "POST",
         headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ username, password, role }),
