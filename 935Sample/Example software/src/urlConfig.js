@@ -2,10 +2,10 @@ const api_url = true;
 
 export function useURL () {
     if (api_url == true) {
-        console.log("https://taco-childhood-jailbreak.ngrok-free.dev");
+        console.log("Using https://taco-childhood-jailbreak.ngrok-free.dev as the backend url.");
         return "https://taco-childhood-jailbreak.ngrok-free.dev";
     } else {
-        console.log("http://localhost:3000");
+        console.log("Using http://localhost:3000 as the backend url.");
         return "http://localhost:3000"
     }
 }
