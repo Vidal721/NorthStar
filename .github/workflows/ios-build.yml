@@ -25,15 +25,34 @@ jobs:
           npm_config_fetch_retries: 5
           npm_config_fetch_retry_mintimeout: 20000
           npm_config_fetch_retry_maxtimeout: 120000
-      
-      - name: Install Capacitor CLI (ensures consistency in CI)
-        working-directory: 935Sample/example-software
-        run: npm install @capacitor/cli @capacitor/core @capacitor/ios --save-dev
-      
+
       - name: Build Vite app
         working-directory: 935Sample/example-software
         run: npm run build
-      
+
+      - name: Create Capacitor config
+        working-directory: 935Sample/example-software
+        run: |
+          cat > capacitor.config.ts << 'EOF'
+          import type { CapacitorConfig } from '@capacitor/cli';
+
+          const config: CapacitorConfig = {
+            appId: 'com.example.app',
+            appName: 'example-software',
+            webDir: 'dist',
+            server: {
+              androidScheme: 'https'
+            },
+            plugins: {
+              SplashScreen: {
+                launchShowDuration: 0,
+              },
+            },
+          };
+
+          export default config;
+          EOF
+
       - name: Clean iOS platform if it exists
         working-directory: 935Sample/example-software
         run: rm -rf ios || true
@@ -41,49 +60,24 @@ jobs:
       - name: Add iOS platform
         working-directory: 935Sample/example-software
         run: npx cap add ios
-         
-      - name: Sync Capacitor (generate iOS project)
+        
+      - name: Sync Capacitor
         working-directory: 935Sample/example-software
         run: npx cap sync ios
 
-      - name: Sync Capacitor (generate iOS project)
-        working-directory: 935Sample/example-software
-        run: npx cap sync ios
-      
       - name: Update iOS Deployment Target
         working-directory: 935Sample/example-software
         run: |
-          # Update the minimum deployment target in the Podfile
           sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" ios/App/Podfile
-         
-      - name: Verify iOS platform generation
-        working-directory: 935Sample/example-software
-        run: |
-          echo "=== Checking iOS directory structure ==="
-          ls -la ios/ || echo "ERROR: ios/ directory not created"
-          echo "=== Checking for Podfile ==="
-          ls -la ios/App/Podfile || echo "ERROR: Podfile not found"
-          echo "=== Full directory listing ==="
-          find ios -type f -name "Podfile*" 2>/dev/null || echo "No Podfile found anywhere in ios/"
-
-      - name: Verify Podfile exists before pod install
-        working-directory: 935Sample/example-software
-        run: |
-          if [ ! -f ios/App/Podfile ]; then
-            echo "ERROR: Podfile not found at ios/App/Podfile"
-            echo "Available files in ios/App:"
-            ls -la ios/App/ || true
-            exit 1
-          fi
 
       - name: Install CocoaPods
-        working-directory: 935Sample/example-software/ios/App
-        run: pod install --repo-update
+        working-directory: 935Sample/example-software
+        run: pod install --repo-update --project-directory=ios/App
 
       - name: Build iOS (simulator)
-        working-directory: 935Sample/example-software/ios/App
+        working-directory: 935Sample/example-software
         run: |
-          xcodebuild -workspace App.xcworkspace \
+          xcodebuild -workspace ios/App/App.xcworkspace \
             -scheme App \
             -configuration Debug \
             -sdk iphonesimulator \
