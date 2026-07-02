@@ -31,20 +31,24 @@ jobs:
       - name: Add iOS platform
         working-directory: 935Sample/example-software
         run: npx cap add ios
-
+        
       - name: Sync Capacitor (generate iOS project)
         working-directory: 935Sample/example-software
         run: npx cap sync ios
+        
+      - name: Verify iOS platform generation
+        working-directory: 935Sample/example-software
+        run: |
+          echo "=== Checking iOS directory structure ==="
+          ls -la ios/ || echo "ERROR: ios/ directory not created"
+          echo "=== Checking for Podfile ==="
+          ls -la ios/App/Podfile || echo "ERROR: Podfile not found"
+          echo "=== Full directory listing ==="
+          find ios -type f -name "Podfile*" 2>/dev/null || echo "No Podfile found anywhere in ios/"
 
       - name: Install CocoaPods
         working-directory: 935Sample/example-software/ios/App
-        run: |
-          if [ -f "Podfile" ]; then
-            pod install --repo-update
-          else
-            echo "Error: Podfile not found. Ensure 'npx cap sync ios' completed successfully."
-            exit 1
-          fi
+        run: pod install --repo-update
 
       - name: Build iOS (simulator)
         working-directory: 935Sample/example-software/ios/App
