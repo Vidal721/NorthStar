@@ -34,11 +34,13 @@ jobs:
         working-directory: 935Sample/example-software
         run: npx cap sync ios
 
-      - name: Build iOS (simulator)
+      - name: Archive iOS app
         working-directory: 935Sample/example-software
         run: |
-          xcodebuild -workspace ios/App/App.xcodeproj/project.xcworkspace \
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
             -scheme App \
             -configuration Debug \
-            -sdk iphonesimulator \
-            build
+            -sdk iphoneos \
+            -archivePath build/App.xcarchive \
+            archive
