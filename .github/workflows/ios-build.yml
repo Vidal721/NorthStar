@@ -38,7 +38,7 @@ jobs:
         working-directory: 935Sample/example-software
         run: |
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            -workspace ios/App/App.xcodeproj/project.xcworkspace \
             -scheme App \
             -configuration Debug \
             -sdk iphoneos \
