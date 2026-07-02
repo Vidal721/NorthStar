@@ -42,12 +42,10 @@ jobs:
         run: npx cap sync ios
 
       - name: Update iOS Deployment Target
-        working-directory: 935Sample/example-software
+        working-directory: 935Sample/example-software/ios/App
         run: |
-          cd ios/App
           # Update the minimum deployment target in the Podfile
           sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" Podfile
-          cd ../../
         
       - name: Verify iOS platform generation
         working-directory: 935Sample/example-software
