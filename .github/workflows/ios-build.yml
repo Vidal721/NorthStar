@@ -18,17 +18,20 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+        working-directory: 935sample/Example software
         run: npm install
 
       - name: Build Vite app
+        working-directory: 935sample/Example software
         run: npm run build
 
       - name: Sync Capacitor
+        working-directory: 935sample/Example software
         run: npx cap sync ios
 
       - name: Build iOS (simulator)
+        working-directory: 935sample/Example software/ios/App
         run: |
-          cd ios/App
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Debug \
