@@ -30,48 +30,21 @@ jobs:
         working-directory: 935Sample/example-software
         run: npm run build
 
-      - name: Create Capacitor config
-        working-directory: 935Sample/example-software
-        run: |
-          cat > capacitor.config.json << 'EOF'
-          {
-            "appId": "com.example.app",
-            "appName": "example-software",
-            "webDir": "dist",
-            "server": {
-              "androidScheme": "https"
-            },
-            "plugins": {
-              "SplashScreen": {
-                "launchShowDuration": 0
-              }
-            }
-          }
-          EOF
-
-      - name: Clean iOS platform if it exists
-        working-directory: 935Sample/example-software
-        run: rm -rf ios || true
-
-      - name: Add iOS platform
-        working-directory: 935Sample/example-software
-        run: npx cap add ios
-        
       - name: Sync Capacitor
         working-directory: 935Sample/example-software
         run: npx cap sync ios
 
-      - name: Find and update Podfile
+      - name: Update Podfile platform
         working-directory: 935Sample/example-software
         run: |
-          PODFILE=$(find ios -name "Podfile" -type f | head -1)
-          if [ -z "$PODFILE" ]; then
-            echo "Error: Podfile not found"
-            find ios -type f -name "Podfile*"
+          PODFILE="ios/App/Podfile"
+          if [ -f "$PODFILE" ]; then
+            sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" "$PODFILE"
+            echo "Updated Podfile platform to iOS 14.0"
+          else
+            echo "Podfile not found at $PODFILE"
             exit 1
           fi
-          echo "Found Podfile at: $PODFILE"
-          sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" "$PODFILE"
 
       - name: Install CocoaPods
         working-directory: 935Sample/example-software
