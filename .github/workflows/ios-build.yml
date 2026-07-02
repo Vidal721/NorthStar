@@ -9,33 +9,33 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Install dependencies
         working-directory: 935sample/Example software
         run: npm install
-
+      
+      - name: Install Capacitor CLI (ensures consistency in CI)
+        working-directory: 935sample/Example software
+        run: npm install @capacitor/cli @capacitor/core @capacitor/ios
+      
       - name: Build Vite app
         working-directory: 935sample/Example software
         run: npm run build
-
+      
+      - name: Ensure iOS platform exists
+        working-directory: 935sample/Example software
+        run: npx cap add ios || true
+      
       - name: Sync Capacitor (generate iOS project)
         working-directory: 935sample/Example software
         run: npx cap sync ios
-
+      
       - name: Debug iOS output
-        working-directory: 935sample/Example software/ios/App
-        run: ls -la
-
+        working-directory: 935sample/Example software
+        run: ls -R ios
+      
       - name: Install CocoaPods
         working-directory: 935sample/Example software/ios/App
-        run: pod install
+        run: pod install --repo-update
 
       - name: Build iOS (simulator)
         working-directory: 935sample/Example software/ios/App
