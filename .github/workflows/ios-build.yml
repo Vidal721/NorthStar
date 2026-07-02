@@ -46,6 +46,16 @@ jobs:
           echo "=== Full directory listing ==="
           find ios -type f -name "Podfile*" 2>/dev/null || echo "No Podfile found anywhere in ios/"
 
+      - name: Verify Podfile exists before pod install
+        working-directory: 935Sample/example-software
+        run: |
+          if [ ! -f ios/App/Podfile ]; then
+            echo "ERROR: Podfile not found at ios/App/Podfile"
+            echo "Available files in ios/App:"
+            ls -la ios/App/ || true
+            exit 1
+          fi
+
       - name: Install CocoaPods
         working-directory: 935Sample/example-software/ios/App
         run: pod install --repo-update
