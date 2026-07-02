@@ -29,11 +29,17 @@ jobs:
         working-directory: 935sample/Example software
         run: npx cap sync ios
 
+      - name: Install CocoaPods
+        working-directory: 935sample/Example software/ios/App
+        run: |
+          sudo gem install cocoapods
+          pod install
+
       - name: Build iOS (simulator)
         working-directory: 935sample/Example software/ios/App
         run: |
           xcodebuild -workspace App.xcworkspace \
-            -scheme App \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            build
+          -scheme App \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          build
