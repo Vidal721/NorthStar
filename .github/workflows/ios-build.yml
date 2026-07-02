@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        
+
       - name: Install dependencies
         working-directory: 935Sample/example-software
         run: npm install
@@ -24,18 +24,18 @@ jobs:
         working-directory: 935Sample/example-software
         run: npm run build
       
-      - name: Ensure iOS platform exists
+      - name: Clean iOS platform if it exists
         working-directory: 935Sample/example-software
-        run: npx cap add ios || true
-      
+        run: rm -rf ios || true
+
+      - name: Add iOS platform
+        working-directory: 935Sample/example-software
+        run: npx cap add ios
+
       - name: Sync Capacitor (generate iOS project)
         working-directory: 935Sample/example-software
         run: npx cap sync ios
-      
-      - name: Debug iOS output
-        working-directory: 935Sample/example-software
-        run: ls -R ios
-      
+
       - name: Install CocoaPods
         working-directory: 935Sample/example-software/ios/App
         run: pod install --repo-update
