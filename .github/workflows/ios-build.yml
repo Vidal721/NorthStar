@@ -37,7 +37,7 @@ jobs:
       - name: Build iOS (simulator)
         working-directory: 935Sample/example-software
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          xcodebuild -workspace ios/App/App.xcodeproj \
             -scheme App \
             -configuration Debug \
             -sdk iphonesimulator \
