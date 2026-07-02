@@ -10,35 +10,35 @@ jobs:
 
     steps:
       - name: Install dependencies
-        working-directory: 935sample/Example-software
+        working-directory: 935sample/example-software
         run: npm install
       
       - name: Install Capacitor CLI (ensures consistency in CI)
-        working-directory: 935sample/Example-software
+        working-directory: 935sample/example-software
         run: npm install @capacitor/cli @capacitor/core @capacitor/ios
       
       - name: Build Vite app
-        working-directory: 935sample/Example-software
+        working-directory: 935sample/example-software
         run: npm run build
       
       - name: Ensure iOS platform exists
-        working-directory: 935sample/Example-software
+        working-directory: 935sample/example-software
         run: npx cap add ios || true
       
       - name: Sync Capacitor (generate iOS project)
-        working-directory: 935sample/Example-software
+        working-directory: 935sample/example-software
         run: npx cap sync ios
       
       - name: Debug iOS output
-        working-directory: 935sample/Example-software
+        working-directory: 935sample/example-software
         run: ls -R ios
       
       - name: Install CocoaPods
-        working-directory: 935sample/Example-software/ios/App
+        working-directory: 935sample/example-software/ios/App
         run: pod install --repo-update
 
       - name: Build iOS (simulator)
-        working-directory: 935sample/Example-software/ios/App
+        working-directory: 935sample/example-software/ios/App
         run: |
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
