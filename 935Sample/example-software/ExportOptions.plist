@@ -9,6 +9,9 @@
   <key>signingStyle</key>
   <string>automatic</string>
 
+  <key>teamID</key>
+  <string>YOUR_TEAM_ID</string>
+
   <key>stripSwiftSymbols</key>
   <true/>
 
