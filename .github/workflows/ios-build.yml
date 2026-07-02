@@ -9,6 +9,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        
       - name: Install dependencies
         working-directory: 935Sample/example-software
         run: npm install
