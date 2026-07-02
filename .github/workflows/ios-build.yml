@@ -19,7 +19,12 @@ jobs:
 
       - name: Install dependencies
         working-directory: 935Sample/example-software
-        run: npm install
+        run: npm install --legacy-peer-deps --prefer-offline --no-audit
+        env:
+          npm_config_fetch_timeout: 60000
+          npm_config_fetch_retries: 5
+          npm_config_fetch_retry_mintimeout: 20000
+          npm_config_fetch_retry_maxtimeout: 120000
       
       - name: Install Capacitor CLI (ensures consistency in CI)
         working-directory: 935Sample/example-software
@@ -36,7 +41,7 @@ jobs:
       - name: Add iOS platform
         working-directory: 935Sample/example-software
         run: npx cap add ios
-        
+         
       - name: Sync Capacitor (generate iOS project)
         working-directory: 935Sample/example-software
         run: npx cap sync ios
@@ -46,7 +51,7 @@ jobs:
         run: |
           # Update the minimum deployment target in the Podfile
           sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" Podfile
-        
+         
       - name: Verify iOS platform generation
         working-directory: 935Sample/example-software
         run: |
