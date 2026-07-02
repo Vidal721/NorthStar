@@ -12,13 +12,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Install dependencies
         working-directory: 935Sample/example-software
         run: npm install
       
       - name: Install Capacitor CLI (ensures consistency in CI)
         working-directory: 935Sample/example-software
-        run: npm install @capacitor/cli @capacitor/core @capacitor/ios
+        run: npm install @capacitor/cli @capacitor/core @capacitor/ios --save-dev
       
       - name: Build Vite app
         working-directory: 935Sample/example-software
