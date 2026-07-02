@@ -38,7 +38,13 @@ jobs:
 
       - name: Install CocoaPods
         working-directory: 935Sample/example-software/ios/App
-        run: pod install --repo-update
+        run: |
+          if [ -f "Podfile" ]; then
+            pod install --repo-update
+          else
+            echo "Error: Podfile not found. Ensure 'npx cap sync ios' completed successfully."
+            exit 1
+          fi
 
       - name: Build iOS (simulator)
         working-directory: 935Sample/example-software/ios/App
