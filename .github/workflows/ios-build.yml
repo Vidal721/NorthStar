@@ -61,6 +61,15 @@ jobs:
         working-directory: 935Sample/example-software
         run: npx cap sync ios
 
+      - name: Verify iOS project structure
+        working-directory: 935Sample/example-software
+        run: |
+          if [ ! -f "ios/App/Podfile" ]; then
+            echo "Error: Podfile not found after sync"
+            ls -la ios/App/ || echo "ios/App directory does not exist"
+            exit 1
+          fi
+
       - name: Update iOS Deployment Target
         working-directory: 935Sample/example-software
         run: |
