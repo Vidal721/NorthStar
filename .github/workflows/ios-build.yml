@@ -61,19 +61,17 @@ jobs:
         working-directory: 935Sample/example-software
         run: npx cap sync ios
 
-      - name: Verify iOS project structure
+      - name: Find and update Podfile
         working-directory: 935Sample/example-software
         run: |
-          if [ ! -f "ios/App/Podfile" ]; then
-            echo "Error: Podfile not found after sync"
-            ls -la ios/App/ || echo "ios/App directory does not exist"
+          PODFILE=$(find ios -name "Podfile" -type f | head -1)
+          if [ -z "$PODFILE" ]; then
+            echo "Error: Podfile not found"
+            find ios -type f -name "Podfile*"
             exit 1
           fi
-
-      - name: Update iOS Deployment Target
-        working-directory: 935Sample/example-software
-        run: |
-          sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" ios/App/Podfile
+          echo "Found Podfile at: $PODFILE"
+          sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" "$PODFILE"
 
       - name: Install CocoaPods
         working-directory: 935Sample/example-software
