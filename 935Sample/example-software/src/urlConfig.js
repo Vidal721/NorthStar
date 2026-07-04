@@ -1,4 +1,4 @@
-const api_url = false;
+const api_url = true;
 
 export function useURL () {
     if (api_url == true) {
