@@ -5,6 +5,8 @@ const db = new Database("scouting.db");
 
 console.log("Database absolute path:", path.resolve("scouting.db"));
 
+db.pragma("foreign_keys = ON");
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS regionals (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +31,25 @@ db.exec(`
     form_id     TEXT,
     payload     TEXT NOT NULL,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS helper_forms (
+    id          TEXT PRIMARY KEY,
+    title       TEXT NOT NULL,
+    description TEXT,
+    status      TEXT NOT NULL DEFAULT 'draft',
+    payload     TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    sent_at     TEXT,
+    updated_at  TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS helper_form_responses (
+    id           TEXT PRIMARY KEY,
+    form_id      TEXT NOT NULL REFERENCES helper_forms(id) ON DELETE CASCADE,
+    respondent   TEXT,
+    payload      TEXT NOT NULL,
+    submitted_at TEXT NOT NULL
   );
 `);
 

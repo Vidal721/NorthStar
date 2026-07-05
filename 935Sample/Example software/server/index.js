@@ -63,6 +63,59 @@ function getAdmin() {
   return JSON.parse(fs.readFileSync("adminData.json", "utf8"));
 }
 
+const parseHelperForm = (row) => {
+  const payload = JSON.parse(row.payload);
+  return {
+    ...payload,
+    id: row.id,
+    title: row.title,
+    description: row.description || "",
+    status: row.status,
+    createdAt: row.created_at,
+    sentAt: row.sent_at || payload.sentAt,
+    updatedAt: row.updated_at,
+    responseCount: row.response_count ?? 0,
+  };
+};
+
+const saveHelperForm = (form) => {
+  const now = new Date().toISOString();
+  const createdAt = form.createdAt || now;
+  const updatedAt = now;
+  const sentAt = form.sentAt || null;
+  const status = form.status === "sent" ? "sent" : "draft";
+  const payload = {
+    ...form,
+    status,
+    createdAt,
+    sentAt,
+    updatedAt,
+  };
+
+  db.prepare(`
+    INSERT INTO helper_forms (id, title, description, status, payload, created_at, sent_at, updated_at)
+    VALUES (@id, @title, @description, @status, @payload, @createdAt, @sentAt, @updatedAt)
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      description = excluded.description,
+      status = excluded.status,
+      payload = excluded.payload,
+      sent_at = excluded.sent_at,
+      updated_at = excluded.updated_at
+  `).run({
+    id: payload.id,
+    title: payload.title || "Untitled form",
+    description: payload.description || "",
+    status,
+    payload: JSON.stringify(payload),
+    createdAt,
+    sentAt,
+    updatedAt,
+  });
+
+  return payload;
+};
+
 // ==== AUTH ENDPOINT ==== //
 app.post("/auth/login", async (req, res) => {
   try {
@@ -103,15 +156,16 @@ app.post("/auth/login", async (req, res) => {
 // ==== USER REGISTRATION ENDPOINT ==== //
 app.post("/auth/register", async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, role, subgroup } = req.body;
 
     // 1. Validate incoming data payload
-    if (!username || !password || !role) {
+    if (!username || !password || !role || !subgroup) {
       return res.status(400).json({ error: "Missing username, password, or role" });
     }
 
-    if (role !== "admin" && role !== "scouter" && role !== "family") {
-      return res.status(400).json({ error: "Role must be either 'admin' or 'scouter'" });
+    const allowedRoles = ["admin", "scouter", "family", "helper", "student", "students", "teamMember"];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ error: "Unsupported account role" });
     }
 
     const users = getUsers();
@@ -130,7 +184,8 @@ app.post("/auth/register", async (req, res) => {
     const newUser = {
       username,
       passwordHash,
-      role
+      role,
+      subgroup
     };
     users.push(newUser);
 
@@ -153,6 +208,128 @@ app.get("/users", (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve users memory grid." });
+  }
+});
+
+// ==== Helper form endpoints ==== //
+app.get("/helper/forms", (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT helper_forms.*,
+        COUNT(helper_form_responses.id) AS response_count
+      FROM helper_forms
+      LEFT JOIN helper_form_responses ON helper_form_responses.form_id = helper_forms.id
+      GROUP BY helper_forms.id
+      ORDER BY helper_forms.created_at DESC
+    `).all();
+    res.json(rows.map(parseHelperForm));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load forms", detail: err.message });
+  }
+});
+
+app.post("/helper/forms", (req, res) => {
+  try {
+    const form = req.body;
+    if (!form || !form.id) {
+      return res.status(400).json({ error: "Invalid form payload" });
+    }
+    res.status(201).json(saveHelperForm(form));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create form", detail: err.message });
+  }
+});
+
+app.patch("/helper/forms/:id", (req, res) => {
+  try {
+    const row = db.prepare("SELECT * FROM helper_forms WHERE id = ?").get(req.params.id);
+    if (!row) return res.status(404).json({ error: "Form not found" });
+
+    const current = parseHelperForm(row);
+    const next = { ...current, ...req.body, id: req.params.id };
+    res.json(saveHelperForm(next));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update form", detail: err.message });
+  }
+});
+
+app.delete("/helper/forms/:id", (req, res) => {
+  try {
+    const result = db.prepare("DELETE FROM helper_forms WHERE id = ?").run(req.params.id);
+    if (result.changes === 0) return res.status(404).json({ error: "Form not found" });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete form", detail: err.message });
+  }
+});
+
+app.get("/helper/forms/:id/responses", (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT * FROM helper_form_responses
+      WHERE form_id = ?
+      ORDER BY submitted_at DESC
+    `).all(req.params.id);
+    res.json(rows.map((row) => ({ ...JSON.parse(row.payload), id: row.id })));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load responses", detail: err.message });
+  }
+});
+
+app.get("/forms/sent", (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT helper_forms.*,
+        COUNT(helper_form_responses.id) AS response_count
+      FROM helper_forms
+      LEFT JOIN helper_form_responses ON helper_form_responses.form_id = helper_forms.id
+      WHERE helper_forms.status = 'sent'
+      GROUP BY helper_forms.id
+      ORDER BY helper_forms.sent_at DESC, helper_forms.created_at DESC
+    `).all();
+    res.json(rows.map(parseHelperForm));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load sent forms", detail: err.message });
+  }
+});
+
+app.get("/forms/:id", (req, res) => {
+  try {
+    const row = db.prepare("SELECT * FROM helper_forms WHERE id = ? AND status = 'sent'").get(req.params.id);
+    if (!row) return res.status(404).json({ error: "Form not found" });
+    res.json(parseHelperForm(row));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load form", detail: err.message });
+  }
+});
+
+app.post("/forms/:id/responses", (req, res) => {
+  try {
+    const form = db.prepare("SELECT * FROM helper_forms WHERE id = ? AND status = 'sent'").get(req.params.id);
+    if (!form) return res.status(404).json({ error: "Form not found" });
+
+    const response = {
+      id: req.body?.id || `response-${Date.now()}`,
+      formId: req.params.id,
+      respondent: req.body?.respondent || null,
+      answers: req.body?.answers || {},
+      submittedAt: new Date().toISOString(),
+    };
+
+    db.prepare(`
+      INSERT INTO helper_form_responses (id, form_id, respondent, payload, submitted_at)
+      VALUES (@id, @formId, @respondent, @payload, @submittedAt)
+    `).run({
+      id: response.id,
+      formId: response.formId,
+      respondent: response.respondent,
+      payload: JSON.stringify(response),
+      submittedAt: response.submittedAt,
+    });
+
+    res.status(201).json(response);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to submit response", detail: err.message });
   }
 });
 

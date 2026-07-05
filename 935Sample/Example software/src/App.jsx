@@ -14,12 +14,17 @@ import AdminDashboard from "./pages/admin";
 import FormBuilder from "./pages/formbuilder";
 import FamilyPage from "./pages/family";
 import HelperPage from "./pages/helper";
+import StudentFormsPage from "./pages/studentForms";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
 import ProtectedLayout from "./componets/ProtectedLayout"; 
-import { getApiBaseUrl, getDefaultHeaders } from "./apiConfig";
 import { useURL } from "./urlConfig"
 import "./App.css";
+
+const defaultHeaders = (extra = {}) => ({
+  "ngrok-skip-browser-warning": "69420",
+  ...extra,
+});
 
 function LoginScreen() {
   const navigate = useNavigate();
@@ -38,7 +43,7 @@ function LoginScreen() {
     try {
       const response = await fetch(`${useURL()}/auth/login`, {
         method: "POST",
-        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
+        headers: defaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ username, password }),
       });
 
@@ -59,6 +64,8 @@ function LoginScreen() {
         navigate("/family")
       } else if (userRole === "helper") {
         navigate("/helper");
+      } else if (userRole === "student" || userRole === "students") {
+        navigate("/student");
       } else {
         navigate("/scout");
       }
@@ -122,6 +129,7 @@ function RegisterScreen() {
     const username = document.getElementById("regUsername").value;
     const password = document.getElementById("regPassword").value;
     const role = document.getElementById("regRole").value;
+    const subgroup = document.getElementById("buildSeason").value;
 
     if (!username || !password || !role) {
       setIsError(true);
@@ -132,8 +140,8 @@ function RegisterScreen() {
     try {
       const response = await fetch(`${useURL()}/auth/register`, {
         method: "POST",
-        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ username, password, role }),
+        headers: defaultHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ username, password, role, subgroup }),
       });
 
       const data = await response.json();
@@ -191,16 +199,32 @@ function RegisterScreen() {
 
       <fieldset className="fieldset-container">
         <legend className="fieldset-legend">
-          <label htmlFor="regRole">Account Clearance Level</label>
+          <label htmlFor="regRole">Role</label>
         </legend>
         <select id="regRole" className="fieldset-input" style={{ width: "100%", background: "transparent", color: "inherit", border: "none", outline: "none" }}>
-        <option value="admin" style={{ background: "#222" }}>Admin</option>
-          <option value="teamMember" style={{ background: "#222" }}>Team Member</option>
-          <option value="scouter" style={{ background: "#222" }}>Scouter</option>
-          <option value="family" style={{ background: "#222" }}>Family Member</option>
-          <option value="helper" style={{ background: "#222" }}>Mentor/Helper</option>
+          <option value="students" style={{ background: "#ffffff" }}>Student</option>
+          <option value="coach" style={{ background: "#ffffff" }}>Coach</option>
+          <option value="family" style={{ background: "#ffffff" }}>Family Member</option>
+          <option value="helper" style={{ background: "#ffffff" }}>Parent Helper</option>
+          <option value="mentor" style={{ background: "#ffffff" }}>Mentor</option>
         </select>
       </fieldset>
+      <fieldset id="studentOnly" className="fieldset-container">
+        <legend className="fieldset-legend">
+          <label htmlFor="buildSeason">Subgroup</label>
+        </legend>
+        <select id="buildSeason" className="fieldset-input" style={{ width: "100%", background: "transparent", color: "inherit", border: "none", outline: "none" }}>
+          {/*<option value="admin" style={{ background: "#222" }}>Admin</option>
+          <option value="teamMember" style={{ background: "#222" }}>Team Member</option>
+          <option value="scouter" style={{ background: "#222" }}>Scouter</option>*/}
+          <option value="Manufacturing" style={{ background: "#ffffff" }}>Manufacturing</option>
+          <option value="Programming" style={{ background: "#ffffff" }}>Programming</option>
+          <option value="Design" style={{ background: "#ffffff" }}>Design</option>
+          <option value="Electronics" style={{ background: "#ffffff" }}>Electronics</option>
+          <option value="Media" style={{ background: "#ffffff" }}>Media</option>
+        </select>
+      </fieldset>
+
 
       <button id="mainRegister" onClick={handleRegister} style={{ marginTop: "15px" }}>
         Register Account
@@ -220,7 +244,6 @@ function App() {
         {/* Public Hub Routes */}
         <Route path="/" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
-        <Route path="/helper" element={<HelperPage />} />
         
 
         <Route element={<ProtectedLayout allowedRoles={["admin", "family"]} />}>
@@ -228,7 +251,12 @@ function App() {
         </Route>
 
         <Route element={<ProtectedLayout allowedRoles={["admin", "helper"]} />}>
-          
+          <Route path="/helper" element={<HelperPage />} />
+        </Route>
+
+        <Route element={<ProtectedLayout allowedRoles={["admin", "students"]} />}>
+          <Route path="/student" element={<StudentFormsPage />} />
+          <Route path="/form/:formId" element={<StudentFormsPage />} />
         </Route>
 
         {/* Base Protection Level: Any Logged In Scouter */}
