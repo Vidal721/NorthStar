@@ -1,0 +1,62 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: 935Sample/example-software
+        run: npm install --legacy-peer-deps --prefer-offline --no-audit
+        env:
+          npm_config_fetch_timeout: 60000
+          npm_config_fetch_retries: 5
+          npm_config_fetch_retry_mintimeout: 20000
+          npm_config_fetch_retry_maxtimeout: 120000
+
+      - name: Build Vite app
+        working-directory: 935Sample/example-software
+        run: npm run build
+
+      - name: Sync Capacitor
+        working-directory: 935Sample/example-software
+        run: npx cap sync ios
+
+      - name: Archive iOS app
+        working-directory: 935Sample/example-software
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcodeproj/project.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphoneos \
+            -archivePath build/App.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            archive
+
+      - name: Export IPA
+        working-directory: 935Sample/example-software
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: 935Sample/example-software/build/ipa/*.ipa
