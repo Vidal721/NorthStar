@@ -163,7 +163,7 @@ app.post("/auth/register", async (req, res) => {
       return res.status(400).json({ error: "Missing username, password, or role" });
     }
 
-    const allowedRoles = ["admin", "scouter", "family", "helper", "student", "students", "teamMember"];
+    const allowedRoles = ["admin", "scouter", "family", "helper", "student", "students", "teamMember", "coach", "Mentor"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: "Unsupported account role" });
     }

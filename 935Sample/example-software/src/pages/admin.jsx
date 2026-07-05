@@ -224,8 +224,8 @@ export default function AdminDashboard() {
       (regional) => String(regional.id) === String(selectedRegional),
     )?.name || "All Regionals";
   const summaryCards = [
-    { label: "Matches", value: matches.length, icon: faTrophy },
-    { label: "Pit Profiles", value: pits.length, icon: faDatabase },
+    { label: "Match Data", value: matches.length, icon: faTrophy },
+    { label: "Pit Data", value: pits.length, icon: faDatabase },
     { label: "Operators", value: users.length, icon: faUsers },
     {
       label: "Visible Events",
@@ -355,19 +355,19 @@ export default function AdminDashboard() {
           className={`admin-tab-btn ${activeTab === "matches" ? "active" : ""}`}
           onClick={() => setActiveTab("matches")}
         >
-          Match Entries ({matches.length})
+          Match data ({matches.length})
         </button>
         <button
           className={`admin-tab-btn ${activeTab === "pits" ? "active" : ""}`}
           onClick={() => setActiveTab("pits")}
         >
-          Pit Profiles ({pits.length})
+          Pit Data ({pits.length})
         </button>
         <button
           className={`admin-tab-btn ${activeTab === "users" ? "active" : ""}`}
           onClick={() => setActiveTab("users")}
         >
-          Operator Indexes ({users.length})
+          Users ({users.length})
         </button>
         <button
           className={`admin-tab-btn ${activeTab === "visibility" ? "active" : ""}`}
@@ -394,7 +394,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setSelectedRegional(e.target.value)}
                   className="admin-select-input"
                 >
-                  <option value="">倹 View All Regionals</option>
+                  <option value="">View All Regionals</option>
                   {regionals.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.year} - {r.name}
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
             </div>
             {matches.length === 0 ? (
               <p className="text-muted text-center p-md">
-                No telemetry records indexed under this scope.
+                No match data submited yet, <Link to={"/match"}>submit some now</Link>
               </p>
             ) : (
               matches.map((item) => (
@@ -479,7 +479,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setSelectedRegional(e.target.value)}
                   className="admin-select-input"
                 >
-                  <option value="">倹 View All Regionals</option>
+                  <option value="">View All Regionals</option>
                   {regionals.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.year} - {r.name}
@@ -494,7 +494,7 @@ export default function AdminDashboard() {
             </div>
             {pits.length === 0 ? (
               <p className="text-muted text-center p-md">
-                No specific layout definitions saved.
+                No Pit data has been submitted yet, <Link to={"/pit"}>submit some now</Link>
               </p>
             ) : (
               pits.map((item) => (
@@ -550,7 +550,7 @@ export default function AdminDashboard() {
           <div className="admin-users-list">
             {users.length === 0 ? (
               <p className="text-muted text-center p-md">
-                No operators logged in current user matrix.
+                No users registerd yet.
               </p>
             ) : (
               users.map((account, index) => {
@@ -565,22 +565,12 @@ export default function AdminDashboard() {
                         <span style={{ fontWeight: "700" }}>
                           {account.username}
                         </span>
-                        <span
-                          className="text-muted"
-                          style={{ fontSize: "11px", fontFamily: "monospace" }}
-                        >
-                          Token:{" "}
-                          {account.passwordHash
-                            ? account.passwordHash.substring(0, 15) + "..."
-                            : "No Security Hash Set"}
-                        </span>
                       </div>
                     </div>
                     <div className="flex gap-sm">
                       {isSelf && (
                         <span className="admin-status-pill active">
                           <FontAwesomeIcon icon={faCircleCheck} /> ACTIVE
-                          CONSOLE
                         </span>
                       )}
                       <span className="admin-status-pill">
@@ -654,6 +644,17 @@ export default function AdminDashboard() {
               <Link to="/match" rel="noopener noreferrer" className="adminApps">Match Scouting</Link>
               <Link to="/vis" rel="noopener noreferrer" className="adminApps">Visualization</Link>
               <Link to="/scoutSeettings" rel="noopener noreferrer" className="adminApps">Settings</Link>
+            </div><br /><br />
+
+            <div className="admin-regionals-panel-header">
+              <div>
+                <h3>All Pages</h3>
+              </div>
+            </div>
+
+            <div className="admin-regionals-list">
+              <Link to="/form" rel="noopener noreferrer" className="adminApps">Mentor</Link>
+              <Link to="/pit" rel="noopener noreferrer" className="adminApps">Parent Helper</Link>
             </div>
           </section>
         )}

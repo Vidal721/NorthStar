@@ -40,7 +40,9 @@ export default function settingsPage () {
       navigate("/admin");
     } else if (currentRole === "scout"){
       navigate("/scout")
-    } else {
+    } else if ( currentRole === "coach"){
+      navigate("/admin")
+    } else{
       navigate("/")
     }
   }

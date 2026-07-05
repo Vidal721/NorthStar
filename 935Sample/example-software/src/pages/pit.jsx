@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
+import { useURL } from "../urlConfig.js" //useURL()
 
 // ─────────────────────────────────────────────
 //  Field renderer
@@ -157,7 +158,7 @@ export default function PitScouting() {
   const [openSectionIdx, setOpenSectionIdx] = useState(0);
 
   useEffect(() => {
-    fetch(`${getApiBaseUrl()}/pit/form`, {
+    fetch(`${useURL()}/pit/form`, {
       headers: getDefaultHeaders(),
     })
       .then((r) => {
@@ -208,7 +209,7 @@ export default function PitScouting() {
     };
 
     try {
-      const res = await fetch(`${getApiBaseUrl()}/pit/upload`, {
+      const res = await fetch(`${useURL()}/pit/upload`, {
         method: "POST",
         headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),

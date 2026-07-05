@@ -16,6 +16,7 @@ import {
   faArrowTurnUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
+import { useURL } from "../urlConfig.js"
 import "../App.css";
 
 // ============================================================
@@ -1383,7 +1384,7 @@ export default function App() {
   // Pull event name from pit form schema
   const [eventName, setEventName] = useState("");
   useEffect(() => {
-    fetch(`${getApiBaseUrl()}/pit/form`, {
+    fetch(`${useURL()}/pit/form`, {
       headers: getDefaultHeaders(),
     })
       .then((r) => r.ok ? r.json() : null)
@@ -1865,7 +1866,7 @@ export default function App() {
     const label = `[submit] team=${matchData.meta?.teamNumber} match=${matchData.meta?.matchNumber}`;
     console.log(`${label} — sending`, matchData);
     try {
-      const res = await fetch(`${getApiBaseUrl()}/match/upload`, {
+      const res = await fetch(`${useURL()}/match/upload`, {
         method: "POST",
         headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(matchData),

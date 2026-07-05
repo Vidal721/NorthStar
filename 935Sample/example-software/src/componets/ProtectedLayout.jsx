@@ -1,47 +1,27 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-// 1. Add 'allowedSubgroups' to the destructuring props
+// 1. Add allowedSubgroups to the parameters
 export default function ProtectedLayout({ allowedRoles, allowedSubgroups }) {
-  
-  // (Replace this with your actual user state/context logic)
-  const user = getCurrentUser(); 
-  
-  const username = user?.username;
-  const role = user?.role?.toLowerCase();
-  
-  // Pull the subgroup from your user object ("Manufacturing")
-  const subgroup = user?.subgroup?.toLowerCase(); 
+  const username = localStorage.getItem('currentUser');
+  const role = localStorage.getItem('userRole');
+  // Grab the subgroup from localStorage just like the username and role
+  const subgroup = localStorage.getItem('userSubgroup'); 
 
-  // Normalize the allowed arrays to lowercase
-  const normalizedAllowedRoles = allowedRoles?.map((r) => r.toLowerCase());
-  const normalizedAllowedSubgroups = allowedSubgroups?.map((s) => s.toLowerCase());
-
-  // Check 1: Is the user logged in?
+  // 2. If not authenticated at all, kick out to main screen login
   if (!username) {
     return <Navigate to="/" replace />;
   }
 
-  // Check 2: Original Role Check
-  if (normalizedAllowedRoles && !normalizedAllowedRoles.includes(role)) {
-    return handleFallback(role);
+  // 3. If authenticated but role isn't inside allowed bounds
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    return <Navigate to="/scout" replace />;
   }
 
-  // Check 3: Copied Subgroup Check (The new part!)
-  if (normalizedAllowedSubgroups && !normalizedAllowedSubgroups.includes(subgroup)) {
-    return handleFallback(role);
+  // 4. Copied Logic: If subgroup isn't inside allowed bounds, kick them out too
+  if (allowedSubgroups && !allowedSubgroups.includes(subgroup)) {
+    return <Navigate to="/scout" replace />;
   }
 
+  // 5. Permitted access layout rendering
   return <Outlet />;
-}
-
-// Your existing fallback router helper
-function handleFallback(role) {
-  const fallbackByRole = {
-    admin: "/admin",
-    family: "/family",
-    helper: "/helper",
-    student: "/student",
-    students: "/student",
-  };
-  return <Navigate to={fallbackByRole[role] || "/scout"} replace />;
 }
