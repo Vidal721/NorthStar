@@ -140,7 +140,6 @@ function StudentShell({ children, activeTab, setActiveTab }) {
         >
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
-        
 
         {isLogoutOpen && (
           <div id="logoutSection" style={{ display: "block" }}>
@@ -239,38 +238,36 @@ function LegacyDriveView() {
     loadDrive(currentPath);
   }, []);
 
-const loadDrive = async (targetPath = "") => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/drive?path=` + encodeURIComponent(targetPath));
-    
-    if (!res.ok) {
-      throw new Error("Access denied");
-    }
-    
-    const data = await res.json();
-    setFolders(data.folders || []);
-    setFiles(data.files || []);
-    
-  } catch (err) {
-    console.error(err);
-    
-    // Force reset the path back to empty string immediately
-    setCurrentPath("");
-    
-    // Fetch the root directory so the UI doesn't break/stay blank
+  const loadDrive = async (targetPath = "") => {
     try {
-      const rootRes = await fetch(`${apiBaseUrl}/drive?path=`);
-      if (rootRes.ok) {
-        const rootData = await rootRes.json();
-        setFolders(rootData.folders || []);
-        setFiles(rootData.files || []);
+      const res = await fetch(
+        `${apiBaseUrl}/drive?path=` + encodeURIComponent(targetPath),
+      );
+
+      if (!res.ok) {
+        throw new Error("Access denied");
       }
-    } catch (e) {
-      setFolders([]);
-      setFiles([]);
+
+      const data = await res.json();
+      setFolders(data.folders || []);
+      setFiles(data.files || []);
+    } catch (err) {
+      console.error(err);
+
+      // Fetch the root directory so the UI doesn't break/stay blank
+      try {
+        const rootRes = await fetch(`${apiBaseUrl}/drive?path=`);
+        if (rootRes.ok) {
+          const rootData = await rootRes.json();
+          setFolders(rootData.folders || []);
+          setFiles(rootData.files || []);
+        }
+      } catch (e) {
+        setFolders([]);
+        setFiles([]);
+      }
     }
-  }
-};
+  };
 
   // Add 'file' as an optional parameter
   const upload = async (file = null) => {
@@ -317,18 +314,18 @@ const loadDrive = async (targetPath = "") => {
     loadDrive(previousPath); // Refresh the view for the parent folder
   };
 
-function getDirectory(folderName) {
-  setCurrentPath((prevPath) => {
-    // Calculate the next path using the absolute freshest state guaranteed by React
-    const nextPath = prevPath ? `${prevPath}/${folderName}` : folderName;
-    
-    // Pass this exact string directly to the drive loader
-    loadDrive(nextPath);
-    
-    // Speculatively update the UI path
-    return nextPath;
-  });
-}
+  function getDirectory(folderName) {
+    setCurrentPath((prevPath) => {
+      // Calculate the next path using the absolute freshest state guaranteed by React
+      const nextPath = prevPath ? `${prevPath}/${folderName}` : folderName;
+
+      // Pass this exact string directly to the drive loader
+      loadDrive(nextPath);
+
+      // Speculatively update the UI path
+      return nextPath;
+    });
+  }
 
   const createFolder = async () => {
     const name = prompt("Folder name");
