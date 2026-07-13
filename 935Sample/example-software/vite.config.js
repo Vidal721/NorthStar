@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+const NGROK_TARGET = "https://taco-childhood-jailbreak.ngrok-free.dev";
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -45,4 +47,18 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      // Same-origin in dev → no browser CORS. Vite adds the ngrok skip header.
+      "/backend": {
+        target: NGROK_TARGET,
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/backend/, ""),
+        headers: {
+          "ngrok-skip-browser-warning": "69420",
+        },
+      },
+    },
+  },
 });

@@ -1,7 +1,7 @@
 export const CONNECTION_MODE_KEY = "connectionMode";
 
 export const API_ENDPOINTS = {
-  local: "https://localhost:3000",
+  local: "http://localhost:3000",
   online: "https://taco-childhood-jailbreak.ngrok-free.dev",
 };
 
@@ -11,7 +11,14 @@ export function getConnectionMode() {
     : "online";
 }
 
+/** In Vite dev on localhost, use same-origin `/backend` proxy (avoids CORS + ngrok interstitial). */
 export function getApiBaseUrl() {
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "/backend";
+    }
+  }
   return API_ENDPOINTS[getConnectionMode()];
 }
 
@@ -28,5 +35,46 @@ export function getDefaultHeaders(extraHeaders = {}) {
   return {
     "ngrok-skip-browser-warning": "69420",
     ...extraHeaders,
+  };
+}
+
+const API_HOST_PATTERN =
+  /ngrok(-free)?\.dev|localhost:3000|127\.0\.0\.1:3000|\/backend/i;
+
+/** True when the URL targets our backend (local, proxy, or ngrok). */
+export function isApiUrl(url) {
+  return API_HOST_PATTERN.test(String(url || ""));
+}
+
+/**
+ * Install once at app startup. Ngrok's free interstitial has no CORS headers,
+ * which browsers report as a CORS failure — always send the skip-warning header.
+ */
+export function installApiFetchDefaults() {
+  if (typeof window === "undefined" || window.__apiFetchPatched) return;
+  window.__apiFetchPatched = true;
+
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = (input, init) => {
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input instanceof Request
+            ? input.url
+            : String(input);
+
+    if (!isApiUrl(url)) {
+      return originalFetch(input, init);
+    }
+
+    const headers = new Headers(
+      init?.headers ?? (input instanceof Request ? input.headers : undefined),
+    );
+    headers.set("ngrok-skip-browser-warning", "69420");
+
+    return originalFetch(input, { ...init, headers });
   };
 }

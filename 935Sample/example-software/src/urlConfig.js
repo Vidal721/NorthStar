@@ -1,11 +1,15 @@
-const api_url = true;
+import { getApiBaseUrl, getConnectionMode } from "./apiConfig";
 
-export function useURL () {
-    if (api_url == true) {
-        console.log("From url config Using https://taco-childhood-jailbreak.ngrok-free.dev as the backend url.");
-        return "https://taco-childhood-jailbreak.ngrok-free.dev";
-    } else {
-        console.log("Using http://localhost:3000 as the backend url.");
-        return "http://localhost:3000";
-    }
+/**
+ * Backend base URL for API calls.
+ * Delegates to getApiBaseUrl() so Vite dev uses the /backend proxy.
+ */
+export function useURL() {
+  const url = getApiBaseUrl();
+  console.log(
+    `From url config Using ${url}` +
+      (url === "/backend" ? " (Vite proxy)" : ` (${getConnectionMode()})`) +
+      " as the backend url.",
+  );
+  return url;
 }
