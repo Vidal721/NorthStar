@@ -46,8 +46,28 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 const PORT = 3000;
 
+// CORS must run first so every response (including OPTIONS preflight) gets headers.
+// Reflects request headers automatically, and explicitly allows headers the app sends.
+app.use(
+  cors({
+    origin: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "Origin",
+      "X-Requested-With",
+      "x-drive-user",
+      "ngrok-skip-browser-warning",
+    ],
+    exposedHeaders: ["Content-Disposition"],
+    optionsSuccessStatus: 204,
+  }),
+);
+app.options(/.*/, cors());
+
 app.use(express.json());
-app.use(cors());
 
 console.log("Deploy key:", process.env.DEPLOY_KEY);
 
