@@ -1,0 +1,185 @@
+import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCommentDots,
+  faPaperPlane,
+  faPlus,
+  faX,
+} from "@fortawesome/free-solid-svg-icons";
+import { useURL } from "../urlConfig";
+
+export default function MessagingDrawer() {
+  const api = useURL();
+  const actor = localStorage.getItem("currentUser") || "";
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [subgroups, setSubgroups] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [type, setType] = useState("everyone");
+  const [value, setValue] = useState("");
+  const [body, setBody] = useState("");
+  const [groupName, setGroupName] = useState("");
+  const [members, setMembers] = useState([]);
+  const [showGroup, setShowGroup] = useState(false);
+  const load = async () => {
+    if (!actor) return;
+    const [m, u, s, g] = await Promise.all([
+      fetch(`${api}/messages?actor=${encodeURIComponent(actor)}`),
+      fetch(`${api}/directory?actor=${encodeURIComponent(actor)}`),
+      fetch(`${api}/subgroups`),
+      fetch(`${api}/message-groups?actor=${encodeURIComponent(actor)}`),
+    ]);
+    if (m.ok) setMessages(await m.json());
+    if (u.ok) setUsers(await u.json());
+    if (s.ok) setSubgroups(await s.json());
+    if (g.ok) setGroups(await g.json());
+  };
+  useEffect(() => {
+    if (open) load();
+  }, [open]);
+  const send = async (event) => {
+    event.preventDefault();
+    const res = await fetch(`${api}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor,
+        recipientType: type,
+        recipientValue: value,
+        body,
+      }),
+    });
+    if (res.ok) {
+      setBody("");
+      load();
+    }
+  };
+  const createGroup = async (event) => {
+    event.preventDefault();
+    const res = await fetch(`${api}/message-groups`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor, name: groupName, members }),
+    });
+    if (res.ok) {
+      setGroupName("");
+      setMembers([]);
+      setShowGroup(false);
+      load();
+    }
+  };
+  const options =
+    type === "subgroup"
+      ? subgroups.map((item) => [item, item])
+      : type === "person"
+        ? users.map((item) => [item.username, item.username])
+        : groups.map((item) => [item.id, item.name]);
+  return (
+    <>
+      <button
+        className="message-trigger"
+        onClick={() => setOpen(true)}
+        aria-label="Open messages"
+      >
+        <FontAwesomeIcon icon={faCommentDots} />
+      </button>
+      {open && (
+        <div className="message-drawer">
+          <div className="message-drawer-header">
+            <div>
+              <h2>Messages</h2>
+              <p>Coaches monitor all conversations.</p>
+            </div>
+            <button onClick={() => setOpen(false)}>
+              <FontAwesomeIcon icon={faX} />
+            </button>
+          </div>
+          <div className="message-feed">
+            {messages.map((message) => (
+              <article key={message.id}>
+                <strong>{message.sender}</strong>
+                <span>
+                  {message.recipient_type === "everyone"
+                    ? "Everyone"
+                    : message.recipient_value}
+                </span>
+                <p>{message.body}</p>
+              </article>
+            ))}
+          </div>
+          <form className="message-compose" onSubmit={send}>
+            <select
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value);
+                setValue("");
+              }}
+            >
+              <option value="everyone">Everyone</option>
+              <option value="subgroup">A subgroup</option>
+              <option value="person">A person</option>
+              <option value="group">A message group</option>
+            </select>
+            {type !== "everyone" && (
+              <select
+                required
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+              >
+                <option value="">Choose recipient</option>
+                {options.map(([id, label]) => (
+                  <option value={id} key={id}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            )}
+            <textarea
+              required
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Write a message…"
+            />
+            <button type="submit">
+              <FontAwesomeIcon icon={faPaperPlane} /> Send
+            </button>
+          </form>
+          <button
+            className="message-group-toggle"
+            onClick={() => setShowGroup(!showGroup)}
+          >
+            <FontAwesomeIcon icon={faPlus} /> Create message group
+          </button>
+          {showGroup && (
+            <form className="message-group-form" onSubmit={createGroup}>
+              <input
+                required
+                placeholder="Group name"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+              />
+              {users.map((user) => (
+                <label key={user.username}>
+                  <input
+                    type="checkbox"
+                    checked={members.includes(user.username)}
+                    onChange={() =>
+                      setMembers((current) =>
+                        current.includes(user.username)
+                          ? current.filter((item) => item !== user.username)
+                          : [...current, user.username],
+                      )
+                    }
+                  />{" "}
+                  {user.username}
+                </label>
+              ))}
+              <button>Create group</button>
+            </form>
+          )}
+        </div>
+      )}
+    </>
+  );
+}

@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useURL } from "../urlConfig";
+import DriveView from "../componets/DriveView";
+import LeadershipManager from "../componets/LeadershipManager";
+import MessagingDrawer from "../componets/MessagingDrawer";
+import TasksPanel from "../componets/TasksPanel";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -23,6 +27,7 @@ import {
 const helperTabs = [
   { id: "dashboard", label: "Dashboard", icon: faChartLine },
   { id: "forms", label: "Forms", icon: faClipboardList },
+  { id: "inbox", label: "My Forms", icon: faClipboardList },
   { id: "drive", label: "Drive", icon: faFolderOpen },
 ];
 
@@ -60,9 +65,23 @@ const emptyForm = () => ({
   status: "draft",
   createdAt: new Date().toISOString(),
   questions: [emptyQuestion()],
+  audiences: ["students"],
 });
 
-export default function HelperPage() {
+const AUDIENCES = [
+  ["students", "All students"],
+  ["mentor", "All mentors"],
+  ["helper", "All helpers"],
+  ["coach", "All coaches"],
+  ["everyone", "Everyone"],
+  ["subgroup:Manufacturing", "Manufacturing subgroup"],
+  ["subgroup:Programming", "Programming subgroup"],
+  ["subgroup:Design", "Design subgroup"],
+  ["subgroup:Electronics", "Electronics subgroup"],
+  ["subgroup:Media", "Media subgroup"],
+];
+
+export default function HelperPage({ roleLabel = "Helper" }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -76,6 +95,7 @@ export default function HelperPage() {
   const [editingFormId, setEditingFormId] = useState(null);
   const [viewingResponsesId, setViewingResponsesId] = useState(null);
   const [responsesOrigin, setResponsesOrigin] = useState("forms"); // forms | dashboard
+  const visibleTabs = roleLabel === "Coach" ? [...helperTabs, { id: "leaders", label: "Leaders", icon: faUser }] : helperTabs;
 
   useEffect(() => {
     fetchForms();
@@ -85,7 +105,7 @@ export default function HelperPage() {
     if (viewingResponsesId) fetchResponses(viewingResponsesId);
   }, [viewingResponsesId]);
 
-  const currentHelper = localStorage.getItem("currentUser") || "Helper";
+  const currentHelper = localStorage.getItem("currentUser") || roleLabel;
 
   const selectTab = (tabId) => {
     setActiveTab(tabId);
@@ -287,6 +307,11 @@ export default function HelperPage() {
   };
 
   const sendForm = (formId) => {
+    const form = forms.find((item) => item.id === formId);
+    if (!form?.audiences?.length) {
+      setFormError("Choose at least one recipient group before sending this form.");
+      return;
+    }
     updateForm(formId, { status: "sent", sentAt: new Date().toISOString() });
   };
 
@@ -301,6 +326,7 @@ export default function HelperPage() {
 
   return (
     <div className="admin-container fade-in">
+      <MessagingDrawer />
       <div
         className={`mobileSidebarOverlay ${isSidebarOpen ? "active" : ""}`}
         onClick={() => setIsSidebarOpen(false)}
@@ -309,7 +335,7 @@ export default function HelperPage() {
       </div>
 
       <div className={`mobileSidebar ${isSidebarOpen ? "active" : ""}`}>
-        {helperTabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             className={`admin-tab-btn-mobile ${activeTab === tab.id ? "active" : ""}`}
@@ -351,7 +377,7 @@ export default function HelperPage() {
       </header>
 
       <div className="admin-tab-row">
-        {helperTabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             className={`admin-tab-btn ${activeTab === tab.id ? "active" : ""}`}
@@ -375,17 +401,16 @@ export default function HelperPage() {
         ) : (
           <>
             {activeTab === "dashboard" && (
-              <DashboardTab
-                sentForms={sentForms}
-                onOpenResponses={(formId) => openResponses(formId, "dashboard")}
-              />
+              <><TasksPanel /><DashboardTab sentForms={sentForms} onOpenResponses={(formId) => openResponses(formId, "dashboard")} /></>
             )}
 
             {activeTab === "drive" && (
-              <section>
-                <h1>Drive</h1>
-              </section>
+              <DriveView />
             )}
+
+            {activeTab === "inbox" && <FormInbox />}
+
+            {activeTab === "leaders" && <LeadershipManager />}
 
             {activeTab === "forms" && formSubView === "list" && (
               <FormsList
@@ -420,6 +445,41 @@ export default function HelperPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function FormInbox() {
+  const [forms, setForms] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const role = localStorage.getItem("userRole") || "";
+    const subgroup = localStorage.getItem("userSubgroup") || "";
+    fetch(`${useURL()}/forms/sent?role=${encodeURIComponent(role)}&subgroup=${encodeURIComponent(subgroup)}`, { headers: defaultHeaders() })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load forms");
+        setForms(data);
+      })
+      .catch((err) => setError(err.message));
+  }, []);
+
+  return (
+    <section>
+      <div className="forms-toolbar"><h1>My Forms</h1></div>
+      {error && <p className="text-muted">{error}</p>}
+      {forms.length === 0 ? <div className="form-empty-state"><FontAwesomeIcon icon={faClipboardList} /><p>No forms are waiting for you.</p></div> : (
+        <div className="admin-forms-grid">
+          {forms.map((form) => (
+            <div key={form.id} className="admin-form-card">
+              <div className="admin-form-card-header"><span className="admin-form-card-title">{form.title || "Untitled form"}</span><span className="admin-status-pill active">Open</span></div>
+              <div className="admin-card-body"><p>{form.description}</p><p className="admin-form-card-meta">{form.questions.length} question{form.questions.length === 1 ? "" : "s"}</p></div>
+              <div className="admin-form-card-actions"><Link to={`/form/${form.id}`} style={{ width: "100%" }}><button style={{ width: "100%" }}><FontAwesomeIcon icon={faEye} /> Fill form</button></Link></div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -556,6 +616,13 @@ function FormBuilder({
   const shareLink =
     typeof window !== "undefined" ? `${window.location.origin}/form/${form.id}` : "";
   const [copied, setCopied] = useState(false);
+  const selectedAudiences = form.audiences?.length ? form.audiences : ["students"];
+  const toggleAudience = (audience) => {
+    const next = selectedAudiences.includes(audience)
+      ? selectedAudiences.filter((item) => item !== audience)
+      : [...selectedAudiences, audience];
+    onUpdateForm(form.id, { audiences: next });
+  };
 
   const copyLink = () => {
     navigator.clipboard?.writeText(shareLink);
@@ -571,7 +638,7 @@ function FormBuilder({
         </button>
         {form.status !== "sent" ? (
           <button className="launch-btn accent form-send-btn" onClick={() => onSend(form.id)}>
-            <FontAwesomeIcon icon={faPaperPlane} /> Send to Students
+            <FontAwesomeIcon icon={faPaperPlane} /> Send form
           </button>
         ) : (
           <span className="admin-status-pill active">
@@ -603,6 +670,22 @@ function FormBuilder({
           rows={2}
           onChange={(e) => onUpdateForm(form.id, { description: e.target.value })}
         />
+      </div>
+
+      <div className="form-title-card form-audience-card">
+        <div>
+          <h3>Send to</h3>
+          <p>Select every group that should receive this form.</p>
+        </div>
+        <div className="form-audience-options">
+          {AUDIENCES.map(([id, label]) => (
+            <label key={id} className="form-audience-option">
+              <input type="checkbox" checked={selectedAudiences.includes(id)} onChange={() => toggleAudience(id)} />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+        {selectedAudiences.length === 0 && <p className="form-audience-warning">Choose at least one recipient group before sending.</p>}
       </div>
 
       {form.questions.map((q, idx) => (

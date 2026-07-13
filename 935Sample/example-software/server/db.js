@@ -51,7 +51,44 @@ db.exec(`
     payload      TEXT NOT NULL,
     submitted_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS subgroups (
+    name TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS tasks (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    subgroup TEXT,
+    assignee TEXT,
+    assigned_by TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    sender TEXT NOT NULL,
+    recipient_type TEXT NOT NULL,
+    recipient_value TEXT,
+    body TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS message_groups (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    owner TEXT NOT NULL,
+    members TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
 `);
+
+const defaultSubgroups = ["Manufacturing", "Programming", "Design", "Electronics", "Media"];
+const addSubgroup = db.prepare("INSERT OR IGNORE INTO subgroups (name, created_at) VALUES (?, ?)");
+defaultSubgroups.forEach((name) => addSubgroup.run(name, new Date().toISOString()));
 
 const regionalColumns = db.prepare(`PRAGMA table_info(regionals)`).all();
 if (!regionalColumns.some((column) => column.name === "visible_in_vis")) {

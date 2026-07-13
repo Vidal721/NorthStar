@@ -14,6 +14,8 @@ import AdminDashboard from "./pages/admin";
 import FormBuilder from "./pages/formbuilder";
 import FamilyPage from "./pages/family";
 import HelperPage from "./pages/helper";
+import MentorPage from "./pages/mentor";
+import CoachPage from "./pages/coach";
 import StudentFormsPage from "./pages/studentForms";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
@@ -55,6 +57,7 @@ function LoginScreen() {
 
       localStorage.setItem("currentUser", data.username);
       localStorage.setItem("userRole", data.role);
+      localStorage.setItem("userSubgroup", data.subgroup || "");
 
       const userRole = String(data.role).toLowerCase();
 
@@ -64,10 +67,12 @@ function LoginScreen() {
         navigate("/family");
       } else if (userRole === "helper") {
         navigate("/helper");
+      } else if (userRole === "mentor") {
+        navigate("/mentor");
       } else if (userRole === "student" || userRole === "students") {
         navigate("/student");
       } else if (userRole === "coach") {
-        navigate("/admin");
+        navigate("/coach");
       } else{
         navigate("/scout");
       }
@@ -139,9 +144,22 @@ function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("students"); // Match the default option value
   const [subgroup, setSubgroup] = useState("Manufacturing");
+  const [subgroups, setSubgroups] = useState(["Manufacturing", "Programming", "Design", "Electronics", "Media"]);
   
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    fetch(`${useURL()}/subgroups`)
+      .then((res) => res.ok ? res.json() : [])
+      .then((groups) => {
+        if (groups.length) {
+          setSubgroups(groups);
+          setSubgroup((current) => groups.includes(current) ? current : groups[0]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleRegister() {
     setMessage("");
@@ -291,21 +309,7 @@ function RegisterScreen() {
               outline: "none",
             }}
           >
-            <option value="Manufacturing" style={{ background: "#ffffff" }}>
-              Manufacturing
-            </option>
-            <option value="Programming" style={{ background: "#ffffff" }}>
-              Programming
-            </option>
-            <option value="Design" style={{ background: "#ffffff" }}>
-              Design
-            </option>
-            <option value="Electronics" style={{ background: "#ffffff" }}>
-              Electronics
-            </option>
-            <option value="Media" style={{ background: "#ffffff" }}>
-              Media
-            </option>
+            {subgroups.map((group) => <option key={group} value={group} style={{ background: "#ffffff" }}>{group}</option>)}
           </select>
         </fieldset>
       )}
@@ -344,9 +348,15 @@ function App() {
           <Route path="/helper" element={<HelperPage />} />
         </Route>
 
-        <Route
-          element={<ProtectedLayout allowedRoles={["admin", "students"]} />}
-        >
+        <Route element={<ProtectedLayout allowedRoles={["admin", "Mentor"]} />}>
+          <Route path="/mentor" element={<MentorPage />} />
+        </Route>
+
+        <Route element={<ProtectedLayout allowedRoles={["admin", "coach"]} />}>
+          <Route path="/coach" element={<CoachPage />} />
+        </Route>
+
+        <Route element={<ProtectedLayout allowedRoles={["admin", "students", "helper", "Mentor", "coach"]} />}>
           <Route path="/student" element={<StudentFormsPage />} />
           <Route path="/form/:formId" element={<StudentFormsPage />} />
         </Route>
