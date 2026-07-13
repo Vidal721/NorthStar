@@ -326,6 +326,7 @@ export default function HelperPage({ roleLabel = "Helper" }) {
 
   return (
     <div className="admin-container fade-in">
+      <MessagingDrawer />
       <div
         className={`mobileSidebarOverlay ${isSidebarOpen ? "active" : ""}`}
         onClick={() => setIsSidebarOpen(false)}
@@ -359,7 +360,6 @@ export default function HelperPage({ roleLabel = "Helper" }) {
         >
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
-        <MessagingDrawer />
 
         {isLogoutOpen && (
           <div id="logoutSection" style={{ display: "block" }}>

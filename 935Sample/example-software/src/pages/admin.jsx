@@ -283,6 +283,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-container fade-in">
+      <MessagingDrawer />
       <div
         className={`mobileSidebarOverlay ${isSidebarOpen ? "active" : ""}`}
         onClick={toggleMobileSidebar}
@@ -378,7 +379,6 @@ export default function AdminDashboard() {
         <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
-        <MessagingDrawer />
         <div id="logoutSection">
           <h2>Hello, {currentScout}</h2>
           <button
