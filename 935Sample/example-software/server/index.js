@@ -115,11 +115,26 @@ const ensureSubgroupFolders = () => {
       recursive: true,
     });
   });
+  fs.mkdirSync(path.resolve(__dirname, "uploads", "public"), {
+    recursive: true,
+  });
 };
 ensureSubgroupFolders();
 const normalizeRole = (role) => String(role || "").toLowerCase();
+const normalizeDrivePath = (relativePath) =>
+  String(relativePath || "")
+    .replace(/\\/g, "/")
+    .replace(/^\/+|\/+$/g, "");
+const PUBLIC_DRIVE_FOLDER = "public";
+const isPublicDrivePath = (relativePath) => {
+  const normalizedPath = normalizeDrivePath(relativePath);
+  return (
+    normalizedPath === PUBLIC_DRIVE_FOLDER ||
+    normalizedPath.startsWith(`${PUBLIC_DRIVE_FOLDER}/`)
+  );
+};
 const subgroupFromPath = (relativePath) => {
-  const firstSegment = String(relativePath || "").split(/[\\/]/)[0];
+  const firstSegment = normalizeDrivePath(relativePath).split("/")[0];
   return (
     getSubgroups().find(
       (group) => group.toLowerCase() === firstSegment.toLowerCase(),
@@ -132,19 +147,28 @@ const canManageDrivePath = (user, relativePath) => {
   if (!user) return false;
   const role = normalizeRole(user.role);
   if (role === "admin" || role === "coach") return true;
+  if (isPublicDrivePath(relativePath)) return true;
   const subgroup = subgroupFromPath(relativePath);
-  return Boolean(
-    subgroup && (user.leadershipSubgroups || []).includes(subgroup),
-  );
+  if (!subgroup) return false;
+  if (role === "programmer" || role === "programmers") return true;
+  return Boolean((user.leadershipSubgroups || []).includes(subgroup));
 };
 const canReadDrivePath = (user, relativePath) => {
   if (!user) return false;
+  if (isPublicDrivePath(relativePath)) return true;
   const subgroup = subgroupFromPath(relativePath);
+  if (!subgroup) return true;
+  const role = normalizeRole(user.role);
+  if (
+    role === "admin" ||
+    role === "coach" ||
+    role === "programmer" ||
+    role === "programmers"
+  ) {
+    return true;
+  }
   return (
-    !subgroup ||
-    normalizeRole(user.role) === "admin" ||
-    normalizeRole(user.role) === "coach" ||
-    user.subgroup === subgroup ||
+    normalizeRole(user.subgroup) === normalizeRole(subgroup) ||
     (user.leadershipSubgroups || []).includes(subgroup)
   );
 };
@@ -550,6 +574,8 @@ app.post("/auth/register", async (req, res) => {
       "teamMember",
       "coach",
       "Mentor",
+      "programmer",
+      "programmers",
     ];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: "Unsupported account role" });

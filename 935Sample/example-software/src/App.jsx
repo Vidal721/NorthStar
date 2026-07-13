@@ -69,7 +69,12 @@ function LoginScreen() {
         navigate("/helper");
       } else if (userRole === "mentor") {
         navigate("/mentor");
-      } else if (userRole === "student" || userRole === "students") {
+      } else if (
+        userRole === "student" ||
+        userRole === "students" ||
+        userRole === "programmer" ||
+        userRole === "programmers"
+      ) {
         navigate("/student");
       } else if (userRole === "coach") {
         navigate("/coach");
@@ -171,8 +176,8 @@ function RegisterScreen() {
       return;
     }
 
-    // Only submit subgroup if the user is a student
-    const finalSubgroup = role === "students" ? subgroup : "none";
+    // Only submit subgroup if the user is a student or programmer
+    const finalSubgroup = role === "students" || role === "programmer" ? subgroup : "none";
 
     try {
       const response = await fetch(`${useURL()}/auth/register`, {
@@ -284,6 +289,9 @@ function RegisterScreen() {
           <option value="helper" style={{ background: "#ffffff" }}>
             Parent Helper
           </option>
+          <option value="programmer" style={{ background: "#ffffff" }}>
+            Programmer
+          </option>
           <option value="Mentor" style={{ background: "#ffffff" }}>
             Mentor
           </option>
@@ -291,7 +299,7 @@ function RegisterScreen() {
       </fieldset>
 
       {/* 2. Conditional Rendering: Only show Subgroup if role is "students" */}
-      {role === "students" && (
+      {(role === "students" || role === "programmer") && (
         <fieldset id="studentOnly" className="fieldset-container">
           <legend className="fieldset-legend">
             <label htmlFor="buildSeason">Subgroup</label>
@@ -356,7 +364,7 @@ function App() {
           <Route path="/coach" element={<CoachPage />} />
         </Route>
 
-        <Route element={<ProtectedLayout allowedRoles={["admin", "students", "helper", "Mentor", "coach"]} />}>
+        <Route element={<ProtectedLayout allowedRoles={["admin", "students", "helper", "Mentor", "coach", "programmer"]} />}>
           <Route path="/student" element={<StudentFormsPage />} />
           <Route path="/form/:formId" element={<StudentFormsPage />} />
         </Route>
