@@ -7,6 +7,19 @@ import bcrypt from "bcrypt";
 import db, { getOrCreateRegional } from "./db.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import multer from "multer";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,7 +105,8 @@ const saveHelperForm = (form) => {
     updatedAt,
   };
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO helper_forms (id, title, description, status, payload, created_at, sent_at, updated_at)
     VALUES (@id, @title, @description, @status, @payload, @createdAt, @sentAt, @updatedAt)
     ON CONFLICT(id) DO UPDATE SET
@@ -102,7 +116,8 @@ const saveHelperForm = (form) => {
       payload = excluded.payload,
       sent_at = excluded.sent_at,
       updated_at = excluded.updated_at
-  `).run({
+  `,
+  ).run({
     id: payload.id,
     title: payload.title || "Untitled form",
     description: payload.description || "",
@@ -141,12 +156,13 @@ app.post("/auth/login", async (req, res) => {
     }
 
     // Success! Return user identity and role to your React app
-    console.log(`[auth] User ${username} logged in successfully as ${user.role}`);
+    console.log(
+      `[auth] User ${username} logged in successfully as ${user.role}`,
+    );
     res.json({
       username: user.username,
-      role: user.role
+      role: user.role,
     });
-
   } catch (err) {
     console.error("[auth] Login error:", err.message);
     res.status(500).json({ error: "Internal server authentication error" });
@@ -160,10 +176,22 @@ app.post("/auth/register", async (req, res) => {
 
     // 1. Validate incoming data payload
     if (!username || !password || !role || !subgroup) {
-      return res.status(400).json({ error: "Missing username, password, or role" });
+      return res
+        .status(400)
+        .json({ error: "Missing username, password, or role" });
     }
 
-    const allowedRoles = ["admin", "scouter", "family", "helper", "student", "students", "teamMember", "coach", "Mentor"];
+    const allowedRoles = [
+      "admin",
+      "scouter",
+      "family",
+      "helper",
+      "student",
+      "students",
+      "teamMember",
+      "coach",
+      "Mentor",
+    ];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: "Unsupported account role" });
     }
@@ -185,7 +213,7 @@ app.post("/auth/register", async (req, res) => {
       username,
       passwordHash,
       role,
-      subgroup
+      subgroup,
     };
     users.push(newUser);
 
@@ -194,7 +222,6 @@ app.post("/auth/register", async (req, res) => {
 
     console.log(`[auth] Successfully created new ${role} account: ${username}`);
     res.status(201).json({ message: "User registered successfully!" });
-
   } catch (err) {
     console.error("[auth] Registration error:", err.message);
     res.status(500).json({ error: "Internal server registration error" });
@@ -204,7 +231,7 @@ app.post("/auth/register", async (req, res) => {
 app.get("/users", (req, res) => {
   try {
     // REMOVED JSON.parse() from here. res.json() handles stringifying the array automatically.
-    res.json(getUsers()); 
+    res.json(getUsers());
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve users memory grid." });
@@ -214,17 +241,23 @@ app.get("/users", (req, res) => {
 // ==== Helper form endpoints ==== //
 app.get("/helper/forms", (req, res) => {
   try {
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT helper_forms.*,
         COUNT(helper_form_responses.id) AS response_count
       FROM helper_forms
       LEFT JOIN helper_form_responses ON helper_form_responses.form_id = helper_forms.id
       GROUP BY helper_forms.id
       ORDER BY helper_forms.created_at DESC
-    `).all();
+    `,
+      )
+      .all();
     res.json(rows.map(parseHelperForm));
   } catch (err) {
-    res.status(500).json({ error: "Failed to load forms", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to load forms", detail: err.message });
   }
 });
 
@@ -236,49 +269,68 @@ app.post("/helper/forms", (req, res) => {
     }
     res.status(201).json(saveHelperForm(form));
   } catch (err) {
-    res.status(500).json({ error: "Failed to create form", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to create form", detail: err.message });
   }
 });
 
 app.patch("/helper/forms/:id", (req, res) => {
   try {
-    const row = db.prepare("SELECT * FROM helper_forms WHERE id = ?").get(req.params.id);
+    const row = db
+      .prepare("SELECT * FROM helper_forms WHERE id = ?")
+      .get(req.params.id);
     if (!row) return res.status(404).json({ error: "Form not found" });
 
     const current = parseHelperForm(row);
     const next = { ...current, ...req.body, id: req.params.id };
     res.json(saveHelperForm(next));
   } catch (err) {
-    res.status(500).json({ error: "Failed to update form", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to update form", detail: err.message });
   }
 });
 
 app.delete("/helper/forms/:id", (req, res) => {
   try {
-    const result = db.prepare("DELETE FROM helper_forms WHERE id = ?").run(req.params.id);
-    if (result.changes === 0) return res.status(404).json({ error: "Form not found" });
+    const result = db
+      .prepare("DELETE FROM helper_forms WHERE id = ?")
+      .run(req.params.id);
+    if (result.changes === 0)
+      return res.status(404).json({ error: "Form not found" });
     res.status(204).send();
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete form", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to delete form", detail: err.message });
   }
 });
 
 app.get("/helper/forms/:id/responses", (req, res) => {
   try {
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT * FROM helper_form_responses
       WHERE form_id = ?
       ORDER BY submitted_at DESC
-    `).all(req.params.id);
+    `,
+      )
+      .all(req.params.id);
     res.json(rows.map((row) => ({ ...JSON.parse(row.payload), id: row.id })));
   } catch (err) {
-    res.status(500).json({ error: "Failed to load responses", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to load responses", detail: err.message });
   }
 });
 
 app.get("/forms/sent", (req, res) => {
   try {
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT helper_forms.*,
         COUNT(helper_form_responses.id) AS response_count
       FROM helper_forms
@@ -286,16 +338,22 @@ app.get("/forms/sent", (req, res) => {
       WHERE helper_forms.status = 'sent'
       GROUP BY helper_forms.id
       ORDER BY helper_forms.sent_at DESC, helper_forms.created_at DESC
-    `).all();
+    `,
+      )
+      .all();
     res.json(rows.map(parseHelperForm));
   } catch (err) {
-    res.status(500).json({ error: "Failed to load sent forms", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to load sent forms", detail: err.message });
   }
 });
 
 app.get("/forms/:id", (req, res) => {
   try {
-    const row = db.prepare("SELECT * FROM helper_forms WHERE id = ? AND status = 'sent'").get(req.params.id);
+    const row = db
+      .prepare("SELECT * FROM helper_forms WHERE id = ? AND status = 'sent'")
+      .get(req.params.id);
     if (!row) return res.status(404).json({ error: "Form not found" });
     res.json(parseHelperForm(row));
   } catch (err) {
@@ -305,7 +363,9 @@ app.get("/forms/:id", (req, res) => {
 
 app.post("/forms/:id/responses", (req, res) => {
   try {
-    const form = db.prepare("SELECT * FROM helper_forms WHERE id = ? AND status = 'sent'").get(req.params.id);
+    const form = db
+      .prepare("SELECT * FROM helper_forms WHERE id = ? AND status = 'sent'")
+      .get(req.params.id);
     if (!form) return res.status(404).json({ error: "Form not found" });
 
     const response = {
@@ -316,10 +376,12 @@ app.post("/forms/:id/responses", (req, res) => {
       submittedAt: new Date().toISOString(),
     };
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO helper_form_responses (id, form_id, respondent, payload, submitted_at)
       VALUES (@id, @formId, @respondent, @payload, @submittedAt)
-    `).run({
+    `,
+    ).run({
       id: response.id,
       formId: response.formId,
       respondent: response.respondent,
@@ -329,7 +391,9 @@ app.post("/forms/:id/responses", (req, res) => {
 
     res.status(201).json(response);
   } catch (err) {
-    res.status(500).json({ error: "Failed to submit response", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to submit response", detail: err.message });
   }
 });
 
@@ -342,15 +406,23 @@ app.get("/match/Data/:id", (req, res) => {
 });
 
 app.get("/match/Data", (req, res) => {
-  const rows = db.prepare(`SELECT payload FROM match_data ORDER BY created_at DESC`).all();
+  const rows = db
+    .prepare(`SELECT payload FROM match_data ORDER BY created_at DESC`)
+    .all();
   res.json(rows.map((r) => JSON.parse(r.payload)));
 });
 
 // All match data for a specific regional
 app.get("/match/Data/regional/:name", (req, res) => {
-  const regional = db.prepare(`SELECT id FROM regionals WHERE name = ?`).get(req.params.name);
+  const regional = db
+    .prepare(`SELECT id FROM regionals WHERE name = ?`)
+    .get(req.params.name);
   if (!regional) return res.status(404).json({ error: "Regional not found" });
-  const rows = db.prepare(`SELECT payload FROM match_data WHERE regional_id = ? ORDER BY created_at DESC`).all(regional.id);
+  const rows = db
+    .prepare(
+      `SELECT payload FROM match_data WHERE regional_id = ? ORDER BY created_at DESC`,
+    )
+    .all(regional.id);
   res.json(rows.map((r) => JSON.parse(r.payload)));
 });
 
@@ -379,14 +451,16 @@ app.post("/match/upload", (req, res) => {
 
     if (!regionalId) {
       return res.status(400).json({
-        error: "No active regional configured"
+        error: "No active regional configured",
       });
     }
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO match_data (id, regional_id, team_number, match_number, scout_name, payload)
       VALUES (@id, @regionalId, @teamNumber, @matchNumber, @scoutName, @payload)
-    `).run({
+    `,
+    ).run({
       id: newData.id,
       regionalId,
       teamNumber: newData.meta?.teamNumber ?? null,
@@ -396,7 +470,7 @@ app.post("/match/upload", (req, res) => {
     });
 
     console.log(
-      `[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}`
+      `[upload] Match saved — team ${newData.meta?.teamNumber}, match ${newData.meta?.matchNumber}`,
     );
 
     res.status(201).json(newData);
@@ -404,7 +478,7 @@ app.post("/match/upload", (req, res) => {
     console.error("[upload] Failed to save match data:", err.message);
     res.status(500).json({
       error: "Failed to save match data",
-      detail: err.message
+      detail: err.message,
     });
   }
 });
@@ -412,7 +486,8 @@ app.post("/match/upload", (req, res) => {
 app.delete("/delete/match/:id", (req, res) => {
   const matchId = parseInt(req.params.id);
   const result = db.prepare(`DELETE FROM match_data WHERE id = ?`).run(matchId);
-  if (result.changes === 0) return res.status(404).json({ error: "Match not found" });
+  if (result.changes === 0)
+    return res.status(404).json({ error: "Match not found" });
   return res.status(204).send();
 });
 
@@ -434,10 +509,12 @@ app.post("/pit/upload", (req, res) => {
       regionalId = getOrCreateRegional(schema.event);
     } catch {}
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO pit_data (id, regional_id, form_id, payload)
       VALUES (@id, @regionalId, @formId, @payload)
-    `).run({
+    `,
+    ).run({
       id: newData.id,
       regionalId,
       formId: newData.meta?.formId ?? null,
@@ -448,7 +525,9 @@ app.post("/pit/upload", (req, res) => {
     res.status(201).json(newData);
   } catch (err) {
     console.error("[upload] Failed to save pit data:", err.message);
-    res.status(500).json({ error: "Failed to save pit data", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save pit data", detail: err.message });
   }
 });
 
@@ -458,21 +537,27 @@ app.get("/pit/form", (req, res) => {
 
 // All pit data for a specific regional
 app.get("/pit/data/regional/:name", (req, res) => {
-  const regional = db.prepare(`SELECT id FROM regionals WHERE name = ?`).get(req.params.name);
+  const regional = db
+    .prepare(`SELECT id FROM regionals WHERE name = ?`)
+    .get(req.params.name);
   if (!regional) return res.status(404).json({ error: "Regional not found" });
-  const rows = db.prepare(`SELECT payload FROM pit_data WHERE regional_id = ? ORDER BY created_at DESC`).all(regional.id);
+  const rows = db
+    .prepare(
+      `SELECT payload FROM pit_data WHERE regional_id = ? ORDER BY created_at DESC`,
+    )
+    .all(regional.id);
   res.json(rows.map((r) => JSON.parse(r.payload)));
 });
 
-app.post('/pit/save', (req, res) => {
+app.post("/pit/save", (req, res) => {
   const schema = req.body;
 
   if (!schema || !schema.id) {
-    return res.status(400).json({ error: 'Invalid schema — missing id' });
+    return res.status(400).json({ error: "Invalid schema — missing id" });
   }
 
   try {
-    fs.writeFileSync('pitForm.json', JSON.stringify(schema, null, 2), 'utf-8');
+    fs.writeFileSync("pitForm.json", JSON.stringify(schema, null, 2), "utf-8");
 
     // Auto-register the regional in the DB whenever the form is saved
     if (schema.event) {
@@ -481,20 +566,26 @@ app.post('/pit/save', (req, res) => {
     }
 
     console.log(`[form] Pit form schema saved — id: ${schema.id}`);
-    res.json({ success: true, file: 'pitForm.json' });
+    res.json({ success: true, file: "pitForm.json" });
   } catch (err) {
-    console.error('[form] Failed to save schema:', err.message);
-    res.status(500).json({ error: 'Failed to save schema', detail: err.message });
+    console.error("[form] Failed to save schema:", err.message);
+    res
+      .status(500)
+      .json({ error: "Failed to save schema", detail: err.message });
   }
 });
 
 // ==== REGIONALS GATEWAY ==== //
 app.get("/api/regionals", (req, res) => {
   try {
-    const rows = db.prepare("SELECT * FROM regionals ORDER BY year DESC, name ASC").all();
+    const rows = db
+      .prepare("SELECT * FROM regionals ORDER BY year DESC, name ASC")
+      .all();
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch regionals", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch regionals", detail: err.message });
   }
 });
 
@@ -508,7 +599,9 @@ app.patch("/api/regionals/:id/visibility", (req, res) => {
     }
 
     if (typeof visible !== "boolean") {
-      return res.status(400).json({ error: "Visibility must be true or false" });
+      return res
+        .status(400)
+        .json({ error: "Visibility must be true or false" });
     }
 
     const result = db
@@ -522,7 +615,12 @@ app.patch("/api/regionals/:id/visibility", (req, res) => {
     const updated = db.prepare("SELECT * FROM regionals WHERE id = ?").get(id);
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: "Failed to update regional visibility", detail: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to update regional visibility",
+        detail: err.message,
+      });
   }
 });
 
@@ -542,28 +640,49 @@ app.get("/admin/data", (req, res) => {
       JOIN regionals ON pit_data.regional_id = regionals.id
     `;
 
-    const matchRows = regionalId 
-      ? db.prepare(`${matchQuery} WHERE match_data.regional_id = ? ORDER BY match_data.created_at DESC`).all(regionalId)
+    const matchRows = regionalId
+      ? db
+          .prepare(
+            `${matchQuery} WHERE match_data.regional_id = ? ORDER BY match_data.created_at DESC`,
+          )
+          .all(regionalId)
       : db.prepare(`${matchQuery} ORDER BY match_data.created_at DESC`).all();
 
     const pitRows = regionalId
-      ? db.prepare(`${pitQuery} WHERE pit_data.regional_id = ? ORDER BY pit_data.created_at DESC`).all(regionalId)
+      ? db
+          .prepare(
+            `${pitQuery} WHERE pit_data.regional_id = ? ORDER BY pit_data.created_at DESC`,
+          )
+          .all(regionalId)
       : db.prepare(`${pitQuery} ORDER BY pit_data.created_at DESC`).all();
 
     // Parse JSON text payloads for client app processing
-    const matches = matchRows.map(row => ({ ...row, payload: JSON.parse(row.payload) }));
-    const pits = pitRows.map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+    const matches = matchRows.map((row) => ({
+      ...row,
+      payload: JSON.parse(row.payload),
+    }));
+    const pits = pitRows.map((row) => ({
+      ...row,
+      payload: JSON.parse(row.payload),
+    }));
 
     res.json({ matches, pits });
   } catch (err) {
-    res.status(500).json({ error: "Failed to compile admin telemetry metrics.", detail: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to compile admin telemetry metrics.",
+        detail: err.message,
+      });
   }
 });
 
 // ==== SINGLE DELETE ROUTERS ==== //
 app.delete("/delete/match/:id", (req, res) => {
   try {
-    const result = db.prepare("DELETE FROM match_data WHERE id = ?").run(req.params.id);
+    const result = db
+      .prepare("DELETE FROM match_data WHERE id = ?")
+      .run(req.params.id);
     if (result.changes > 0) res.json({ success: true });
     else res.status(404).json({ error: "Match entity records not found" });
   } catch (err) {
@@ -573,7 +692,9 @@ app.delete("/delete/match/:id", (req, res) => {
 
 app.delete("/delete/pit/:id", (req, res) => {
   try {
-    const result = db.prepare("DELETE FROM pit_data WHERE id = ?").run(req.params.id);
+    const result = db
+      .prepare("DELETE FROM pit_data WHERE id = ?")
+      .run(req.params.id);
     if (result.changes > 0) res.json({ success: true });
     else res.status(404).json({ error: "Pit template records not found" });
   } catch (err) {
@@ -586,12 +707,17 @@ app.delete("/admin/wipe-all", (req, res) => {
   try {
     const delMatches = db.prepare("DELETE FROM match_data").run();
     const delPits = db.prepare("DELETE FROM pit_data").run();
-    res.json({ 
-      success: true, 
-      message: `Cleared ${delMatches.changes} match telemetry entries and ${delPits.changes} pit configurations.` 
+    res.json({
+      success: true,
+      message: `Cleared ${delMatches.changes} match telemetry entries and ${delPits.changes} pit configurations.`,
     });
   } catch (err) {
-    res.status(500).json({ error: "Database purge transaction failed", detail: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Database purge transaction failed",
+        detail: err.message,
+      });
   }
 });
 
@@ -599,11 +725,99 @@ app.delete("/admin/wipe-all", (req, res) => {
 app.get("/regionals", (req, res) => {
   res.json(
     db
-      .prepare(`SELECT * FROM regionals WHERE visible_in_vis = 1 ORDER BY id DESC`)
-      .all()
+      .prepare(
+        `SELECT * FROM regionals WHERE visible_in_vis = 1 ORDER BY id DESC`,
+      )
+      .all(),
   );
 });
 
+// Drive endpoints
+app.post("/upload", upload.single("file"), (req, res) => {
+  console.log(req.file);
+
+  res.json({
+    success: true,
+    file: req.file,
+  });
+});
+
+app.post("/folder", (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({
+      success: false,
+      message: "Folder name required",
+    });
+  }
+
+  const folderPath = path.join("uploads", name);
+
+  if (fs.existsSync(folderPath)) {
+    return res.status(400).json({
+      success: false,
+      message: "Folder already exists",
+    });
+  }
+
+  fs.mkdirSync(folderPath);
+
+  res.json({
+    success: true,
+  });
+});
+
+app.get("/drive", (req, res) => {
+  try {
+    // 1. Grab the path parameter sent from the frontend (?path=subfolder)
+    // If it doesn't exist, default to an empty string (the root of uploads)
+    const relativePath = req.query.path || "";
+
+    // 2. Safe path resolution to prevent users from escaping the uploads directory
+    const baseUploadsDir = path.resolve(__dirname, "uploads");
+    const targetDir = path.resolve(baseUploadsDir, relativePath);
+
+    // Security check: Ensure the target directory is still inside the base uploads folder
+    if (!targetDir.startsWith(baseUploadsDir)) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+
+    // Check if the directory actually exists
+    if (!fs.existsSync(targetDir)) {
+      return res.status(404).json({ error: "Directory not found." });
+    }
+
+    // 3. Read the contents of the specific target directory
+    const items = fs.readdirSync(targetDir);
+    let folders = [];
+    let files = [];
+
+    items.forEach((item) => {
+      // Get stats using the full path to the file/folder
+      const fullPath = path.join(targetDir, item);
+      const stats = fs.lstatSync(fullPath);
+
+      if (stats.isDirectory()) {
+        folders.push(item);
+      } else {
+        files.push(item);
+      }
+    });
+
+    // 4. Send back the arrays
+    res.json({
+      folders,
+      files,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error reading directory." });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`Server is running at https://taco-childhood-jailbreak.ngrok-free.dev`);
+  console.log(
+    `Server is running at https://taco-childhood-jailbreak.ngrok-free.dev`,
+  );
 });

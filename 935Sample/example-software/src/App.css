@@ -2867,6 +2867,7 @@ body {
   width: auto;
   height: 60px;
   object-fit: contain;
+  border-radius: var(--radius-md);
 }
 
 #mobileLogo {
@@ -3908,4 +3909,39 @@ body {
 @media (max-width: 760px) {
   .form-type-select { flex: 1 1 100%; }
   .form-question-input { flex: 1 1 100%; }
+}
+
+.student-header-btn {
+  border-radius: 10px;
+  border: 1px solid var(--input-border);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  padding: 5px;
+  margin: 5px;
+}
+
+.student-drive-container{
+  background-color: var(--bg-elevated);
+  border-radius: var(--radius-md);
+}
+
+#student-drive-sidebar {
+  position: absolute;
+  background-color: var(--bg-elevated);
+  backdrop-filter: blur(2px);
+  height: 84%;
+  top: 16%;
+  left: 0;
+  width: 200px;
+  padding: 10px;
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.student-drive-sidebar-button {
+  background-color: var(--btn-primary-bg);
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: none;
 }
