@@ -12,8 +12,15 @@ import {
   faEye,
   faArrowLeft,
   faCircleCheck,
+  faFolder,
+  faFile,
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
+import SharedDriveView from "../componets/DriveView";
+import MessagingDrawer from "../componets/MessagingDrawer";
+import TasksPanel from "../componets/TasksPanel";
+const apiBaseUrl = useURL();
 
 const needsOptions = (type) =>
   type === "multiple_choice" || type === "checkboxes" || type === "dropdown";
@@ -53,7 +60,7 @@ export default function StudentFormsPage() {
     <StudentShell activeTab={activeTab} setActiveTab={setActiveTab}>
       {activeTab === "dashboard" && <DashboardView />}
       {activeTab === "forms" && <StudentFormsList />}
-      {activeTab === "drive" && <DriveView />}
+      {activeTab === "drive" && <SharedDriveView />}
       {activeTab === "settings" && <SettingsView />}
       {activeTab === "subgroup" && <SubgroupView />}
     </StudentShell>
@@ -132,6 +139,7 @@ function StudentShell({ children, activeTab, setActiveTab }) {
         >
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
+        <MessagingDrawer />
 
         {isLogoutOpen && (
           <div id="logoutSection" style={{ display: "block" }}>
@@ -169,6 +177,7 @@ function StudentShell({ children, activeTab, setActiveTab }) {
 function DashboardView() {
   return (
     <section>
+      <TasksPanel />
       <h1>Dashboard</h1>
       <div className="dash-forms-panel">
         <div className="dash-forms-panel-header">
@@ -213,11 +222,17 @@ function DashboardView() {
 }
 
 // VIEW: DRIVE
-function DriveView() {
+function LegacyDriveView() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentPath, setCurrentPath] = useState("");
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
+  const [isUploaded, setIsUploaded] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const openUploadMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   useEffect(() => {
     loadDrive(currentPath);
@@ -226,7 +241,7 @@ function DriveView() {
   // Accept path directly to sidestep asynchronous state delay behaviors
   const loadDrive = async (path = "") => {
     try {
-      const res = await fetch("http://localhost:3000/drive?path=" + path);
+      const res = await fetch(`${apiBaseUrl}/drive?path=` + path);
       if (!res.ok) throw new Error("Failed to load drive context");
       const data = await res.json();
 
@@ -237,29 +252,49 @@ function DriveView() {
     }
   };
 
-  const upload = async () => {
-    if (!selectedFile) {
+  // Add 'file' as an optional parameter
+  const upload = async (file = null) => {
+    // Use the passed file if available, otherwise fall back to state
+    const fileToUpload = file || selectedFile;
+
+    if (!fileToUpload) {
       alert("Select a file first.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    // Use fileToUpload here instead of selectedFile
+    formData.append("file", fileToUpload);
 
     try {
-      const res = await fetch("http://localhost:3000/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `${apiBaseUrl}/upload?path=` + encodeURIComponent(currentPath),
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const data = await res.json();
       console.log(data);
+
       loadDrive(currentPath);
       alert("Upload successful!");
     } catch (err) {
       console.error(err);
       alert("Upload failed.");
     }
+  };
+
+  const handleBack = () => {
+    if (!currentPath) return; // Already at the root folder
+
+    const pathParts = currentPath.split("/");
+    pathParts.pop(); // Remove the last folder name
+    const previousPath = pathParts.join("/");
+
+    setCurrentPath(previousPath);
+    loadDrive(previousPath); // Refresh the view for the parent folder
   };
 
   function getDirectory(folderName) {
@@ -273,7 +308,7 @@ function DriveView() {
     if (!name) return;
 
     try {
-      await fetch("http://localhost:3000/folder", {
+      await fetch(`${apiBaseUrl}/folder`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -288,34 +323,69 @@ function DriveView() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return; // Exit if the user cancels the picker
+
+    // Update your state
+    setSelectedFile(file);
+
+    // Trigger your separate function immediately
+    upload(file);
+  };
+
   return (
     <section>
       <h1>Drive</h1>
       <p style={{ padding: "0 1rem", color: "var(--text-muted)" }}>
         Access your shared files and scouting documents.
       </p>
-      <div style={{ padding: 20 }}>
-        <input
-          type="file"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-        />
+      <div id="drive-content-all">
+        {currentPath && (
+          <button onClick={handleBack} id="drive-back-btn">
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </button>
+        )}
 
-        <br />
-        <br />
+        <button onClick={openUploadMenu} id="drive-upload-btn">
+          <FontAwesomeIcon icon={isMenuOpen ? faX : faPlus} />
+        </button>
 
-        <button onClick={upload}>Upload</button>
-        <button onClick={createFolder}>New Folder</button>
+        {isMenuOpen && (
+          <div id="drive-upload-div">
+            <>
+              <label htmlFor="file-upload" className="custom-file-upload">
+                + Upload
+              </label>
+              <input id="file-upload" type="file" onChange={handleFileChange} />
+            </>
+            <button onClick={createFolder} className="custom-file-upload">
+              New Folder
+            </button>
+          </div>
+        )}
 
-        <h2>Folders</h2>
         {folders.map((folder) => (
-          <div key={folder} onClick={() => getDirectory(folder)} style={{ cursor: "pointer" }}>
-            📁 {folder}
+          <div
+            key={folder}
+            onClick={() => getDirectory(folder)}
+            style={{ cursor: "pointer" }}
+            className="drive-content folder"
+          >
+            <div className="drive-content-logo">
+              <FontAwesomeIcon icon={faFolder} />
+            </div>
+            <div className="drive-content-text">{folder}</div>
           </div>
         ))}
 
-        <h2>Files</h2>
         {files.map((file) => (
-          <div key={file}>📄 {file}</div>
+          <div key={file} className="drive-content file">
+            <div className="drive-content-logo">
+              <FontAwesomeIcon icon={faFile} />
+            </div>
+            <div className="drive-content-text">{file}</div>
+          </div>
         ))}
       </div>
     </section>
@@ -390,17 +460,22 @@ function StudentFormsList() {
   useEffect(() => {
     async function loadForms() {
       try {
-        const res = await fetch(`${useURL()}/forms/sent`, {
-          headers: defaultHeaders(),
-        });
+        const role = localStorage.getItem("userRole") || "students";
+        const subgroup = localStorage.getItem("userSubgroup") || "";
+        const res = await fetch(
+          `${useURL()}/forms/sent?role=${encodeURIComponent(role)}&subgroup=${encodeURIComponent(subgroup)}`,
+          {
+            headers: defaultHeaders(),
+          },
+        );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to load forms");
 
         const submittedForms = JSON.parse(
-          localStorage.getItem("submittedForms") || "[]"
+          localStorage.getItem("submittedForms") || "[]",
         );
         const openForms = data.filter(
-          (form) => !submittedForms.includes(form.id)
+          (form) => !submittedForms.includes(form.id),
         );
 
         setForms(openForms);
@@ -506,7 +581,7 @@ function StudentFormDetail({ formId }) {
       question,
       current.includes(option)
         ? current.filter((item) => item !== option)
-        : [...current, option]
+        : [...current, option],
     );
   };
 
@@ -539,7 +614,7 @@ function StudentFormDetail({ formId }) {
       if (!res.ok) throw new Error(data.error || "Failed to submit form");
 
       const submitted = JSON.parse(
-        localStorage.getItem("submittedForms") || "[]"
+        localStorage.getItem("submittedForms") || "[]",
       );
       if (!submitted.includes(form.id)) {
         submitted.push(form.id);
@@ -547,7 +622,18 @@ function StudentFormDetail({ formId }) {
       }
 
       setStatus("submitted");
-      navigate("/student");
+      const role = String(
+        localStorage.getItem("userRole") || "students",
+      ).toLowerCase();
+      navigate(
+        role === "helper"
+          ? "/helper"
+          : role === "mentor"
+            ? "/mentor"
+            : role === "coach"
+              ? "/coach"
+              : "/student",
+      );
     } catch (err) {
       setError(err.message);
     }

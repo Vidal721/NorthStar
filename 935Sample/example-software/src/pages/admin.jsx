@@ -23,7 +23,12 @@ import {
   faWrench,
   faShapes,
   faGear,
+  faFolderOpen,
 } from "@fortawesome/free-solid-svg-icons";
+import DriveView from "../componets/DriveView";
+import LeadershipManager from "../componets/LeadershipManager";
+import MessagingDrawer from "../componets/MessagingDrawer";
+import TasksPanel from "../componets/TasksPanel";
 import {
   API_ENDPOINTS,
   getApiBaseUrl,
@@ -31,7 +36,7 @@ import {
   getDefaultHeaders,
   setConnectionMode as saveConnectionMode,
 } from "../apiConfig";
-import { useURL } from "../urlConfig"
+import { useURL } from "../urlConfig";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -203,13 +208,13 @@ export default function AdminDashboard() {
   };
 
   const openLogout = () => {
-    const signoutBtn = document.getElementById("logoutSection")
-    if(signoutBtn.style.display === "block") {
-      signoutBtn.style.display = "none"
+    const signoutBtn = document.getElementById("logoutSection");
+    if (signoutBtn.style.display === "block") {
+      signoutBtn.style.display = "none";
     } else {
-      signoutBtn.style.display = "block"
+      signoutBtn.style.display = "block";
     }
-  }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
@@ -278,11 +283,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-container fade-in">
-      <div className={`mobileSidebarOverlay ${isSidebarOpen ? 'active' : ''}`} onClick={toggleMobileSidebar}>
-        <FontAwesomeIcon icon={faX} id="closeBTN" onClick={toggleMobileSidebar}/>
+      <div
+        className={`mobileSidebarOverlay ${isSidebarOpen ? "active" : ""}`}
+        onClick={toggleMobileSidebar}
+      >
+        <FontAwesomeIcon
+          icon={faX}
+          id="closeBTN"
+          onClick={toggleMobileSidebar}
+        />
       </div>
-      
-      <div className={`mobileSidebar ${isSidebarOpen ? 'active' : ''}`}>
+
+      <div className={`mobileSidebar ${isSidebarOpen ? "active" : ""}`}>
         <button
           className={`admin-tab-btn-mobile ${activeTab === "matches" ? "active" : ""}`}
           onClick={() => {
@@ -311,13 +323,32 @@ export default function AdminDashboard() {
           <FontAwesomeIcon icon={faUser} /> Users ({users.length})
         </button>
         <button
+          className={`admin-tab-btn-mobile ${activeTab === "leaders" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("leaders");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faUsers} /> Subgroup Leaders
+        </button>
+        <button
+          className={`admin-tab-btn-mobile ${activeTab === "drive" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("drive");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faFolderOpen} /> Drive
+        </button>
+        <button
           className={`admin-tab-btn-mobile ${activeTab === "visibility" ? "active" : ""}`}
           onClick={() => {
             setActiveTab("visibility");
             toggleMobileSidebar();
           }}
         >
-          <FontAwesomeIcon icon={faWrench} /> Manage Regionals ({visibleRegionalCount}/{regionals.length})
+          <FontAwesomeIcon icon={faWrench} /> Manage Regionals (
+          {visibleRegionalCount}/{regionals.length})
         </button>
         <button
           className={`admin-tab-btn-mobile ${activeTab === "visibility" ? "active" : ""}`}
@@ -328,15 +359,26 @@ export default function AdminDashboard() {
         >
           <FontAwesomeIcon icon={faShapes} /> Apps
         </button>
-        <Link to="/scoutSeettings" rel="noopener noreferrer" className="admin-tab-btn-mobile"><FontAwesomeIcon icon={faGear} /> Settings</Link>
+        <Link
+          to="/scoutSeettings"
+          rel="noopener noreferrer"
+          className="admin-tab-btn-mobile"
+        >
+          <FontAwesomeIcon icon={faGear} /> Settings
+        </Link>
       </div>
 
       <header className="admin-header">
-          <img src="./pwa-512x512.png" id="imageLogo" height={60} alt="" />
-          <FontAwesomeIcon icon={faBars} id="mobileLogo" onClick={toggleMobileSidebar}/>
+        <img src="./pwa-512x512.png" id="imageLogo" height={60} alt="" />
+        <FontAwesomeIcon
+          icon={faBars}
+          id="mobileLogo"
+          onClick={toggleMobileSidebar}
+        />
         <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
+        <MessagingDrawer />
         <div id="logoutSection">
           <h2>Hello, {currentScout}</h2>
           <button
@@ -347,7 +389,7 @@ export default function AdminDashboard() {
           >
             <FontAwesomeIcon icon={faRightFromBracket} /> Sign Out
           </button>
-          </div>
+        </div>
       </header>
 
       <div className="admin-tab-row">
@@ -370,6 +412,18 @@ export default function AdminDashboard() {
           Users ({users.length})
         </button>
         <button
+          className={`admin-tab-btn ${activeTab === "leaders" ? "active" : ""}`}
+          onClick={() => setActiveTab("leaders")}
+        >
+          Subgroup Leaders
+        </button>
+        <button
+          className={`admin-tab-btn ${activeTab === "drive" ? "active" : ""}`}
+          onClick={() => setActiveTab("drive")}
+        >
+          Drive
+        </button>
+        <button
           className={`admin-tab-btn ${activeTab === "visibility" ? "active" : ""}`}
           onClick={() => setActiveTab("visibility")}
         >
@@ -384,6 +438,9 @@ export default function AdminDashboard() {
       </div>
 
       <div className="admin-content-viewport">
+        <TasksPanel />
+        {activeTab === "drive" && <DriveView />}
+        {activeTab === "leaders" && <LeadershipManager />}
         {activeTab === "matches" && (
           <div className="admin-grid-layout">
             <div className="admin-controls-card">
@@ -409,7 +466,8 @@ export default function AdminDashboard() {
             </div>
             {matches.length === 0 ? (
               <p className="text-muted text-center p-md">
-                No match data submited yet, <Link to={"/match"}>submit some now</Link>
+                No match data submited yet,{" "}
+                <Link to={"/match"}>submit some now</Link>
               </p>
             ) : (
               matches.map((item) => (
@@ -494,7 +552,8 @@ export default function AdminDashboard() {
             </div>
             {pits.length === 0 ? (
               <p className="text-muted text-center p-md">
-                No Pit data has been submitted yet, <Link to={"/pit"}>submit some now</Link>
+                No Pit data has been submitted yet,{" "}
+                <Link to={"/pit"}>submit some now</Link>
               </p>
             ) : (
               pits.map((item) => (
@@ -639,12 +698,28 @@ export default function AdminDashboard() {
             </div>
 
             <div className="admin-regionals-list">
-              <Link to="/form" rel="noopener noreferrer" className="adminApps">Form Builder</Link>
-              <Link to="/pit" rel="noopener noreferrer" className="adminApps">Pit Scouting</Link>
-              <Link to="/match" rel="noopener noreferrer" className="adminApps">Match Scouting</Link>
-              <Link to="/vis" rel="noopener noreferrer" className="adminApps">Visualization</Link>
-              <Link to="/scoutSeettings" rel="noopener noreferrer" className="adminApps">Settings</Link>
-            </div><br /><br />
+              <Link to="/form" rel="noopener noreferrer" className="adminApps">
+                Form Builder
+              </Link>
+              <Link to="/pit" rel="noopener noreferrer" className="adminApps">
+                Pit Scouting
+              </Link>
+              <Link to="/match" rel="noopener noreferrer" className="adminApps">
+                Match Scouting
+              </Link>
+              <Link to="/vis" rel="noopener noreferrer" className="adminApps">
+                Visualization
+              </Link>
+              <Link
+                to="/scoutSeettings"
+                rel="noopener noreferrer"
+                className="adminApps"
+              >
+                Settings
+              </Link>
+            </div>
+            <br />
+            <br />
 
             <div className="admin-regionals-panel-header">
               <div>
@@ -653,8 +728,12 @@ export default function AdminDashboard() {
             </div>
 
             <div className="admin-regionals-list">
-              <Link to="/form" rel="noopener noreferrer" className="adminApps">Mentor</Link>
-              <Link to="/pit" rel="noopener noreferrer" className="adminApps">Parent Helper</Link>
+              <Link to="/form" rel="noopener noreferrer" className="adminApps">
+                Mentor
+              </Link>
+              <Link to="/pit" rel="noopener noreferrer" className="adminApps">
+                Parent Helper
+              </Link>
             </div>
           </section>
         )}

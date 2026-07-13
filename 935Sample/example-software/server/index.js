@@ -11,10 +11,27 @@ import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    // 1. Get the target subdirectory from the query string (default to root 'uploads')
+    const relativePath = req.query.path || ""; 
+    
+    const baseUploadsDir = path.resolve(__dirname, "uploads");
+    const targetDir = path.resolve(baseUploadsDir, relativePath);
+
+    // 2. Security Check: Block directory traversal attempts (e.g., path: "../../../")
+    if (targetDir !== baseUploadsDir && !targetDir.startsWith(`${baseUploadsDir}${path.sep}`)) {
+      return cb(new Error("Access denied: Invalid upload path."));
+    }
+
+    // 3. Ensure the target directory exists before saving the file
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    cb(null, targetDir);
   },
 
   filename: (req, file, cb) => {
+    // Keeps the original file name intact
     cb(null, file.originalname);
   },
 });
@@ -60,6 +77,157 @@ function getUsers() {
   return JSON.parse(fs.readFileSync("users.json", "utf8"));
 }
 
+function saveUsers(users) {
+  fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+}
+
+const getSubgroups = () => db.prepare("SELECT name FROM subgroups ORDER BY name").all().map((row) => row.name);
+const ensureSubgroupFolders = () => {
+  getSubgroups().forEach((subgroup) => {
+    fs.mkdirSync(path.resolve(__dirname, "uploads", subgroup), { recursive: true });
+  });
+};
+ensureSubgroupFolders();
+const normalizeRole = (role) => String(role || "").toLowerCase();
+const subgroupFromPath = (relativePath) => {
+  const firstSegment = String(relativePath || "").split(/[\\/]/)[0];
+  return getSubgroups().find((group) => group.toLowerCase() === firstSegment.toLowerCase()) || null;
+};
+const getDriveUser = (req) => getUsers().find((user) => user.username === req.get("x-drive-user"));
+const canManageDrivePath = (user, relativePath) => {
+  if (!user) return false;
+  const role = normalizeRole(user.role);
+  if (role === "admin" || role === "coach") return true;
+  const subgroup = subgroupFromPath(relativePath);
+  return Boolean(subgroup && (user.leadershipSubgroups || []).includes(subgroup));
+};
+const canReadDrivePath = (user, relativePath) => {
+  if (!user) return false;
+  const subgroup = subgroupFromPath(relativePath);
+  return !subgroup || normalizeRole(user.role) === "admin" || normalizeRole(user.role) === "coach" || user.subgroup === subgroup || (user.leadershipSubgroups || []).includes(subgroup);
+};
+
+app.get("/leadership/users", (req, res) => {
+  const actor = getUsers().find((user) => user.username === req.query.actor);
+  if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) return res.status(403).json({ error: "Only admins and coaches can manage leaders." });
+  res.json(getUsers().map(({ passwordHash, ...user }) => user));
+});
+
+app.get("/directory", (req, res) => {
+  if (!getActor(req.query.actor)) return res.status(401).json({ error: "Sign in to view the directory." });
+  res.json(getUsers().map(({ username, role, subgroup }) => ({ username, role, subgroup })));
+});
+
+app.get("/subgroups", (req, res) => res.json(getSubgroups()));
+
+app.post("/subgroups", (req, res) => {
+  const actor = getUsers().find((user) => user.username === req.body?.actor);
+  const name = String(req.body?.name || "").trim();
+  if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) return res.status(403).json({ error: "Only admins and coaches can add subgroups." });
+  if (!name || !/^[a-zA-Z0-9 _-]{2,40}$/.test(name)) return res.status(400).json({ error: "Use a 2–40 character subgroup name." });
+  try {
+    db.prepare("INSERT INTO subgroups (name, created_at) VALUES (?, ?)").run(name, new Date().toISOString());
+    fs.mkdirSync(path.resolve(__dirname, "uploads", name), { recursive: true });
+    res.status(201).json({ name });
+  } catch (err) {
+    res.status(409).json({ error: "That subgroup already exists." });
+  }
+});
+
+app.delete("/subgroups/:name", (req, res) => {
+  const users = getUsers();
+  const actor = users.find((user) => user.username === req.query.actor);
+  const name = req.params.name;
+  if (!actor || normalizeRole(actor.role) !== "admin") return res.status(403).json({ error: "Only admins can delete subgroups." });
+  if (!getSubgroups().includes(name)) return res.status(404).json({ error: "Subgroup not found." });
+  db.prepare("DELETE FROM subgroups WHERE name = ?").run(name);
+  users.forEach((user) => {
+    if (user.subgroup === name) user.subgroup = "none";
+    user.leadershipSubgroups = (user.leadershipSubgroups || []).filter((group) => group !== name);
+  });
+  saveUsers(users);
+  fs.rmSync(path.resolve(__dirname, "uploads", name), { recursive: true, force: true });
+  res.json({ success: true });
+});
+
+app.patch("/leadership/users/:username", (req, res) => {
+  const users = getUsers();
+  const actor = users.find((user) => user.username === req.body?.actor);
+  if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) return res.status(403).json({ error: "Only admins and coaches can manage leaders." });
+  const target = users.find((user) => user.username === req.params.username);
+  if (!target) return res.status(404).json({ error: "User not found." });
+  const leadershipSubgroups = Array.isArray(req.body?.leadershipSubgroups)
+    ? req.body.leadershipSubgroups.filter((group) => getSubgroups().includes(group)) : [];
+  target.leadershipSubgroups = leadershipSubgroups;
+  if (req.body?.subgroup && getSubgroups().includes(req.body.subgroup)) target.subgroup = req.body.subgroup;
+  saveUsers(users);
+  const { passwordHash, ...safeUser } = target;
+  res.json(safeUser);
+});
+
+const getActor = (name) => getUsers().find((user) => user.username === name);
+const canLeadSubgroup = (user, subgroup) => ["admin", "coach"].includes(normalizeRole(user?.role)) || (user?.leadershipSubgroups || []).includes(subgroup);
+
+app.get("/tasks", (req, res) => {
+  const actor = getActor(req.query.actor);
+  if (!actor) return res.status(401).json({ error: "Sign in to view tasks." });
+  const isManager = ["admin", "coach"].includes(normalizeRole(actor.role));
+  const rows = db.prepare("SELECT * FROM tasks ORDER BY status = 'open' DESC, created_at DESC").all();
+  res.json(rows.filter((task) => isManager || task.assignee === actor.username || task.subgroup === actor.subgroup || (actor.leadershipSubgroups || []).includes(task.subgroup)));
+});
+
+app.post("/tasks", (req, res) => {
+  const actor = getActor(req.body?.actor);
+  const { title, description = "", subgroup = "", assignee = "" } = req.body || {};
+  if (!actor || !title) return res.status(400).json({ error: "A signed-in user and task title are required." });
+  const targetUser = assignee && getActor(assignee);
+  const targetSubgroup = subgroup || targetUser?.subgroup;
+  if (!targetSubgroup || !canLeadSubgroup(actor, targetSubgroup)) return res.status(403).json({ error: "You can assign tasks only within subgroups you lead." });
+  if (targetUser && targetUser.subgroup !== targetSubgroup && !["admin", "coach"].includes(normalizeRole(actor.role))) return res.status(403).json({ error: "Leaders can assign only people in their subgroup." });
+  const task = { id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, title: String(title).slice(0, 120), description: String(description).slice(0, 1000), subgroup: targetSubgroup, assignee: assignee || null, assigned_by: actor.username, status: "open", created_at: new Date().toISOString() };
+  db.prepare("INSERT INTO tasks (id,title,description,subgroup,assignee,assigned_by,status,created_at) VALUES (@id,@title,@description,@subgroup,@assignee,@assigned_by,@status,@created_at)").run(task);
+  res.status(201).json(task);
+});
+
+app.patch("/tasks/:id", (req, res) => {
+  const actor = getActor(req.body?.actor); const task = db.prepare("SELECT * FROM tasks WHERE id = ?").get(req.params.id);
+  if (!actor || !task) return res.status(404).json({ error: "Task not found." });
+  if (task.assignee !== actor.username && !canLeadSubgroup(actor, task.subgroup)) return res.status(403).json({ error: "You cannot update this task." });
+  const status = req.body?.status === "complete" ? "complete" : "open";
+  db.prepare("UPDATE tasks SET status = ? WHERE id = ?").run(status, task.id);
+  res.json({ ...task, status });
+});
+
+app.get("/messages", (req, res) => {
+  const actor = getActor(req.query.actor); if (!actor) return res.status(401).json({ error: "Sign in to view messages." });
+  const groups = db.prepare("SELECT * FROM message_groups").all().filter((group) => JSON.parse(group.members).includes(actor.username)).map((group) => group.id);
+  const isCoach = ["admin", "coach"].includes(normalizeRole(actor.role));
+  const rows = db.prepare("SELECT * FROM messages ORDER BY created_at DESC LIMIT 100").all();
+  res.json(rows.filter((message) => isCoach || message.sender === actor.username || message.recipient_type === "everyone" || (message.recipient_type === "subgroup" && message.recipient_value === actor.subgroup) || (message.recipient_type === "person" && message.recipient_value === actor.username) || (message.recipient_type === "group" && groups.includes(message.recipient_value))));
+});
+
+app.post("/messages", (req, res) => {
+  const actor = getActor(req.body?.actor); const { recipientType, recipientValue = "", body } = req.body || {};
+  if (!actor || !body || !["everyone", "subgroup", "person", "group"].includes(recipientType)) return res.status(400).json({ error: "Choose recipients and write a message." });
+  if (recipientType === "subgroup" && !getSubgroups().includes(recipientValue)) return res.status(400).json({ error: "Unknown subgroup." });
+  const message = { id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, sender: actor.username, recipient_type: recipientType, recipient_value: recipientValue || null, body: String(body).slice(0, 2000), created_at: new Date().toISOString() };
+  db.prepare("INSERT INTO messages (id,sender,recipient_type,recipient_value,body,created_at) VALUES (@id,@sender,@recipient_type,@recipient_value,@body,@created_at)").run(message);
+  res.status(201).json(message);
+});
+
+app.get("/message-groups", (req, res) => {
+  const actor = getActor(req.query.actor); if (!actor) return res.status(401).json({ error: "Sign in to view groups." });
+  res.json(db.prepare("SELECT * FROM message_groups ORDER BY created_at DESC").all().filter((group) => ["admin", "coach"].includes(normalizeRole(actor.role)) || group.owner === actor.username || JSON.parse(group.members).includes(actor.username)).map((group) => ({ ...group, members: JSON.parse(group.members) })));
+});
+
+app.post("/message-groups", (req, res) => {
+  const actor = getActor(req.body?.actor); const { name, members = [] } = req.body || {};
+  if (!actor || !name || !Array.isArray(members)) return res.status(400).json({ error: "A group name and members are required." });
+  const group = { id: `group-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: String(name).slice(0, 60), owner: actor.username, members: JSON.stringify([...new Set([...members, actor.username])]), created_at: new Date().toISOString() };
+  db.prepare("INSERT INTO message_groups (id,name,owner,members,created_at) VALUES (@id,@name,@owner,@members,@created_at)").run(group);
+  res.status(201).json({ ...group, members: JSON.parse(group.members) });
+});
+
 function getMatch() {
   return JSON.parse(fs.readFileSync("matchData.json", "utf8"));
 }
@@ -88,6 +256,7 @@ const parseHelperForm = (row) => {
     sentAt: row.sent_at || payload.sentAt,
     updatedAt: row.updated_at,
     responseCount: row.response_count ?? 0,
+    audiences: payload.audiences?.length ? payload.audiences : ["students"],
   };
 };
 
@@ -162,6 +331,7 @@ app.post("/auth/login", async (req, res) => {
     res.json({
       username: user.username,
       role: user.role,
+      subgroup: user.subgroup || "",
     });
   } catch (err) {
     console.error("[auth] Login error:", err.message);
@@ -341,7 +511,15 @@ app.get("/forms/sent", (req, res) => {
     `,
       )
       .all();
-    res.json(rows.map(parseHelperForm));
+    const role = String(req.query.role || "students").toLowerCase();
+    const subgroup = String(req.query.subgroup || "");
+    const matchingForms = rows.map(parseHelperForm).filter((form) => {
+      const audiences = form.audiences || ["students"];
+      return audiences.includes("everyone") || audiences.includes(role) ||
+        (role === "student" && audiences.includes("students")) ||
+        (subgroup && audiences.includes(`subgroup:${subgroup}`));
+    });
+    res.json(matchingForms);
   } catch (err) {
     res
       .status(500)
@@ -733,26 +911,54 @@ app.get("/regionals", (req, res) => {
 });
 
 // Drive endpoints
-app.post("/upload", upload.single("file"), (req, res) => {
-  console.log(req.file);
+app.post("/upload", (req, res, next) => {
+  if (!canManageDrivePath(getDriveUser(req), req.query.path || "")) {
+    return res.status(403).json({ success: false, message: "You can only add files as a leader of this subgroup." });
+  }
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
 
-  res.json({
-    success: true,
-    file: req.file,
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded."
+      });
+    }
+
+    console.log(`Uploaded ${req.file.filename} to ${req.file.destination}`);
+
+    res.json({
+      success: true,
+      file: req.file,
+    });
   });
 });
 
 app.post("/folder", (req, res) => {
-  const { name } = req.body;
+  const { name, path: relativePath = "" } = req.body;
 
-  if (!name) {
+  if (!canManageDrivePath(getDriveUser(req), relativePath)) {
+    return res.status(403).json({ success: false, message: "You can only create folders as a leader of this subgroup." });
+  }
+
+  if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\\\\")) {
     return res.status(400).json({
       success: false,
       message: "Folder name required",
     });
   }
 
-  const folderPath = path.join("uploads", name);
+  const baseUploadsDir = path.resolve(__dirname, "uploads");
+  const folderPath = path.resolve(baseUploadsDir, relativePath, name);
+
+  if (!folderPath.startsWith(`${baseUploadsDir}${path.sep}`)) {
+    return res.status(403).json({ success: false, message: "Access denied." });
+  }
 
   if (fs.existsSync(folderPath)) {
     return res.status(400).json({
@@ -761,40 +967,87 @@ app.post("/folder", (req, res) => {
     });
   }
 
-  fs.mkdirSync(folderPath);
+  fs.mkdirSync(folderPath, { recursive: true });
 
   res.json({
     success: true,
   });
 });
 
+app.delete("/drive/file", (req, res) => {
+  try {
+    const relativePath = req.query.path || "";
+    if (!canManageDrivePath(getDriveUser(req), relativePath)) {
+      return res.status(403).json({ error: "You can only delete files in subgroups you lead." });
+    }
+    const baseUploadsDir = path.resolve(__dirname, "uploads");
+    const targetFile = path.resolve(baseUploadsDir, relativePath);
+
+    if (!relativePath || !targetFile.startsWith(`${baseUploadsDir}${path.sep}`)) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+    if (!fs.existsSync(targetFile)) {
+      return res.status(404).json({ error: "File not found." });
+    }
+    if (!fs.lstatSync(targetFile).isFile()) {
+      return res.status(400).json({ error: "Only files can be deleted." });
+    }
+
+    fs.unlinkSync(targetFile);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Could not delete file." });
+  }
+});
+
+app.delete("/drive/folder", (req, res) => {
+  try {
+    const relativePath = req.query.path || "";
+    const baseUploadsDir = path.resolve(__dirname, "uploads");
+    const targetFolder = path.resolve(baseUploadsDir, relativePath);
+    if (!relativePath || !canManageDrivePath(getDriveUser(req), relativePath)) {
+      return res.status(403).json({ error: "You can only delete folders in subgroups you lead." });
+    }
+    if (!targetFolder.startsWith(`${baseUploadsDir}${path.sep}`)) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+    if (!fs.existsSync(targetFolder)) return res.status(404).json({ error: "Folder not found." });
+    if (!fs.lstatSync(targetFolder).isDirectory()) return res.status(400).json({ error: "That item is not a folder." });
+    fs.rmSync(targetFolder, { recursive: true, force: true });
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Could not delete folder." });
+  }
+});
+
 app.get("/drive", (req, res) => {
   try {
-    // 1. Grab the path parameter sent from the frontend (?path=subfolder)
-    // If it doesn't exist, default to an empty string (the root of uploads)
+
     const relativePath = req.query.path || "";
 
-    // 2. Safe path resolution to prevent users from escaping the uploads directory
     const baseUploadsDir = path.resolve(__dirname, "uploads");
     const targetDir = path.resolve(baseUploadsDir, relativePath);
+    const user = getDriveUser(req);
 
-    // Security check: Ensure the target directory is still inside the base uploads folder
-    if (!targetDir.startsWith(baseUploadsDir)) {
+    if (targetDir !== baseUploadsDir && !targetDir.startsWith(`${baseUploadsDir}${path.sep}`)) {
       return res.status(403).json({ error: "Access denied." });
     }
 
-    // Check if the directory actually exists
     if (!fs.existsSync(targetDir)) {
       return res.status(404).json({ error: "Directory not found." });
     }
 
-    // 3. Read the contents of the specific target directory
+    if (!canReadDrivePath(user, relativePath)) {
+      return res.status(403).json({ error: "You do not have access to this subgroup's files." });
+    }
+
     const items = fs.readdirSync(targetDir);
     let folders = [];
     let files = [];
 
     items.forEach((item) => {
-      // Get stats using the full path to the file/folder
       const fullPath = path.join(targetDir, item);
       const stats = fs.lstatSync(fullPath);
 
@@ -805,10 +1058,10 @@ app.get("/drive", (req, res) => {
       }
     });
 
-    // 4. Send back the arrays
     res.json({
       folders,
       files,
+      permissions: { canWrite: canManageDrivePath(user, relativePath) },
     });
   } catch (error) {
     console.error(error);
