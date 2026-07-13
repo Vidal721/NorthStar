@@ -5586,12 +5586,13 @@ input[type="file"] {
   flex: 1;
   overflow: auto;
   display: grid;
+  grid-template-columns: 1fr;
   align-content: start;
-  align-items: start;
   gap: 0.75rem;
   padding: 1rem 0;
 }
 .message-feed article {
+  min-width: 0;
   padding: 0.75rem;
   border-radius: 10px;
   background: var(--bg-elevated);
@@ -5605,6 +5606,8 @@ input[type="file"] {
 .message-feed p {
   margin: 0.35rem 0 0;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .message-compose,
 .message-group-form {
