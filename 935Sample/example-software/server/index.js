@@ -1265,6 +1265,11 @@ app.get("/drive", (req, res) => {
     items.forEach((item) => {
       const fullPath = path.join(targetDir, item);
       const stats = fs.lstatSync(fullPath);
+      const childPath = relativePath ? path.join(relativePath, item) : item;
+
+      if (!canReadDrivePath(user, childPath)) {
+        return;
+      }
 
       if (stats.isDirectory()) {
         folders.push(item);
