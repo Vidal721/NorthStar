@@ -5534,14 +5534,13 @@ input[type="file"] {
   border: 0;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 1.25rem;
   padding: 9px;
   cursor: pointer;
   position: fixed;
   bottom: 30px;
   right: 20px;
   font-size: 40px;
-  z-index: 100000000000;
+  z-index: 500;
 }
 .message-trigger:hover {
   color: #2563eb;
