@@ -41,6 +41,15 @@ function StudentShell({ children }) {
         <button className="admin-logout-btn" onClick={logout}>
           <FontAwesomeIcon icon={faRightFromBracket} /> Sign Out
         </button>
+        <button className="student-header-btn" onClick={logout}>
+           Drive
+        </button>
+        <button className="student-header-btn" onClick={logout}>
+           Settings
+        </button>
+        <button className="student-header-btn" onClick={logout}>
+           Subgroup
+        </button>
       </header>
       <div className="admin-content-viewport">{children}</div>
     </div>
@@ -60,7 +69,14 @@ function StudentFormsList() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to load forms");
-        setForms(data);
+        
+        // Retrieve already submitted forms from localStorage
+        const submittedForms = JSON.parse(localStorage.getItem("submittedForms") || "[]");
+        
+        // Filter out forms that match the submitted IDs
+        const openForms = data.filter((form) => !submittedForms.includes(form.id));
+
+        setForms(openForms);
         setStatus("ready");
       } catch (err) {
         setError(err.message);
@@ -102,18 +118,20 @@ function StudentFormsList() {
         {status === "ready" && forms.length > 0 && (
           <div className="admin-forms-grid">
             {forms.map((form) => (
-              <Link className="admin-form-card student-form-link" key={form.id} to={`/form/${form.id}`}>
-                <div className="admin-form-card-header">
-                  <span className="admin-form-card-title">{form.title || "Untitled form"}</span>
-                  <span className="admin-status-pill active">Open</span>
-                </div>
-                <div className="admin-card-body">
-                  {form.description && <p>{form.description}</p>}
-                  <p className="admin-form-card-meta">
-                    {form.questions.length} question{form.questions.length === 1 ? "" : "s"}
-                  </p>
-                </div>
-              </Link>
+              <div key={form.id}>
+                <Link className="admin-form-card student-form-link" to={`/form/${form.id}`}>
+                  <div className="admin-form-card-header">
+                    <span className="admin-form-card-title">{form.title || "Untitled form"}</span>
+                    <span className="admin-status-pill active">Open</span>
+                  </div>
+                  <div className="admin-card-body">
+                    {form.description && <p>{form.description}</p>}
+                    <p className="admin-form-card-meta">
+                      {form.questions.length} question{form.questions.length === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                </Link>
+              </div>
             ))}
           </div>
         )}
@@ -127,6 +145,7 @@ function StudentFormDetail({ formId }) {
   const [answers, setAnswers] = useState({});
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadForm() {
@@ -186,7 +205,16 @@ function StudentFormDetail({ formId }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to submit form");
+
+      // Save this form ID to localStorage so it gets filtered out from the dashboard list
+      const submitted = JSON.parse(localStorage.getItem("submittedForms") || "[]");
+      if (!submitted.includes(form.id)) {
+        submitted.push(form.id);
+        localStorage.setItem("submittedForms", JSON.stringify(submitted));
+      }
+
       setStatus("submitted");
+      navigate("/student");
     } catch (err) {
       setError(err.message);
     }
