@@ -73,6 +73,13 @@ export default function MessagingDrawer() {
     }
   }, [open]);
 
+  // A fixed drawer should own scrolling while it is open. This prevents the
+  // page behind it from moving or rubber-banding in mobile Chrome.
+  useEffect(() => {
+    document.body.classList.toggle("messaging-open", open);
+    return () => document.body.classList.remove("messaging-open");
+  }, [open]);
+
   // Scroll to bottom when message list or active thread changes
   useEffect(() => {
     if (messagesEndRef.current) {
