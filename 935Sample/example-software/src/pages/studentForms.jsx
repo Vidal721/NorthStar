@@ -389,7 +389,7 @@ function SettingsView() {
         <p>Settings Functionality coming soon.</p>
         <p>Current Version: V1.0.0</p>
         <p>Please email or text us about any bugs or feature requests</p>
-        <a href="mailto:team935scouting@gmail.com">team935@gmail.com</a>
+        <a href="mailto:team935scouting@gmail.com">team935scouting@gmail.com</a>
         <a href={`tel:${phoneNumber}`}>Call Us: (555) 123-4567</a>
       </div>
     </section>
