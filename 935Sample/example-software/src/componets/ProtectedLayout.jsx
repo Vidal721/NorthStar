@@ -22,6 +22,6 @@ export default function ProtectedLayout({ allowedRoles, allowedSubgroups }) {
     return <Navigate to="/scout" replace />;
   }
 
-  // 5. Permitted access layout rendering
+  // 5. Permitted access layout renderinga
   return <Outlet />;
 }
