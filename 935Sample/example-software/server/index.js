@@ -586,7 +586,7 @@ app.post("/auth/register", async (req, res) => {
     // 2. Prevent duplicate usernames
     const userExists = users.some((u) => u.username === username);
     if (userExists) {
-      return res.status(400).json({ error: "User already exists" });
+      return res.status(400).json({ error: "User already exists check" });
     }
 
     // 3. Hash the password securely using bcrypt

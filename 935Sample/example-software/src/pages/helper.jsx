@@ -69,10 +69,10 @@ const emptyForm = () => ({
 });
 
 const AUDIENCES = [
-  ["students", "All students"],
-  ["mentor", "All mentors"],
-  ["helper", "All helpers"],
-  ["coach", "All coaches"],
+  ["students", "Students"],
+  ["mentor", "Mentors"],
+  ["helper", "Helpers"],
+  ["coach", "Coaches"],
   ["everyone", "Everyone"],
   ["subgroup:Manufacturing", "Manufacturing subgroup"],
   ["subgroup:Programming", "Programming subgroup"],
@@ -310,9 +310,10 @@ export default function HelperPage({ roleLabel = "Helper" }) {
     const form = forms.find((item) => item.id === formId);
     if (!form?.audiences?.length) {
       setFormError("Choose at least one recipient group before sending this form.");
-      return;
+      return false;
     }
     updateForm(formId, { status: "sent", sentAt: new Date().toISOString() });
+    return true;
   };
 
   const openResponses = (formId, origin) => {
@@ -439,6 +440,8 @@ export default function HelperPage({ roleLabel = "Helper" }) {
                 onUpdateOption={updateOption}
                 onDeleteOption={deleteOption}
                 onSend={sendForm}
+                formError={formError}
+                setFormError={setFormError}
               />
             )}
           </>
@@ -578,7 +581,7 @@ function FormsList({ forms, isLoading, error, onCreate, onEdit, onDelete, onSend
                     </button>
                   )}
                   {form.status !== "sent" && (
-                    <button onClick={() => onSend(form.id)} title="Send to students">
+                    <button onClick={() => onEdit(form.id)} title="Send to students">
                       <FontAwesomeIcon icon={faPaperPlane} /> Send
                     </button>
                   )}
@@ -612,22 +615,35 @@ function FormBuilder({
   onUpdateOption,
   onDeleteOption,
   onSend,
+  formError,
+  setFormError,
 }) {
   const shareLink =
     typeof window !== "undefined" ? `${window.location.origin}/form/${form.id}` : "";
   const [copied, setCopied] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  
   const selectedAudiences = form.audiences?.length ? form.audiences : ["students"];
+  
   const toggleAudience = (audience) => {
     const next = selectedAudiences.includes(audience)
       ? selectedAudiences.filter((item) => item !== audience)
       : [...selectedAudiences, audience];
     onUpdateForm(form.id, { audiences: next });
+    if (next.length > 0) setFormError("");
   };
 
   const copyLink = () => {
     navigator.clipboard?.writeText(shareLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleFinalSend = () => {
+    const success = onSend(form.id);
+    if (success) {
+      setIsSendModalOpen(false);
+    }
   };
 
   return (
@@ -637,7 +653,7 @@ function FormBuilder({
           <FontAwesomeIcon icon={faArrowLeft} /> Back to Forms
         </button>
         {form.status !== "sent" ? (
-          <button className="launch-btn accent form-send-btn" onClick={() => onSend(form.id)}>
+          <button className="launch-btn accent form-send-btn" onClick={() => setIsSendModalOpen(true)}>
             <FontAwesomeIcon icon={faPaperPlane} /> Send form
           </button>
         ) : (
@@ -670,22 +686,6 @@ function FormBuilder({
           rows={2}
           onChange={(e) => onUpdateForm(form.id, { description: e.target.value })}
         />
-      </div>
-
-      <div className="form-title-card form-audience-card">
-        <div>
-          <h3>Send to</h3>
-          <p>Select every group that should receive this form.</p>
-        </div>
-        <div className="form-audience-options">
-          {AUDIENCES.map(([id, label]) => (
-            <label key={id} className="form-audience-option">
-              <input type="checkbox" checked={selectedAudiences.includes(id)} onChange={() => toggleAudience(id)} />
-              <span>{label}</span>
-            </label>
-          ))}
-        </div>
-        {selectedAudiences.length === 0 && <p className="form-audience-warning">Choose at least one recipient group before sending.</p>}
       </div>
 
       {form.questions.map((q, idx) => (
@@ -789,6 +789,46 @@ function FormBuilder({
       <button className="form-add-question-btn" onClick={() => onAddQuestion(form.id)}>
         <FontAwesomeIcon icon={faPlus} /> Add question
       </button>
+
+      {isSendModalOpen && (
+        <div className="form-modal-overlay">
+          <div className="form-modal-window animate-pop">
+            <button className="form-modal-close" onClick={() => setIsSendModalOpen(false)}>
+              <FontAwesomeIcon icon={faX} />
+            </button>
+            <div className="form-modal-header">
+              <h2>Send Form</h2>
+              <p>Select all the recipient groups you want to give access to this form.</p>
+            </div>
+            
+            {formError && <p className="form-modal-error">{formError}</p>}
+
+            <div className="form-modal-audiences-grid">
+              {AUDIENCES.map(([id, label]) => {
+                const isSelected = selectedAudiences.includes(id);
+                return (
+                  <div 
+                    key={id} 
+                    className={`form-modal-audience-card ${isSelected ? "selected" : ""}`}
+                    onClick={() => toggleAudience(id)}
+                  >
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="form-modal-footer">
+              <button className="form-modal-cancel-btn" onClick={() => setIsSendModalOpen(false)}>
+                Cancel
+              </button>
+              <button className="form-modal-confirm-btn" onClick={handleFinalSend}>
+                <FontAwesomeIcon icon={faPaperPlane} /> Send Form
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

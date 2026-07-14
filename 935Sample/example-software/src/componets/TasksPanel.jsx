@@ -69,7 +69,6 @@ export default function TasksPanel() {
     <section className="tasks-panel">
       <div className="tasks-header">
         <div>
-          <span className="scout-overline">Team work</span>
           <h2>Tasks</h2>
         </div>
         <button onClick={() => setShowForm(!showForm)}>

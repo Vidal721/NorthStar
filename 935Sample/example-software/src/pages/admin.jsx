@@ -34,15 +34,16 @@ import {
   getApiBaseUrl,
   getConnectionMode,
   getDefaultHeaders,
+  getUseLocalApi,
   setConnectionMode as saveConnectionMode,
+  setUseLocalApi,
 } from "../apiConfig";
 import { useURL } from "../urlConfig";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("matches");
-  const [connectionMode, setConnectionModeState] =
-    useState(getConnectionMode());
+  const [useLocalApi, setUseLocalApiState] = useState(getUseLocalApi());
 
   const [matches, setMatches] = useState([]);
   const [pits, setPits] = useState([]);
@@ -59,15 +60,14 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchRegionalsList();
-  }, [connectionMode]);
+  }, [useLocalApi]);
 
   useEffect(() => {
     fetchAllSystemData({ showFullScreenLoader: true });
-  }, [connectionMode, selectedRegional]);
+  }, [useLocalApi, selectedRegional]);
 
   useEffect(() => {
-    const syncConnectionMode = () =>
-      setConnectionModeState(getConnectionMode());
+    const syncConnectionMode = () => setUseLocalApiState(getUseLocalApi());
     window.addEventListener("storage", syncConnectionMode);
     window.addEventListener("connection-mode-change", syncConnectionMode);
     return () => {
@@ -76,8 +76,8 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  function handleConnectionModeChange(mode) {
-    setConnectionModeState(saveConnectionMode(mode));
+  function handleConnectionModeChange(nextValue) {
+    setUseLocalApiState(setUseLocalApi(nextValue));
     setError(null);
   }
 
@@ -376,6 +376,13 @@ export default function AdminDashboard() {
           id="mobileLogo"
           onClick={toggleMobileSidebar}
         />
+        <button
+          onClick={() => handleConnectionModeChange(!useLocalApi)}
+          className="admin-logout-btn"
+          style={{ marginRight: "10px", padding: "8px 12px" }}
+        >
+          <FontAwesomeIcon icon={faServer} /> {useLocalApi ? "Local" : "Online"}
+        </button>
         <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>

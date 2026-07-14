@@ -1,14 +1,30 @@
-export const CONNECTION_MODE_KEY = "connectionMode";
+export const CONNECTION_MODE_KEY = "useLocalApi";
 
 export const API_ENDPOINTS = {
   local: "http://localhost:3000",
   online: "https://taco-childhood-jailbreak.ngrok-free.dev",
 };
 
+function readStoredUseLocalApi() {
+  if (typeof window === "undefined") return false;
+
+  const storedValue = localStorage.getItem(CONNECTION_MODE_KEY);
+  if (storedValue === null) {
+    const legacyValue = localStorage.getItem("connectionMode");
+    if (legacyValue === "local") return true;
+    if (legacyValue === "online") return false;
+    return false;
+  }
+
+  return storedValue === "true";
+}
+
+export function getUseLocalApi() {
+  return readStoredUseLocalApi();
+}
+
 export function getConnectionMode() {
-  return localStorage.getItem(CONNECTION_MODE_KEY) === "local"
-    ? "local"
-    : "online";
+  return getUseLocalApi() ? "local" : "online";
 }
 
 /** In Vite dev on localhost, use same-origin `/backend` proxy (avoids CORS + ngrok interstitial). */
@@ -22,13 +38,22 @@ export function getApiBaseUrl() {
   return API_ENDPOINTS[getConnectionMode()];
 }
 
+export function setUseLocalApi(useLocalApi) {
+  const nextValue = Boolean(useLocalApi);
+  if (typeof window !== "undefined") {
+    localStorage.setItem(CONNECTION_MODE_KEY, String(nextValue));
+    localStorage.removeItem("connectionMode");
+    window.dispatchEvent(
+      new CustomEvent("connection-mode-change", {
+        detail: { mode: nextValue ? "local" : "online", useLocalApi: nextValue },
+      }),
+    );
+  }
+  return nextValue;
+}
+
 export function setConnectionMode(mode) {
-  const nextMode = mode === "online" ? "online" : "local";
-  localStorage.setItem(CONNECTION_MODE_KEY, nextMode);
-  window.dispatchEvent(
-    new CustomEvent("connection-mode-change", { detail: { mode: nextMode } })
-  );
-  return nextMode;
+  return setUseLocalApi(mode === "local" || mode === true);
 }
 
 export function getDefaultHeaders(extraHeaders = {}) {

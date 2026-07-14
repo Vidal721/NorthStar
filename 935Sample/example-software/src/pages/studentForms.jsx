@@ -177,13 +177,13 @@ function StudentShell({ children, activeTab, setActiveTab }) {
 function DashboardView() {
   return (
     <section>
-      <TasksPanel />
+      
       <h1>Dashboard</h1>
       <div className="dash-forms-panel">
         <div className="dash-forms-panel-header">
-          <h3>Scouting Dashboard</h3>
+          <h3>My Dashboard</h3>
           <span className="admin-regionals-count">
-            Quick analytical metrics
+            A Quick Look
           </span>
         </div>
 
@@ -191,30 +191,7 @@ function DashboardView() {
           className="dash-forms-list"
           style={{ padding: "1.5rem", display: "flex", gap: "1rem" }}
         >
-          <div className="admin-form-card" style={{ flex: 1, margin: 0 }}>
-            <div className="admin-form-card-header">
-              <span className="admin-form-card-title">Forms Completed</span>
-            </div>
-            <div className="admin-card-body">
-              <h2 style={{ fontSize: "2rem", margin: "0.5rem 0" }}>0</h2>
-            </div>
-          </div>
-          <div className="admin-form-card" style={{ flex: 1, margin: 0 }}>
-            <div className="admin-form-card-header">
-              <span className="admin-form-card-title">Team Status</span>
-            </div>
-            <div className="admin-card-body">
-              <h2
-                style={{
-                  fontSize: "2rem",
-                  margin: "0.5rem 0",
-                  color: "var(--accent-color)",
-                }}
-              >
-                Active
-              </h2>
-            </div>
-          </div>
+          <TasksPanel />
         </div>
       </div>
     </section>
@@ -420,39 +397,9 @@ function LegacyDriveView() {
 function SettingsView() {
   return (
     <section style={{ padding: "1rem" }}>
-      <h1>Account Settings</h1>
-      <div
-        className="form-title-card"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          marginTop: "1rem",
-        }}
-      >
-        <div>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "0.5rem",
-              fontWeight: "bold",
-            }}
-          >
-            User Name
-          </label>
-          <input
-            type="text"
-            className="form-title-input"
-            style={{ fontSize: "1rem" }}
-            placeholder="Your Name"
-          />
-        </div>
-        <button
-          className="launch-btn accent"
-          style={{ alignSelf: "flex-start" }}
-        >
-          Save Changes
-        </button>
+      <h1>Settings</h1>
+      <div className="form-title-card" style={{ marginTop: "1rem" }}>
+        <p>Settings Functionality coming soon.</p>
       </div>
     </section>
   );
@@ -464,12 +411,7 @@ function SubgroupView() {
     <section style={{ padding: "1rem" }}>
       <h1>My Subgroup</h1>
       <div className="form-title-card" style={{ marginTop: "1rem" }}>
-        <p>
-          <strong>Assigned Group:</strong> Data Analysis & Strategy
-        </p>
-        <p>
-          <strong>Lead Mentor:</strong> John Doe
-        </p>
+        <p>Subgroup Functionality coming soon.</p>
       </div>
     </section>
   );
