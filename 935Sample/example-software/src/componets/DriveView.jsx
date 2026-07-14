@@ -361,7 +361,11 @@ export default function DriveView() {
             >
               <FontAwesomeIcon icon={faX} />
             </button>
-            <img src={previewImage.url} alt={previewImage.name} />
+            <img
+              src={previewImage.url}
+              alt={previewImage.name}
+              style={{ maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain" }}
+            />
             <div className="drive-image-lightbox-caption">
               {previewImage.name}
             </div>
