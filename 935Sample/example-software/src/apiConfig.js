@@ -3,7 +3,7 @@
 //    (http://localhost:3000) regardless of the toggle in the Admin dashboard.
 //    Set to `false` to use the URL stored in localStorage (Admin toggle).
 // ─────────────────────────────────────────────────────────────────────────────
-export const USE_LOCAL_BACKEND = false;
+export const USE_LOCAL_BACKEND = true;
 
 export const CONNECTION_MODE_KEY = "useLocalApi";
 
