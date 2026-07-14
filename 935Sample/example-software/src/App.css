@@ -5662,7 +5662,7 @@ input[type="file"] {
   .subgroup-create-form {
     flex-direction: column;
   }
-  .message-drawer{
+  .message-drawer {
     top: -13px;
     right: -13px;
   }
@@ -5902,7 +5902,9 @@ input[type="file"] {
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.2),
+    0 10px 10px -5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -5981,7 +5983,7 @@ input[type="file"] {
 /* Yellow Transformation Theme rule */
 .form-modal-audience-card.selected {
   background: #fef08a !important; /* Bright crisp bright yellow */
-  border-color: #eab308 !important;   /* Distinct yellow-gold contour border */
+  border-color: #eab308 !important; /* Distinct yellow-gold contour border */
   box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.15);
 }
 
@@ -6045,8 +6047,14 @@ input[type="file"] {
 }
 
 @keyframes modalPop {
-  0% { transform: scale(0.95); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* ==========================================
@@ -6414,7 +6422,9 @@ input[type="file"] {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
   flex-shrink: 0;
 }
 .chat-send-btn:hover {
@@ -6513,6 +6523,7 @@ input[type="file"] {
 .chat-option-card {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 12px 16px;
   border: 1px solid var(--input-border);
@@ -6520,6 +6531,7 @@ input[type="file"] {
   cursor: pointer;
   transition: all 0.15s ease;
   background: var(--bg-app);
+  position: relative;
 }
 .chat-option-card:hover {
   border-color: var(--accent);
@@ -6528,16 +6540,29 @@ input[type="file"] {
 .chat-option-icon {
   font-size: 1.25rem;
   color: var(--accent);
+  position: absolute; 
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%); 
 }
+
+.chat-option-text {
+  width: 100%;
+}
+
 .chat-option-text h4 {
   margin: 0 0 2px 0;
   font-size: 0.95rem;
   color: var(--text-primary);
+  width: 100%;
+  text-align: center;
 }
 .chat-option-text p {
   margin: 0;
   font-size: 0.75rem;
   color: var(--text-muted);
+  width: 100%;
+  text-align: center;
 }
 
 /* Forms inside modal */
@@ -6551,7 +6576,9 @@ input[type="file"] {
   font-weight: 600;
   color: var(--text-primary);
 }
-.chat-form-input, .chat-form-select, .chat-form-textarea {
+.chat-form-input,
+.chat-form-select,
+.chat-form-textarea {
   padding: 8px 12px;
   border: 1px solid var(--input-border);
   border-radius: 8px;
@@ -6564,7 +6591,9 @@ input[type="file"] {
   min-height: 80px;
   resize: vertical;
 }
-.chat-form-input:focus, .chat-form-select:focus, .chat-form-textarea:focus {
+.chat-form-input:focus,
+.chat-form-select:focus,
+.chat-form-textarea:focus {
   border-color: var(--accent);
 }
 .chat-btn {
@@ -6618,7 +6647,10 @@ input[type="file"] {
   padding: 4px 6px;
   border-radius: 6px;
   opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
   flex-shrink: 0;
   align-self: center;
 }
@@ -6629,4 +6661,3 @@ input[type="file"] {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
 }
-

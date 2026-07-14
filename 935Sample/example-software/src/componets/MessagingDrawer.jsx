@@ -498,7 +498,7 @@ export default function MessagingDrawer() {
                   className="chat-input-field"
                   value={messageBody}
                   onChange={(e) => setMessageBody(e.target.value)}
-                  placeholder="iMessage"
+                  placeholder="Team Message"
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
