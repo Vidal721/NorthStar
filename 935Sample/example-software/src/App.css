@@ -41,6 +41,31 @@ input:-webkit-autofill:active {
 
   --accent-yellow-soft: rgba(250, 204, 21, 0.18);
 
+  /* Generic interactive accent (chat, announcements) — was missing, referenced
+     throughout but never defined; using the iMessage-style blue already
+     hardcoded in the chat bubbles for consistency. */
+  --accent: #007aff;
+  --accent-bg: rgba(0, 122, 255, 0.12);
+  --accent-border: rgba(0, 122, 255, 0.35);
+
+  /* Scout feature tokens — aliased to the core tokens above so they inherit
+     light/dark theming automatically instead of needing their own overrides. */
+  --scout-bg-app: var(--bg-app);
+  --scout-bg-surface: var(--bg-surface);
+  --scout-bg-card: var(--bg-elevated);
+  --scout-border: var(--border-default);
+  --scout-border-subtle: var(--border-subtle);
+  --scout-border-card: var(--border-subtle);
+  --scout-text-primary: var(--text-primary);
+  --scout-text-secondary: var(--text-secondary);
+  --scout-text-body: var(--text-secondary);
+  --scout-text-muted: var(--text-muted);
+  --scout-text-faint: var(--text-muted);
+  --scout-text-dim: var(--text-muted);
+  --scout-text-ghost: var(--text-muted);
+  --scout-text-darker: var(--text-primary);
+  --scout-neutral-glow: rgba(0, 0, 0, 0.08);
+
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-xl: 24px;
@@ -86,6 +111,12 @@ input:-webkit-autofill:active {
   --input-placeholder: #52524e;
 
   --accent-yellow-soft: rgba(250, 204, 21, 0.12);
+
+  --accent: #0a84ff;
+  --accent-bg: rgba(10, 132, 255, 0.16);
+  --accent-border: rgba(10, 132, 255, 0.4);
+
+  --scout-neutral-glow: rgba(255, 255, 255, 0.08);
 
   --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -296,9 +327,7 @@ body {
   background: var(--btn-accent-hover);
 }
 
-/* =========================================================
-   THEME TOGGLE
-   ========================================================= */
+/* THEME TOGGLE */
 
 .theme-btn {
   display: inline-flex;
@@ -334,9 +363,7 @@ body {
   transform: scale(0.97);
 }
 
-/* =========================================================
-   ICON TOGGLE
-   ========================================================= */
+/* ICON TOGGLE */
 
 [data-theme="dark"] .icon-sun {
   display: inline;
@@ -354,9 +381,8 @@ body {
   display: inline;
 }
 
-/* =========================================================
-   MODERN CARD
-   ========================================================= */
+
+/* MODERN CARD */
 
 .card {
   background: var(--bg-surface);
@@ -377,9 +403,8 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* =========================================================
-   INPUTS
-   ========================================================= */
+
+/* INPUTS */
 
 .input {
   width: 100%;
@@ -405,9 +430,8 @@ body {
   box-shadow: 0 0 0 4px var(--accent-yellow-soft);
 }
 
-/* =========================================================
-   PAGE WRAPPER
-   ========================================================= */
+
+/* PAGE WRAPPER */
 
 .page-content {
   padding: 16px 0 32px;
@@ -415,9 +439,8 @@ body {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   NAVBAR
-   ========================================================= */
+
+/* NAVBAR */
 
 .navbar {
   position: sticky;
@@ -437,9 +460,7 @@ body {
   background: rgba(15, 15, 13, 0.65);
 }
 
-/* =========================================================
-   GLASS PANEL
-   ========================================================= */
+/* GLASS PANEL */
 
 .glass {
   background: var(--bg-surface);
@@ -448,9 +469,8 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* =========================================================
-   FLEX UTILITIES
-   ========================================================= */
+
+/* FLEX UTILITIES */
 
 .flex {
   display: flex;
@@ -534,6 +554,10 @@ body {
 
 /* =========================================================
    SCOUT — DESIGN TOKENS
+   (separate :root block on purpose: semantic status colors for the
+   Scout feature; layered on top of the core tokens defined above,
+   which the scout-bg, scout-text, and scout-border aliases up top
+   pull from directly)
    ========================================================= */
 
 :root {
@@ -2350,8 +2374,8 @@ body {
 
 .hub-badge {
   font-size: 0.45em;
-  background-color: var(--accent-color, #ffcc00);
-  color: #111;
+  background-color: var(--btn-accent-bg);
+  color: var(--btn-accent-text);
   padding: 3px 10px;
   border-radius: 20px;
   vertical-align: middle;
@@ -5884,10 +5908,7 @@ input[type="file"] {
 /* --- Send Form Modal Styles --- */
 .form-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(6px);
   display: flex;
