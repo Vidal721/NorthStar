@@ -6231,6 +6231,7 @@ input[type="file"] {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 4px;
+  color: var(--text-primary);
 }
 .chat-thread-name {
   font-weight: 600;
@@ -6478,6 +6479,7 @@ input[type="file"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: var(--text-primary);
 }
 .chat-modal-header h3 {
   margin: 0;
