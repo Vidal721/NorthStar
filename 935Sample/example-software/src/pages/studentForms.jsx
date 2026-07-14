@@ -106,19 +106,6 @@ function StudentShell({ children, activeTab, setActiveTab }) {
             <FontAwesomeIcon icon={tab.icon} /> {tab.label}
           </button>
         ))}
-
-        <button
-          className={`admin-tab-btn-mobile ${activeTab === "settings" ? "active" : ""}`}
-          onClick={() => selectTab("settings")}
-        >
-          Settings
-        </button>
-        <button
-          className={`admin-tab-btn-mobile ${activeTab === "subgroup" ? "active" : ""}`}
-          onClick={() => selectTab("subgroup")}
-        >
-          Subgroup
-        </button>
       </div>
 
       <header className="admin-header">

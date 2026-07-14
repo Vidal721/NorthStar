@@ -5276,7 +5276,7 @@ input[type="file"] {
   position: absolute;
   width: 200px;
   padding: 10px;
-  bottom: 90px;
+  bottom: 100px;
   right: 30px;
   border-radius: var(--radius-md);
 }
