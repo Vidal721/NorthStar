@@ -1248,6 +1248,43 @@ app.post("/folder", (req, res) => {
   });
 });
 
+app.get("/drive/file", (req, res) => {
+  try {
+    const relativePath = req.query.path || "";
+    const user = getDriveUser(req);
+
+    if (!canReadDrivePath(user, relativePath)) {
+      return res
+        .status(403)
+        .json({ error: "You do not have access to this subgroup's files." });
+    }
+
+    const baseUploadsDir = path.resolve(__dirname, "uploads");
+    const targetFile = path.resolve(baseUploadsDir, relativePath);
+
+    if (
+      !relativePath ||
+      (targetFile !== baseUploadsDir &&
+        !targetFile.startsWith(`${baseUploadsDir}${path.sep}`))
+    ) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+
+    if (!fs.existsSync(targetFile)) {
+      return res.status(404).json({ error: "File not found." });
+    }
+
+    if (!fs.lstatSync(targetFile).isFile()) {
+      return res.status(400).json({ error: "Directories cannot be downloaded this way." });
+    }
+
+    res.sendFile(targetFile);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Could not retrieve file." });
+  }
+});
+
 app.delete("/drive/file", (req, res) => {
   try {
     const relativePath = req.query.path || "";
