@@ -21,6 +21,9 @@ import SharedDriveView from "../componets/DriveView";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
 import AnnouncementBell from "../componets/AnnouncementBell";
+import UpdateModal from '../componets/UpdateModal';
+import appInfo from './info.json';
+
 const apiBaseUrl = useURL();
 
 const needsOptions = (type) =>
@@ -48,17 +51,45 @@ const studentTabs = [
 export default function StudentFormsPage() {
   const { formId } = useParams();
   const [activeTab, setActiveTab] = useState("forms");
+  const [hasNewUpdate, setHasNewUpdate] = useState(false);
+
+  useEffect(() => {
+    // Check localStorage exactly once when the entire application mounts
+    const lastSeenVersion = localStorage.getItem('app_version_seen');
+    
+    // Safety check: Don't trigger the modal on first-time load
+    if (!lastSeenVersion) {
+      localStorage.setItem('app_version_seen', appInfo.version);
+    } else if (lastSeenVersion !== appInfo.version) {
+      setHasNewUpdate(true);
+    }
+  }, []);
+
+  const handleDismissUpdate = () => {
+    localStorage.setItem('app_version_seen', appInfo.version);
+    setHasNewUpdate(false);
+  };
 
   if (formId) {
     return (
-      <StudentShell activeTab="forms" setActiveTab={setActiveTab}>
+      <StudentShell 
+        activeTab="forms" 
+        setActiveTab={setActiveTab}
+        hasNewUpdate={hasNewUpdate}
+        handleDismissUpdate={handleDismissUpdate}
+      >
         <StudentFormDetail formId={formId} />
       </StudentShell>
     );
   }
 
   return (
-    <StudentShell activeTab={activeTab} setActiveTab={setActiveTab}>
+    <StudentShell 
+      activeTab={activeTab} 
+      setActiveTab={setActiveTab}
+      hasNewUpdate={hasNewUpdate}
+      handleDismissUpdate={handleDismissUpdate}
+    >
       {activeTab === "dashboard" && <DashboardView />}
       {activeTab === "forms" && <StudentFormsList />}
       {activeTab === "drive" && <SharedDriveView />}
@@ -68,8 +99,14 @@ export default function StudentFormsPage() {
   );
 }
 
-// NAVIGATION SHELL WITH EXACT SIDEBAR & HEADER MARKS FROM HELPER
-function StudentShell({ children, activeTab, setActiveTab }) {
+// NAVIGATION SHELL WITH PROPS PASSED FROM THE PARENT
+function StudentShell({ 
+  children, 
+  activeTab, 
+  setActiveTab, 
+  hasNewUpdate, 
+  handleDismissUpdate 
+}) {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
@@ -89,6 +126,7 @@ function StudentShell({ children, activeTab, setActiveTab }) {
 
   return (
     <div className="admin-container fade-in">
+      {hasNewUpdate && <UpdateModal onClose={handleDismissUpdate} />}
       <MessagingDrawer />
       <div
         className={`mobileSidebarOverlay ${isSidebarOpen ? "active" : ""}`}
@@ -387,10 +425,9 @@ function SettingsView() {
       <h1>Settings</h1>
       <div className="form-title-card" style={{ marginTop: "1rem" }}>
         <p>Settings Functionality coming soon.</p>
-        <p>Current Version: V1.0.0</p>
+        <p>Current Version: {appInfo.version}</p>
         <p>Please email or text us about any bugs or feature requests</p>
-        <a href="mailto:team935scouting@gmail.com">team935scouting@gmail.com</a>
-        <a href={`tel:${phoneNumber}`}>Call Us: (555) 123-4567</a>
+        <a href="mailto:team935scouting@gmail.com">{appInfo.email}</a>
       </div>
     </section>
   );

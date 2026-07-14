@@ -40,6 +40,8 @@ import {
   setUseLocalApi,
 } from "../apiConfig";
 import { useURL } from "../urlConfig";
+import UpdateModal from '../componets/UpdateModal';
+import appInfo from './info.json';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -58,6 +60,24 @@ export default function AdminDashboard() {
 
   const currentScout = localStorage.getItem("currentUser") || "Unknown Admin";
   const apiBaseUrl = useURL();
+    const [hasNewUpdate, setHasNewUpdate] = useState(false);
+
+  useEffect(() => {
+    // Check localStorage exactly once when the entire application mounts
+    const lastSeenVersion = localStorage.getItem('app_version_seen');
+    
+    // Safety check: Don't trigger the modal on first-time load
+    if (!lastSeenVersion) {
+      localStorage.setItem('app_version_seen', appInfo.version);
+    } else if (lastSeenVersion !== appInfo.version) {
+      setHasNewUpdate(true);
+    }
+  }, []);
+
+  const handleDismissUpdate = () => {
+    localStorage.setItem('app_version_seen', appInfo.version);
+    setHasNewUpdate(false);
+  };
 
   useEffect(() => {
     fetchRegionalsList();
@@ -189,7 +209,7 @@ export default function AdminDashboard() {
   const deleteAll = async () => {
     if (
       !window.confirm(
-        "圷 CRITICAL WARNING: This completely purges ALL match telemetry data and pit analytics permanently. Proceed?",
+        "CRITICAL WARNING: This completely purges ALL match data and pit analytics permanently. Proceed?",
       )
     )
       return;
@@ -198,7 +218,7 @@ export default function AdminDashboard() {
         method: "DELETE",
       });
       if (response.ok) {
-        alert("System databases purged safely.");
+        alert("All data has been deleted");
         fetchAllSystemData({ showFullScreenLoader: false });
       } else {
         throw new Error("Purge transaction declined by service node.");

@@ -13,6 +13,8 @@ import {
   faUpload,
   faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
+import UpdateModal from '../componets/UpdateModal';
+import appInfo from './info.json';
 
 export default function MainMenu() {
   // Theme State
@@ -33,6 +35,24 @@ export default function MainMenu() {
   const [newShoutAuthor, setNewShoutAuthor] = useState("");
   const [newShoutText, setNewShoutText] = useState("");
   const [newAdvice, setNewAdvice] = useState("");
+    const [hasNewUpdate, setHasNewUpdate] = useState(false);
+
+  useEffect(() => {
+    // Check localStorage exactly once when the entire application mounts
+    const lastSeenVersion = localStorage.getItem('app_version_seen');
+    
+    // Safety check: Don't trigger the modal on first-time load
+    if (!lastSeenVersion) {
+      localStorage.setItem('app_version_seen', appInfo.version);
+    } else if (lastSeenVersion !== appInfo.version) {
+      setHasNewUpdate(true);
+    }
+  }, []);
+
+  const handleDismissUpdate = () => {
+    localStorage.setItem('app_version_seen', appInfo.version);
+    setHasNewUpdate(false);
+  };
 
   // Sample Schedule Data
   const scheduleData = [

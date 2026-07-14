@@ -24,6 +24,8 @@ import {
   faPen,
   faCircleCheck,
 } from "@fortawesome/free-solid-svg-icons";
+import UpdateModal from '../componets/UpdateModal';
+import appInfo from './info.json';
 
 const helperTabs = [
   { id: "dashboard", label: "Dashboard", icon: faChartLine },
@@ -97,6 +99,24 @@ export default function HelperPage({ roleLabel = "Helper" }) {
   const [viewingResponsesId, setViewingResponsesId] = useState(null);
   const [responsesOrigin, setResponsesOrigin] = useState("forms"); // forms | dashboard
   const visibleTabs = roleLabel === "Coach" ? [...helperTabs, { id: "leaders", label: "Leaders", icon: faUser }] : helperTabs;
+    const [hasNewUpdate, setHasNewUpdate] = useState(false);
+
+  useEffect(() => {
+    // Check localStorage exactly once when the entire application mounts
+    const lastSeenVersion = localStorage.getItem('app_version_seen');
+    
+    // Safety check: Don't trigger the modal on first-time load
+    if (!lastSeenVersion) {
+      localStorage.setItem('app_version_seen', appInfo.version);
+    } else if (lastSeenVersion !== appInfo.version) {
+      setHasNewUpdate(true);
+    }
+  }, []);
+
+  const handleDismissUpdate = () => {
+    localStorage.setItem('app_version_seen', appInfo.version);
+    setHasNewUpdate(false);
+  };
 
   useEffect(() => {
     fetchForms();
