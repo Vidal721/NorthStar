@@ -166,14 +166,11 @@ function StudentShell({ children, activeTab, setActiveTab }) {
 function DashboardView() {
   return (
     <section>
-      
       <h1>Dashboard</h1>
       <div className="dash-forms-panel">
         <div className="dash-forms-panel-header">
           <h3>My Dashboard</h3>
-          <span className="admin-regionals-count">
-            A Quick Look
-          </span>
+          <span className="admin-regionals-count">A Quick Look</span>
         </div>
 
         <div
@@ -384,11 +381,16 @@ function LegacyDriveView() {
 
 // VIEW: SETTINGS
 function SettingsView() {
+  const phoneNumber = "+13162493376";
   return (
     <section style={{ padding: "1rem" }}>
       <h1>Settings</h1>
       <div className="form-title-card" style={{ marginTop: "1rem" }}>
         <p>Settings Functionality coming soon.</p>
+        <p>Current Version: V1.0.0</p>
+        <p>Please email or text us about any bugs or feature requests</p>
+        <a href="mailto:team935scouting@gmail.com">team935@gmail.com</a>
+        <a href={`tel:${phoneNumber}`}>Call Us: (555) 123-4567</a>
       </div>
     </section>
   );
