@@ -383,7 +383,7 @@ export default function MessagingDrawer() {
         <div className="message-drawer">
           {/* Drawer Header */}
           <div className="message-drawer-header">
-            <div>
+            <div className="message-drawer-header-text">
               <h2>Messages</h2>
               <p>Coaches monitor all conversations.</p>
             </div>
@@ -643,7 +643,7 @@ export default function MessagingDrawer() {
                   {/* Form: Make Announcement */}
                   {plusView === "announcement" && (
                     <form onSubmit={handleCreateAnnouncement} className="chat-form-group">
-                      <label htmlFor="announcement-text-input">Notice Content</label>
+                      <label htmlFor="announcement-text-input">Announcment Content</label>
                       <textarea
                         id="announcement-text-input"
                         placeholder="Write announcement description..."
@@ -657,7 +657,7 @@ export default function MessagingDrawer() {
                           Back
                         </button>
                         <button type="submit" className="chat-btn primary" disabled={!announcementText.trim()}>
-                          Broadcast Notice
+                          Post Announcement
                         </button>
                       </div>
                     </form>
