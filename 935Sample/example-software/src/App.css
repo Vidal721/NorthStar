@@ -160,6 +160,12 @@ body,
   text-rendering: optimizeLegibility;
 }
 
+/* Let normal dashboard pages extend their app background with their content.
+   Fixed full-screen tools provide their own viewport sizing. */
+#root {
+  height: auto;
+}
+
 #main-menu-container {
   width: 100%;
   max-width: 1200px;
@@ -6159,6 +6165,7 @@ input[type="file"] {
   overflow: hidden;
   z-index: 1000;
   animation: modalPop 0.2s ease;
+  backdrop-filter: blur(10px);
 }
 @media (max-width: 600px) {
   .announcement-dropdown {
@@ -6167,7 +6174,10 @@ input[type="file"] {
     right: max(12px, env(safe-area-inset-right));
     left: max(12px, env(safe-area-inset-left));
     width: auto;
-    max-height: calc(100dvh - max(68px, calc(env(safe-area-inset-top) + 60px)) - max(12px, env(safe-area-inset-bottom)));
+    height: min(420px, calc(100dvh - 84px));
+    min-height: 140px;
+    max-height: calc(100dvh - 84px);
+    z-index: 3000;
   }
 }
 .announcement-dropdown-header {
@@ -6264,6 +6274,12 @@ input[type="file"] {
   transition: background-color 0.15s ease;
   border: 1px solid transparent;
   color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+  background: var(--bg-app);
+  touch-action: pan-y;
+  will-change: transform;
+  transition: transform 0.18s ease, background-color 0.15s ease;
 }
 .chat-thread-item:hover {
   background-color: var(--input-bg);
@@ -6719,4 +6735,33 @@ input[type="file"] {
 .msg-delete-btn:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
+}
+.chat-thread-swipe {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin: 4px 0;
+}
+.chat-thread-swipe .chat-thread-item {
+  margin: 0;
+}
+.chat-thread-item.swiped {
+  transform: translateX(88px);
+}
+.chat-thread-delete-action {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 88px;
+  border: 0;
+  background: #dc2626;
+  color: #fff;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
 }

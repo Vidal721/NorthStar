@@ -41,8 +41,15 @@ export default function MessagingDrawer() {
   const [announcementText, setAnnouncementText] = useState("");
   const [dmTarget, setDmTarget] = useState("");
   const [newDmTarget, setNewDmTarget] = useState(null); // To handle starting DM with a new user who has no history yet
+  const [hiddenThreadIds, setHiddenThreadIds] = useState(() =>
+    JSON.parse(localStorage.getItem("hidden_message_threads") || "[]"),
+  );
+  const [swipedThreadId, setSwipedThreadId] = useState(null);
+  const [draggingThreadId, setDraggingThreadId] = useState(null);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const messagesEndRef = useRef(null);
+  const swipeStartX = useRef(0);
 
   // Load chats data
   const load = async () => {
@@ -336,7 +343,33 @@ export default function MessagingDrawer() {
       return bTime - aTime;
     });
 
-    return list;
+    return list.filter((thread) => !hiddenThreadIds.includes(thread.id));
+  };
+
+  const hideThread = (threadId) => {
+    const updated = [...new Set([...hiddenThreadIds, threadId])];
+    localStorage.setItem("hidden_message_threads", JSON.stringify(updated));
+    setHiddenThreadIds(updated);
+    setSwipedThreadId(null);
+  };
+
+  const beginThreadSwipe = (event, threadId) => {
+    swipeStartX.current = event.touches[0].clientX;
+    setDraggingThreadId(threadId);
+    setSwipedThreadId(null);
+  };
+
+  const moveThreadSwipe = (event, threadId) => {
+    if (draggingThreadId !== threadId) return;
+    const distance = Math.max(0, Math.min(event.touches[0].clientX - swipeStartX.current, 96));
+    setDragOffset(distance);
+  };
+
+  const endThreadSwipe = (threadId) => {
+    if (draggingThreadId !== threadId) return;
+    setSwipedThreadId(dragOffset >= 48 ? threadId : null);
+    setDraggingThreadId(null);
+    setDragOffset(0);
   };
 
   // Get messages for the active thread
@@ -418,19 +451,39 @@ export default function MessagingDrawer() {
 
               <div className="chat-threads-list">
                 {threads.map((thread) => (
-                  <div
-                    key={thread.id}
-                    className="chat-thread-item"
-                    onClick={() => setActiveThread({ type: thread.type, value: thread.value, name: thread.name })}
-                  >
-                    <div className="chat-thread-avatar">{thread.avatar}</div>
-                    <div className="chat-thread-details">
-                      <div className="chat-thread-top">
-                        <span className="chat-thread-name">{thread.name}</span>
-                        <span className="chat-thread-time">{thread.time}</span>
-                      </div>
-                      <div className="chat-thread-bottom">
-                        <span className="chat-thread-preview">{thread.lastMessage}</span>
+                  <div className="chat-thread-swipe" key={thread.id}>
+                    <button
+                      className="chat-thread-delete-action"
+                      onClick={() => hideThread(thread.id)}
+                      aria-label={`Delete ${thread.name} conversation from this device`}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                      <span>Delete</span>
+                    </button>
+                    <div
+                      className={`chat-thread-item ${swipedThreadId === thread.id ? "swiped" : ""}`}
+                      style={draggingThreadId === thread.id ? { transform: `translateX(${dragOffset}px)` } : undefined}
+                      onTouchStart={(event) => beginThreadSwipe(event, thread.id)}
+                      onTouchMove={(event) => moveThreadSwipe(event, thread.id)}
+                      onTouchEnd={() => endThreadSwipe(thread.id)}
+                      onTouchCancel={() => endThreadSwipe(thread.id)}
+                      onClick={() => {
+                        if (swipedThreadId === thread.id) {
+                          setSwipedThreadId(null);
+                          return;
+                        }
+                        setActiveThread({ type: thread.type, value: thread.value, name: thread.name });
+                      }}
+                    >
+                      <div className="chat-thread-avatar">{thread.avatar}</div>
+                      <div className="chat-thread-details">
+                        <div className="chat-thread-top">
+                          <span className="chat-thread-name">{thread.name}</span>
+                          <span className="chat-thread-time">{thread.time}</span>
+                        </div>
+                        <div className="chat-thread-bottom">
+                          <span className="chat-thread-preview">{thread.lastMessage}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
