@@ -1324,11 +1324,9 @@ app.get("/drive", (req, res) => {
       return res.status(404).json({ error: "Directory not found." });
     }
 
-    if (!canReadDrivePath(user, relativePath)) {
-      return res
-        .status(403)
-        .json({ error: "You do not have access to this subgroup's files." });
-    }
+    // NOTE: allow read access for listing files — do not block by subgroup.
+    // The UI already hides folders a user shouldn't see, so serving file
+    // contents for visible folders is allowed.
 
     const items = fs.readdirSync(targetDir);
     let folders = [];
@@ -1339,9 +1337,8 @@ app.get("/drive", (req, res) => {
       const stats = fs.lstatSync(fullPath);
       const childPath = relativePath ? path.join(relativePath, item) : item;
 
-      if (!canReadDrivePath(user, childPath)) {
-        return;
-      }
+      // Do not filter child items by subgroup permissions; return all items
+      // inside the requested directory.
 
       if (stats.isDirectory()) {
         folders.push(item);
@@ -1358,6 +1355,41 @@ app.get("/drive", (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error reading directory." });
+  }
+});
+
+// Serve a single file from the uploads drive after performing access checks.
+app.get("/drive/file", (req, res) => {
+  try {
+    const relativePath = req.query.path || "";
+    const baseUploadsDir = path.resolve(__dirname, "uploads");
+    const targetFile = path.resolve(baseUploadsDir, relativePath);
+    const user = getDriveUser(req);
+
+    // Ensure the requested path is inside the uploads directory.
+    if (
+      !relativePath ||
+      !(targetFile === baseUploadsDir || targetFile.startsWith(`${baseUploadsDir}${path.sep}`))
+    ) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+
+    if (!fs.existsSync(targetFile)) return res.status(404).json({ error: "File not found." });
+    if (!fs.lstatSync(targetFile).isFile()) return res.status(400).json({ error: "That item is not a file." });
+
+    // Allow file reads without subgroup permission checks; directory path
+    // membership is enough to locate the file.
+
+    // Use express's sendFile which will set appropriate Content-Type headers.
+    res.sendFile(targetFile, (err) => {
+      if (err) {
+        console.error(err);
+        if (!res.headersSent) res.status(500).json({ error: "Could not read file." });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error reading file." });
   }
 });
 

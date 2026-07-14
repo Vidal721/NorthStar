@@ -2300,6 +2300,96 @@ body {
   background-color: var(--bg-elevated);
   padding: 20px;
   margin: auto;
+
+/* Drive thumbnails */
+.drive-content.file {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.drive-image-thumb-button {
+  display: inline-block;
+  width: 112px;
+  height: 84px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.drive-image-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.drive-content-logo {
+  width: 112px;
+  height: 84px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prevent thumbnails or file cards from stretching full-width */
+.drive-file-card {
+  width: 220px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Lightbox: constrain preview image to viewport */
+.drive-image-lightbox-content {
+  max-width: 92vw;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.drive-image-lightbox-content img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  display: block;
+}
+
+/* Overlay styling and stronger constraints for the lightbox image */
+.drive-image-lightbox-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0,0,0,0.6) !important;
+  z-index: 9999 !important;
+  padding: 20px !important;
+}
+
+.drive-image-lightbox-overlay .drive-image-lightbox-content {
+  max-width: 92vw !important;
+  max-height: 86vh !important;
+  box-sizing: border-box !important;
+}
+
+.drive-image-lightbox-overlay .drive-image-lightbox-content img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
   border-radius: var(--radius-md);
   max-width: 350px;
   width: 90%;
@@ -5893,6 +5983,26 @@ input[type="file"] {
   color: #5f6368;
   opacity: 0;
   position: relative;
+}
+
+/* Stronger thumbnail selectors to override earlier rules */
+.drive-view .file .drive-item-button.drive-image-thumb-button,
+.drive-view .file .drive-image-thumb-button {
+  width: 112px !important;
+  height: 84px !important;
+  padding: 0 !important;
+}
+
+.drive-view .file img.drive-image-thumb,
+.drive-view .file .drive-content-logo.drive-image-thumb {
+  width: 112px !important;
+  height: 84px !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.drive-view .drive-file-card {
+  width: 220px !important;
 }
 .drive-view .drive-file-card:hover .drive-delete-btn {
   opacity: 1;
