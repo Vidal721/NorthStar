@@ -1095,6 +1095,51 @@ app.delete("/delete/pit/:id", (req, res) => {
   }
 });
 
+app.delete("/messages/:id", (req, res) => {
+  const actor = getActor(req.query.actor);
+  if (!actor) {
+    return res.status(401).json({ error: "Sign in to delete messages." });
+  }
+  const isLeader = ["admin", "coach"].includes(normalizeRole(actor.role));
+  // Fetch the message first to check ownership
+  const message = db.prepare("SELECT * FROM messages WHERE id = ?").get(req.params.id);
+  if (!message) {
+    return res.status(404).json({ error: "Message not found." });
+  }
+  const isOwner = message.sender === actor.username;
+  if (!isLeader && !isOwner) {
+    return res.status(403).json({ error: "You can only delete your own messages." });
+  }
+  try {
+    db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/users/:username", (req, res) => {
+  const actor = getActor(req.query.actor);
+  if (!actor) {
+    return res.status(401).json({ error: "Sign in to delete users." });
+  }
+  const isLeader = ["admin", "coach"].includes(normalizeRole(actor.role));
+  if (!isLeader) {
+    return res.status(403).json({ error: "Only admins and coaches can delete users." });
+  }
+  try {
+    const users = getUsers();
+    const updated = users.filter((u) => u.username !== req.params.username);
+    if (users.length === updated.length) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    saveUsers(updated);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==== WIPE EVERYTHING ENDPOINT ==== //
 app.delete("/admin/wipe-all", (req, res) => {
   try {

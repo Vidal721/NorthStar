@@ -1,3 +1,10 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 🔧 DEV OVERRIDE: Set this to `true` to ALWAYS use the local backend
+//    (http://localhost:3000) regardless of the toggle in the Admin dashboard.
+//    Set to `false` to use the URL stored in localStorage (Admin toggle).
+// ─────────────────────────────────────────────────────────────────────────────
+export const USE_LOCAL_BACKEND = false;
+
 export const CONNECTION_MODE_KEY = "useLocalApi";
 
 export const API_ENDPOINTS = {
@@ -20,6 +27,7 @@ function readStoredUseLocalApi() {
 }
 
 export function getUseLocalApi() {
+  if (USE_LOCAL_BACKEND) return true;
   return readStoredUseLocalApi();
 }
 

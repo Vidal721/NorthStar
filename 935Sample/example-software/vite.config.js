@@ -4,6 +4,9 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const NGROK_TARGET = "https://taco-childhood-jailbreak.ngrok-free.dev";
 
+// Local backend (used in dev when running `node server/index.js` locally)
+const LOCAL_BACKEND = "http://localhost:3000";
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -49,11 +52,12 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      // Same-origin in dev → no browser CORS. Vite adds the ngrok skip header.
+      // In Vite dev mode on localhost, /backend proxies to your LOCAL server.
+      // To use ngrok instead, change LOCAL_BACKEND to NGROK_TARGET above.
       "/backend": {
-        target: NGROK_TARGET,
+        target: LOCAL_BACKEND,
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/backend/, ""),
         headers: {
           "ngrok-skip-browser-warning": "69420",
@@ -61,4 +65,4 @@ export default defineConfig({
       },
     },
   },
-});
+});

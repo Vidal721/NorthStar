@@ -10,6 +10,7 @@ import {
   faComments,
   faUser,
   faUsers,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
 
@@ -191,6 +192,27 @@ export default function MessagingDrawer() {
       });
     }
   };
+
+  // Delete a message (admin/coach only)
+  const deleteMessage = async (msgId) => {
+    if (!window.confirm("Delete this message permanently?")) return;
+    try {
+      const res = await fetch(`${api}/messages/${encodeURIComponent(msgId)}?actor=${encodeURIComponent(actor)}`, {
+        method: "DELETE",
+        headers: { "ngrok-skip-browser-warning": "69420" },
+      });
+      if (res.ok) {
+        load();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete message.");
+      }
+    } catch (err) {
+      alert("Error deleting message.");
+    }
+  };
+
+  const isAdminOrCoach = ["admin", "coach"].includes(actorRole.toLowerCase());
 
   // Helper: Format message time
   const formatMsgTime = (isoString) => {
@@ -433,23 +455,35 @@ export default function MessagingDrawer() {
 
               {/* Message History */}
               <div className="chat-messages-scroll">
-                {threadMsgs.map((msg) => {
-                  const isOutgoing = msg.sender === actor;
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`message-bubble-wrapper ${isOutgoing ? "outgoing" : "incoming"}`}
-                    >
-                      {!isOutgoing && activeThread.type !== "person" && (
-                        <div className="message-bubble-sender">{msg.sender}</div>
-                      )}
-                      <div className="message-bubble">
-                        {msg.body}
-                        <span className="message-bubble-time">{formatMsgTime(msg.created_at)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                 {threadMsgs.map((msg) => {
+                   const isOutgoing = msg.sender === actor;
+                   return (
+                     <div
+                       key={msg.id}
+                       className={`message-bubble-wrapper ${isOutgoing ? "outgoing" : "incoming"}`}
+                       style={{ position: "relative" }}
+                     >
+                       {!isOutgoing && activeThread.type !== "person" && (
+                         <div className="message-bubble-sender">{msg.sender}</div>
+                       )}
+                       <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", flexDirection: isOutgoing ? "row-reverse" : "row" }}>
+                         <div className="message-bubble">
+                           {msg.body}
+                           <span className="message-bubble-time">{formatMsgTime(msg.created_at)}</span>
+                         </div>
+                         {(isOutgoing || isAdminOrCoach) && (
+                           <button
+                             className="msg-delete-btn"
+                             title="Delete message"
+                             onClick={() => deleteMessage(msg.id)}
+                           >
+                             <FontAwesomeIcon icon={faTrash} />
+                           </button>
+                         )}
+                       </div>
+                     </div>
+                   );
+                 })}
                 {newDmTarget && (
                   <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem", margin: "20px 0" }}>
                     Starting a conversation with {newDmTarget}. Say hello!

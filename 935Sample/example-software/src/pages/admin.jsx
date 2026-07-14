@@ -208,6 +208,26 @@ export default function AdminDashboard() {
     }
   };
 
+  async function deleteUser(username) {
+    if (!window.confirm(`Remove user "${username}"? This cannot be undone.`))
+      return;
+    try {
+      const authIdentity = localStorage.getItem("currentUser") || "";
+      const response = await fetch(
+        `${apiBaseUrl}/users/${encodeURIComponent(username)}?actor=${encodeURIComponent(authIdentity)}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${authIdentity}` } },
+      );
+      if (response.ok) {
+        fetchAllSystemData({ showFullScreenLoader: false });
+      } else {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete user.");
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
   const openLogout = () => {
     const signoutBtn = document.getElementById("logoutSection");
     if (signoutBtn.style.display === "block") {
@@ -635,7 +655,7 @@ export default function AdminDashboard() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex gap-sm">
+                    <div className="flex gap-sm" style={{ alignItems: "center" }}>
                       {isSelf && (
                         <span className="admin-status-pill active">
                           <FontAwesomeIcon icon={faCircleCheck} /> ACTIVE
@@ -645,6 +665,15 @@ export default function AdminDashboard() {
                         <FontAwesomeIcon icon={faShieldHalved} />{" "}
                         {account.role || "Operator"}
                       </span>
+                      {!isSelf && (
+                        <button
+                          className="admin-row-delete-btn"
+                          title={`Delete ${account.username}`}
+                          onClick={() => deleteUser(account.username)}
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

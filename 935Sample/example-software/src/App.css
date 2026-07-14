@@ -6603,4 +6603,27 @@ input[type="file"] {
   gap: 8px;
   font-size: 0.9rem;
   padding: 4px;
-}
+}
+
+/* Per-message delete button (admin/coach only) */
+.msg-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+  align-self: center;
+}
+.message-bubble-wrapper:hover .msg-delete-btn {
+  opacity: 1;
+}
+.msg-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
