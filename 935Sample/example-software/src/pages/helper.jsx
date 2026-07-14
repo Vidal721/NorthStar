@@ -5,6 +5,7 @@ import DriveView from "../componets/DriveView";
 import LeadershipManager from "../componets/LeadershipManager";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
+import AnnouncementBell from "../componets/AnnouncementBell";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -355,6 +356,7 @@ export default function HelperPage({ roleLabel = "Helper" }) {
           onClick={() => setIsSidebarOpen(true)}
         />
 
+        <AnnouncementBell />
         <div
           className="admin-profile-badge"
           onClick={() => setIsLogoutOpen((isOpen) => !isOpen)}

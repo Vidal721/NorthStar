@@ -231,7 +231,7 @@ function RegisterScreen() {
       {/* Controlled Input: Username */}
       <fieldset className="fieldset-container">
         <legend className="fieldset-legend">
-          <label htmlFor="regUsername">Username / Email</label>
+          <label htmlFor="regUsername">Name (First and Last</label>
         </legend>
         <input
           type="text"

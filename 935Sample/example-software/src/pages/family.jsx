@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"; 
 import { useNavigate } from "react-router-dom";
+import AnnouncementBell from "../componets/AnnouncementBell";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMoon,
@@ -109,6 +110,7 @@ export default function MainMenu() {
           style={{cursor: 'pointer'}}
         />
 
+        <AnnouncementBell />
         <button onClick={logout} className="avatar" title="Logout">
           {getInitials()}
         </button>

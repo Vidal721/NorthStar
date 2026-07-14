@@ -29,6 +29,7 @@ import DriveView from "../componets/DriveView";
 import LeadershipManager from "../componets/LeadershipManager";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
+import AnnouncementBell from "../componets/AnnouncementBell";
 import {
   API_ENDPOINTS,
   getApiBaseUrl,
@@ -383,6 +384,7 @@ export default function AdminDashboard() {
         >
           <FontAwesomeIcon icon={faServer} /> {useLocalApi ? "Local" : "Online"}
         </button>
+        <AnnouncementBell />
         <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>

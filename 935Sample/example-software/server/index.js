@@ -367,6 +367,7 @@ app.get("/messages", (req, res) => {
         isCoach ||
         message.sender === actor.username ||
         message.recipient_type === "everyone" ||
+        message.recipient_type === "announcement" ||
         (message.recipient_type === "subgroup" &&
           message.recipient_value === actor.subgroup) ||
         (message.recipient_type === "person" &&
@@ -383,7 +384,7 @@ app.post("/messages", (req, res) => {
   if (
     !actor ||
     !body ||
-    !["everyone", "subgroup", "person", "group"].includes(recipientType)
+    !["everyone", "subgroup", "person", "group", "announcement"].includes(recipientType)
   )
     return res
       .status(400)

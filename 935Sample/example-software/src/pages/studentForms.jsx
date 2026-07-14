@@ -20,6 +20,7 @@ import { useURL } from "../urlConfig";
 import SharedDriveView from "../componets/DriveView";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
+import AnnouncementBell from "../componets/AnnouncementBell";
 const apiBaseUrl = useURL();
 
 const needsOptions = (type) =>
@@ -121,6 +122,7 @@ function StudentShell({ children, activeTab, setActiveTab }) {
           onClick={() => setIsSidebarOpen(true)}
         />
 
+        <AnnouncementBell />
         <div
           className="admin-profile-badge"
           onClick={() => setIsLogoutOpen((isOpen) => !isOpen)}
