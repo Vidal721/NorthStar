@@ -6183,7 +6183,7 @@ input[type="file"] {
 .chat-threads-title {
   font-size: 1.2rem;
   font-weight: bold;
-  color: var(--text-h);
+  color: var(--text-primary);
 }
 .chat-threads-list {
   flex: 1;
@@ -6199,6 +6199,7 @@ input[type="file"] {
   cursor: pointer;
   transition: background-color 0.15s ease;
   border: 1px solid transparent;
+  color: var(--text-primary);
 }
 .chat-thread-item:hover {
   background-color: var(--input-bg);
@@ -6626,4 +6627,4 @@ input[type="file"] {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
 }
-
+
