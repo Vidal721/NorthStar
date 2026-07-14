@@ -3901,7 +3901,9 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
   box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: var(--blur-lg);
   backdrop-filter: var(--blur-lg);
 }
 
@@ -6170,14 +6172,24 @@ input[type="file"] {
 @media (max-width: 600px) {
   .announcement-dropdown {
     position: fixed;
-    top: max(56px, calc(env(safe-area-inset-top) + 48px));
+    top: max(12px, env(safe-area-inset-top));
     right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
     left: max(12px, env(safe-area-inset-left));
     width: auto;
-    height: min(420px, calc(100dvh - 84px));
-    min-height: 140px;
-    max-height: calc(100dvh - 84px);
+    height: auto;
+    min-height: 0;
+    max-height: none;
     z-index: 3000;
+  }
+
+  .announcement-item {
+    padding: 14px 16px;
+  }
+
+  .announcement-item-body {
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
   }
 }
 .announcement-dropdown-header {
@@ -6735,6 +6747,44 @@ input[type="file"] {
 .msg-delete-btn:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
+}
+.msg-delete-confirm {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.msg-delete-confirm-btn,
+.msg-delete-cancel-btn {
+  min-height: 32px;
+  border-radius: 8px;
+  border: 0;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.msg-delete-confirm-btn {
+  color: #fff;
+  background: #dc2626;
+}
+.msg-delete-cancel-btn {
+  color: var(--text-secondary);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+}
+.msg-delete-confirm-btn:disabled,
+.msg-delete-cancel-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+@media (hover: none), (pointer: coarse) {
+  .msg-delete-btn {
+    min-width: 36px;
+    min-height: 36px;
+    opacity: 1;
+  }
 }
 .chat-thread-swipe {
   position: relative;

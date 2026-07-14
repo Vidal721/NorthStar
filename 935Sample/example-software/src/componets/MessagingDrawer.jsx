@@ -47,6 +47,8 @@ export default function MessagingDrawer() {
   const [swipedThreadId, setSwipedThreadId] = useState(null);
   const [draggingThreadId, setDraggingThreadId] = useState(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [messagePendingDeletion, setMessagePendingDeletion] = useState(null);
+  const [deletingMessageId, setDeletingMessageId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const swipeStartX = useRef(0);
@@ -207,22 +209,25 @@ export default function MessagingDrawer() {
     }
   };
 
-  // Delete a message (admin/coach only)
+  // Delete a message (your own, or any message for admins and coaches).
   const deleteMessage = async (msgId) => {
-    if (!window.confirm("Delete this message permanently?")) return;
+    setDeletingMessageId(msgId);
     try {
       const res = await fetch(`${api}/messages/${encodeURIComponent(msgId)}?actor=${encodeURIComponent(actor)}`, {
         method: "DELETE",
         headers: { "ngrok-skip-browser-warning": "69420" },
       });
       if (res.ok) {
-        load();
+        setMessages((currentMessages) => currentMessages.filter((message) => message.id !== msgId));
+        setMessagePendingDeletion(null);
       } else {
         const data = await res.json().catch(() => ({}));
         alert(data.error || "Failed to delete message.");
       }
     } catch (err) {
       alert("Error deleting message.");
+    } finally {
+      setDeletingMessageId(null);
     }
   };
 
@@ -532,13 +537,36 @@ export default function MessagingDrawer() {
                            <span className="message-bubble-time">{formatMsgTime(msg.created_at)}</span>
                          </div>
                          {(isOutgoing || isAdminOrCoach) && (
-                           <button
-                             className="msg-delete-btn"
-                             title="Delete message"
-                             onClick={() => deleteMessage(msg.id)}
-                           >
-                             <FontAwesomeIcon icon={faTrash} />
-                           </button>
+                           messagePendingDeletion === msg.id ? (
+                             <div className="msg-delete-confirm" role="group" aria-label="Confirm message deletion">
+                               <button
+                                 type="button"
+                                 className="msg-delete-confirm-btn"
+                                 onClick={() => deleteMessage(msg.id)}
+                                 disabled={deletingMessageId === msg.id}
+                               >
+                                 {deletingMessageId === msg.id ? "Deleting" : "Delete"}
+                               </button>
+                               <button
+                                 type="button"
+                                 className="msg-delete-cancel-btn"
+                                 onClick={() => setMessagePendingDeletion(null)}
+                                 disabled={deletingMessageId === msg.id}
+                               >
+                                 Cancel
+                               </button>
+                             </div>
+                           ) : (
+                             <button
+                               type="button"
+                               className="msg-delete-btn"
+                               title="Delete message"
+                               aria-label="Delete message"
+                               onClick={() => setMessagePendingDeletion(msg.id)}
+                             >
+                               <FontAwesomeIcon icon={faTrash} />
+                             </button>
+                           )
                          )}
                        </div>
                      </div>
