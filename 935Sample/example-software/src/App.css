@@ -5511,21 +5511,75 @@ input[type="file"] {
   background: var(--input-bg);
   color: var(--text-primary);
 }
+.member-role-select {
+  margin: 0.45rem 0 0 0.45rem;
+  max-width: 180px;
+  padding: 0.3rem;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
 .leadership-toggles {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   justify-content: flex-end;
 }
-.leadership-toggles label {
+.leadership-access-menu {
+  position: relative;
+}
+.leadership-access-menu summary {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  list-style: none;
+}
+.leadership-access-menu summary::-webkit-details-marker {
+  display: none;
+}
+.leadership-access-menu summary::after {
+  content: "⌄";
+  margin-left: 0.5rem;
+}
+.leadership-access-menu[open] summary::after {
+  transform: rotate(180deg);
+}
+.leadership-access-options {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 0.4rem;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(300px, calc(100vw - 48px));
+  margin-top: 0.4rem;
+  padding: 0.6rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  backdrop-filter: var(--blur-md);
+}
+.leadership-access-options label {
   font-size: 0.8rem;
   padding: 0.35rem 0.5rem;
-  border-radius: 20px;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
+  border-radius: 6px;
   cursor: pointer;
 }
-.leadership-toggles input {
+.leadership-access-options label:hover {
+  background: var(--input-bg);
+}
+.leadership-access-options input {
   accent-color: #2563eb;
 }
 @media (max-width: 700px) {
@@ -5535,6 +5589,13 @@ input[type="file"] {
   }
   .leadership-toggles {
     justify-content: flex-start;
+  }
+  .member-role-select {
+    margin-left: 0;
+  }
+  .leadership-access-options {
+    right: auto;
+    left: 0;
   }
 }
 

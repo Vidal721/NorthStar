@@ -9,6 +9,16 @@ export default function LeadershipManager() {
   const [saving, setSaving] = useState("");
   const [subgroups, setSubgroups] = useState([]);
   const [newSubgroup, setNewSubgroup] = useState("");
+  const roleOptions = [
+    ["students", "Student"],
+    ["scouter", "Scouter"],
+    ["programmer", "Programmer"],
+    ["family", "Family"],
+    ["helper", "Helper"],
+    ["Mentor", "Mentor"],
+    ["coach", "Coach"],
+    ["admin", "Admin"],
+  ];
   const isAdmin =
     String(localStorage.getItem("userRole") || "").toLowerCase() === "admin";
 
@@ -122,6 +132,33 @@ export default function LeadershipManager() {
     }
   };
 
+  const changeRole = async (user, role) => {
+    setSaving(`${user.username}-role`);
+    try {
+      const res = await fetch(
+        `${apiUrl}/leadership/users/${encodeURIComponent(user.username)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actor,
+            role,
+            leadershipSubgroups: user.leadershipSubgroups || [],
+          }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not update role.");
+      setUsers((items) =>
+        items.map((item) => (item.username === data.username ? data : item)),
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving("");
+    }
+  };
+
   return (
     <section className="leadership-manager">
       {isAdmin && (
@@ -169,8 +206,28 @@ export default function LeadershipManager() {
                   <option key={group}>{group}</option>
                 ))}
               </select>
+              {isAdmin && (
+                <select
+                  className="member-role-select"
+                  value={user.role || "students"}
+                  disabled={Boolean(saving)}
+                  onChange={(event) => changeRole(user, event.target.value)}
+                  aria-label={`Change ${user.username}'s role`}
+                >
+                  {roleOptions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="leadership-toggles">
+              <details className="leadership-access-menu">
+                <summary>
+                  Drive folder access ({(user.leadershipSubgroups || []).length})
+                </summary>
+                <div className="leadership-access-options">
               {subgroups.map((group) => (
                 <label key={group}>
                   <input
@@ -183,6 +240,8 @@ export default function LeadershipManager() {
                   {saving === `${user.username}-${group}` ? "…" : ""}
                 </label>
               ))}
+                </div>
+              </details>
             </div>
           </div>
         ))}

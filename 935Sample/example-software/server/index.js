@@ -8,6 +8,7 @@ import db, { getOrCreateRegional } from "./db.js";
 import { fileURLToPath } from "url";
 import path from "path";
 import multer from "multer";
+import webpush from "web-push";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -45,6 +46,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, ".env") });
+
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+const webPushEnabled = Boolean(vapidPublicKey && vapidPrivateKey);
+if (webPushEnabled) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || "mailto:team935@example.com",
+    vapidPublicKey,
+    vapidPrivateKey,
+  );
+} else {
+  console.warn("[push] Web Push is disabled: VAPID keys are not configured.");
+}
 
 const app = express();
 const PORT = 3000;
@@ -150,7 +164,6 @@ const canManageDrivePath = (user, relativePath) => {
   if (isPublicDrivePath(relativePath)) return true;
   const subgroup = subgroupFromPath(relativePath);
   if (!subgroup) return false;
-  if (role === "programmer" || role === "programmers") return true;
   return Boolean((user.leadershipSubgroups || []).includes(subgroup));
 };
 const canReadDrivePath = (user, relativePath) => {
@@ -251,6 +264,26 @@ app.patch("/leadership/users/:username", (req, res) => {
       .json({ error: "Only admins and coaches can manage leaders." });
   const target = users.find((user) => user.username === req.params.username);
   if (!target) return res.status(404).json({ error: "User not found." });
+  if (req.body?.role !== undefined) {
+    if (normalizeRole(actor.role) !== "admin")
+      return res.status(403).json({ error: "Only admins can change account roles." });
+    const allowedRoles = [
+      "admin",
+      "scouter",
+      "family",
+      "helper",
+      "student",
+      "students",
+      "teamMember",
+      "coach",
+      "Mentor",
+      "programmer",
+      "programmers",
+    ];
+    if (!allowedRoles.includes(req.body.role))
+      return res.status(400).json({ error: "Unsupported account role." });
+    target.role = req.body.role;
+  }
   const leadershipSubgroups = Array.isArray(req.body?.leadershipSubgroups)
     ? req.body.leadershipSubgroups.filter((group) =>
         getSubgroups().includes(group),
@@ -282,8 +315,12 @@ app.get("/tasks", (req, res) => {
     rows.filter(
       (task) =>
         isManager ||
-        task.assignee === actor.username ||
-        task.subgroup === actor.subgroup ||
+        // A task with an assignee is private to that person. Tasks without an
+        // assignee remain available to everyone in the selected subgroup.
+        (task.assignee
+          ? task.assignee === actor.username
+          : task.subgroup === actor.subgroup) ||
+        // Subgroup leaders can still review work for the subgroups they lead.
         (actor.leadershipSubgroups || []).includes(task.subgroup),
     ),
   );

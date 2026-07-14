@@ -84,6 +84,16 @@ db.exec(`
     members TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS push_subscriptions (
+    endpoint TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    subscription TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_push_subscriptions_username
+    ON push_subscriptions(username);
 `);
 
 const defaultSubgroups = ["Manufacturing", "Programming", "Design", "Electronics", "Media"];
