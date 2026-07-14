@@ -6151,7 +6151,7 @@ input[type="file"] {
 }
 .announcement-item-sender {
   font-weight: bold;
-  color: var(--text-h);
+  color: var(--text-primary);
 }
 .announcement-item-body {
   font-size: 0.85rem;
@@ -6236,7 +6236,7 @@ input[type="file"] {
 .chat-thread-name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: var(--text-h);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6301,7 +6301,7 @@ input[type="file"] {
 .chat-detail-title {
   font-size: 1.1rem;
   font-weight: bold;
-  color: var(--text-h);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6484,7 +6484,7 @@ input[type="file"] {
 .chat-modal-header h3 {
   margin: 0;
   font-size: 1.15rem;
-  color: var(--text-h);
+  color: var(--text-primary);
 }
 .chat-modal-close {
   background: transparent;
@@ -6532,7 +6532,7 @@ input[type="file"] {
 .chat-option-text h4 {
   margin: 0 0 2px 0;
   font-size: 0.95rem;
-  color: var(--text-h);
+  color: var(--text-primary);
 }
 .chat-option-text p {
   margin: 0;
@@ -6549,7 +6549,7 @@ input[type="file"] {
 .chat-form-group label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-h);
+  color: var(--text-primary);
 }
 .chat-form-input, .chat-form-select, .chat-form-textarea {
   padding: 8px 12px;
