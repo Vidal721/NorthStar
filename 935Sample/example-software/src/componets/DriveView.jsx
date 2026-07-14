@@ -11,6 +11,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
 
+const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"];
+
+const isImageFile = (name) => {
+  const ext = name.split(".").pop()?.toLowerCase();
+  return IMAGE_EXTENSIONS.includes(ext);
+};
+
 export default function DriveView() {
   const apiUrl = useURL();
   const [currentPath, setCurrentPath] = useState("");
@@ -19,6 +26,8 @@ export default function DriveView() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [error, setError] = useState("");
   const [canWrite, setCanWrite] = useState(false);
+  const [imagePreviews, setImagePreviews] = useState({});
+  const [previewImage, setPreviewImage] = useState(null);
   const userHeaders = {
     "x-drive-user": localStorage.getItem("currentUser") || "",
   };
@@ -35,13 +44,53 @@ export default function DriveView() {
       setFiles(data.files || []);
       setCanWrite(Boolean(data.permissions?.canWrite));
       setError("");
+      loadImagePreviews(directory, data.files || []);
     } catch (err) {
       setError(err.message);
     }
   };
 
+  // Fetch thumbnail data for any image files in the current folder and
+  // replace whatever preview URLs were being held for the previous folder.
+  const loadImagePreviews = async (directory, fileList) => {
+    setImagePreviews((previous) => {
+      Object.values(previous).forEach((url) => URL.revokeObjectURL(url));
+      return {};
+    });
+
+    const imageFiles = fileList.filter(isImageFile);
+    await Promise.all(
+      imageFiles.map(async (file) => {
+        const itemPath = directory ? `${directory}/${file}` : file;
+        try {
+          const res = await fetch(
+            `${apiUrl}/drive/file?path=${encodeURIComponent(itemPath)}`,
+            { headers: userHeaders },
+          );
+          if (!res.ok) return;
+          const blob = await res.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          setImagePreviews((previous) => ({
+            ...previous,
+            [file]: objectUrl,
+          }));
+        } catch {
+          // Skip files that fail to load a preview; the file icon is shown instead.
+        }
+      }),
+    );
+  };
+
   useEffect(() => {
     loadDrive("");
+    // Revoke any outstanding object URLs when the component unmounts.
+    return () => {
+      setImagePreviews((previous) => {
+        Object.values(previous).forEach((url) => URL.revokeObjectURL(url));
+        return previous;
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const upload = async (file) => {
@@ -95,6 +144,7 @@ export default function DriveView() {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not delete file.");
+      if (previewImage?.name === file) setPreviewImage(null);
       await loadDrive(currentPath);
     } catch (err) {
       setError(err.message);
@@ -248,26 +298,76 @@ export default function DriveView() {
               )}
             </div>
           ))}
-          {files.map((file) => (
-            <div key={file} className="drive-content file drive-file-card">
-              <div className="drive-content-logo">
-                <FontAwesomeIcon icon={faFile} />
+          {files.map((file) => {
+            const isImage = isImageFile(file);
+            const previewUrl = imagePreviews[file];
+            return (
+              <div key={file} className="drive-content file drive-file-card">
+                {isImage ? (
+                  <button
+                    className="drive-item-button drive-image-thumb-button"
+                    onClick={() =>
+                      previewUrl && setPreviewImage({ name: file, url: previewUrl })
+                    }
+                    aria-label={`View ${file}`}
+                    disabled={!previewUrl}
+                  >
+                    {previewUrl ? (
+                      <img
+                        src={previewUrl}
+                        alt={file}
+                        className="drive-content-logo drive-image-thumb"
+                      />
+                    ) : (
+                      <span className="drive-content-logo">
+                        <FontAwesomeIcon icon={faFile} />
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <div className="drive-content-logo">
+                    <FontAwesomeIcon icon={faFile} />
+                  </div>
+                )}
+                <div className="drive-content-text">{file}</div>
+                {canWrite && (
+                  <button
+                    className="drive-delete-btn"
+                    onClick={() => deleteFile(file)}
+                    aria-label={`Delete ${file}`}
+                    title="Delete file"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                )}
               </div>
-              <div className="drive-content-text">{file}</div>
-              {canWrite && (
-                <button
-                  className="drive-delete-btn"
-                  onClick={() => deleteFile(file)}
-                  aria-label={`Delete ${file}`}
-                  title="Delete file"
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+      {previewImage && (
+        <div
+          className="drive-image-lightbox-overlay"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            className="drive-image-lightbox-content"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="drive-image-lightbox-close"
+              onClick={() => setPreviewImage(null)}
+              aria-label="Close preview"
+            >
+              <FontAwesomeIcon icon={faX} />
+            </button>
+            <img src={previewImage.url} alt={previewImage.name} />
+            <div className="drive-image-lightbox-caption">
+              {previewImage.name}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
