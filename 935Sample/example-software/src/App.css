@@ -2306,7 +2306,7 @@ body {
   background-color: var(--bg-elevated);
   padding: 20px;
   margin: auto;
-
+}
 /* Drive thumbnails */
 .drive-content.file {
   display: inline-flex;
@@ -2373,29 +2373,51 @@ body {
 
 /* Overlay styling and stronger constraints for the lightbox image */
 .drive-image-lightbox-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: rgba(0,0,0,0.6) !important;
-  z-index: 9999 !important;
-  padding: 20px !important;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 999999;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.drive-image-lightbox-close {
+  color: var(--scout-red);
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 30px;
+  padding: 10px;
+  border-radius: 1000px;
+  border: none;
+}
+
+.drive-image-lightbox-close:hover {
+  color: var(--scout-red);
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 30px;
+  padding: 10px;
+  border-radius: 1000px;
+  border: none;
 }
 
 .drive-image-lightbox-overlay .drive-image-lightbox-content {
-  max-width: 92vw !important;
-  max-height: 86vh !important;
-  box-sizing: border-box !important;
+  max-width: 92vw;
+  max-height: 86vh;
+  box-sizing: border-box;
 }
 
 .drive-image-lightbox-overlay .drive-image-lightbox-content img {
-  max-width: 100% !important;
-  max-height: 100% !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-}
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   border-radius: var(--radius-md);
   max-width: 350px;
   width: 90%;
