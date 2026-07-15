@@ -432,7 +432,7 @@ export default function MessagingDrawer() {
               <h2>Messages</h2>
               <p>Coaches monitor all conversations.</p>
             </div>
-            <button onClick={() => setOpen(false)}>
+            <button id="message-drawer-close" onClick={() => setOpen(false)}>
               <FontAwesomeIcon icon={faX} />
             </button>
           </div>

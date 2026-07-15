@@ -23,21 +23,26 @@ export default function AnnouncementBell() {
   const fetchAnnouncements = async () => {
     if (!actor) return;
     try {
-      const res = await fetch(`${api}/messages?actor=${encodeURIComponent(actor)}`, {
-        headers: { "ngrok-skip-browser-warning": "69420" },
-      });
+      const res = await fetch(
+        `${api}/messages?actor=${encodeURIComponent(actor)}`,
+        {
+          headers: { "ngrok-skip-browser-warning": "69420" },
+        },
+      );
       if (res.ok) {
         const allMessages = await res.json();
         // Filter for announcements
         const annList = allMessages.filter(
-          (msg) => msg.recipient_type === "announcement"
+          (msg) => msg.recipient_type === "announcement",
         );
-        
+
         // Sort by date descending (newest first)
         annList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         // Get read announcement IDs from localStorage
-        const readIds = JSON.parse(localStorage.getItem("read_announcements") || "[]");
+        const readIds = JSON.parse(
+          localStorage.getItem("read_announcements") || "[]",
+        );
 
         // Calculate unread
         const unread = annList.filter((ann) => !readIds.includes(ann.id));
@@ -48,7 +53,8 @@ export default function AnnouncementBell() {
           const oldAnnouncements = announcements;
           // Find announcements in the new list that are not in the previous state announcements
           const brandNew = unread.filter(
-            (newAnn) => !oldAnnouncements.some((oldAnn) => oldAnn.id === newAnn.id)
+            (newAnn) =>
+              !oldAnnouncements.some((oldAnn) => oldAnn.id === newAnn.id),
           );
 
           if (brandNew.length > 0 && Notification.permission === "granted") {
@@ -79,7 +85,10 @@ export default function AnnouncementBell() {
   // Handle click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event) {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setDropdownOpen(false);
       }
     }
@@ -104,23 +113,33 @@ export default function AnnouncementBell() {
   const formatTime = (isoString) => {
     try {
       const date = new Date(isoString);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " " + date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return (
+        date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+        " " +
+        date.toLocaleDateString([], { month: "short", day: "numeric" })
+      );
     } catch (e) {
       return "";
     }
   };
 
-  const readIds = JSON.parse(localStorage.getItem("read_announcements") || "[]");
-
   return (
-    <div className="announcement-bell-container" ref={containerRef} onClick={toggleDropdown} title="Announcements">
-      <FontAwesomeIcon icon={faBell} size="lg" />
+    <div
+      className="announcement-bell-container"
+      ref={containerRef}
+      onClick={toggleDropdown}
+      title="Announcements"
+    >
+      <FontAwesomeIcon className="ringing-bell" icon={faBell} size="lg" />
       {unreadCount > 0 && (
         <span className="announcement-bell-badge">{unreadCount}</span>
       )}
 
       {dropdownOpen && (
-        <div className="announcement-dropdown" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="announcement-dropdown"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="announcement-dropdown-header">
             <span>Announcements</span>
             {unreadCount > 0 && (
@@ -134,9 +153,14 @@ export default function AnnouncementBell() {
               announcements.map((ann) => {
                 const isUnread = !readIds.includes(ann.id);
                 return (
-                  <div key={ann.id} className={`announcement-item ${isUnread ? "unread" : ""}`}>
+                  <div
+                    key={ann.id}
+                    className={`announcement-item ${isUnread ? "unread" : ""}`}
+                  >
                     <div className="announcement-item-top">
-                      <span className="announcement-item-sender">{ann.sender}</span>
+                      <span className="announcement-item-sender">
+                        {ann.sender}
+                      </span>
                       <span>{formatTime(ann.created_at)}</span>
                     </div>
                     <div className="announcement-item-body">{ann.body}</div>

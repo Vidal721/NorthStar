@@ -5765,6 +5765,15 @@ input[type="file"] {
   overflow: hidden;
   overscroll-behavior: none;
 }
+#message-drawer-close{
+  position: absolute;
+  top: 20px;
+  right: 10px;
+  transition: 0.3s;
+}
+#message-drawer-close:hover{
+  color: var(--scout-red);
+}
 .message-drawer-header {
   display: flex;
   justify-content: space-between;
@@ -6721,10 +6730,11 @@ input[type="file"] {
   color: var(--accent);
   font-size: 1.2rem;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: transform 0.15s ease;
 }
 .chat-plus-btn:hover {
   background: var(--input-bg);
+  transform: rotate(90deg);
 }
 
 .chat-modal-overlay {
