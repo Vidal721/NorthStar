@@ -417,13 +417,6 @@ export default function AdminDashboard() {
           id="mobileLogo"
           onClick={toggleMobileSidebar}
         />
-        <button
-          onClick={() => handleConnectionModeChange(!useLocalApi)}
-          className="admin-logout-btn"
-          style={{ marginRight: "10px", padding: "8px 12px" }}
-        >
-          <FontAwesomeIcon icon={faServer} /> {useLocalApi ? "Local" : "Online"}
-        </button>
         <AnnouncementBell />
         <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
