@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
+  faDownload,
   faFile,
   faFolder,
   faHardDrive,
@@ -10,12 +11,32 @@ import {
   faX,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
+import ModelViewer from "./ModelViewer";
 
-const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"];
+const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif"];
+const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "mov", "m4v"];
+const AUDIO_EXTENSIONS = ["mp3", "wav", "ogg", "m4a", "aac", "flac"];
+const PDF_EXTENSIONS = ["pdf"];
+const MODEL_EXTENSIONS = ["stl", "obj", "ply", "gltf", "glb", "step", "stp", "iges", "igs", "brep"];
+const TEXT_EXTENSIONS = [
+  "txt", "md", "csv", "json", "xml", "html", "css", "js", "jsx", "ts", "tsx", "log",
+];
+
+const getExtension = (name) => name.split(".").pop()?.toLowerCase() || "";
 
 const isImageFile = (name) => {
-  const ext = name.split(".").pop()?.toLowerCase();
-  return IMAGE_EXTENSIONS.includes(ext);
+  return IMAGE_EXTENSIONS.includes(getExtension(name));
+};
+
+const getPreviewType = (name) => {
+  const ext = getExtension(name);
+  if (IMAGE_EXTENSIONS.includes(ext)) return "image";
+  if (VIDEO_EXTENSIONS.includes(ext)) return "video";
+  if (AUDIO_EXTENSIONS.includes(ext)) return "audio";
+  if (PDF_EXTENSIONS.includes(ext)) return "pdf";
+  if (MODEL_EXTENSIONS.includes(ext)) return "model";
+  if (TEXT_EXTENSIONS.includes(ext)) return "text";
+  return "document";
 };
 
 export default function DriveView() {
@@ -27,7 +48,7 @@ export default function DriveView() {
   const [error, setError] = useState("");
   const [canWrite, setCanWrite] = useState(false);
   const [imagePreviews, setImagePreviews] = useState({});
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
   const userHeaders = {
     "x-drive-user": localStorage.getItem("currentUser") || "",
   };
@@ -144,7 +165,7 @@ export default function DriveView() {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not delete file.");
-      if (previewImage?.name === file) setPreviewImage(null);
+      if (previewFile?.name === file) closePreview();
       await loadDrive(currentPath);
     } catch (err) {
       setError(err.message);
@@ -185,6 +206,50 @@ export default function DriveView() {
     const previousPath = currentPath.split("/").slice(0, -1).join("/");
     setCurrentPath(previousPath);
     loadDrive(previousPath);
+  };
+
+  const fileUrl = (file, download = false) => {
+    const itemPath = currentPath ? `${currentPath}/${file}` : file;
+    return `${apiUrl}/drive/file?path=${encodeURIComponent(itemPath)}${download ? "&download=1" : ""}`;
+  };
+
+  const openPreview = async (file) => {
+    const type = getPreviewType(file);
+    const url = fileUrl(file);
+    try {
+      const res = await fetch(url, { headers: userHeaders });
+      if (!res.ok) throw new Error("Could not load file preview.");
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      setPreviewFile((previous) => {
+        if (previous?.url) URL.revokeObjectURL(previous.url);
+        return { name: file, type, url: objectUrl };
+      });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const closePreview = () => {
+    if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+    setPreviewFile(null);
+  };
+
+  const downloadFile = async (file) => {
+    try {
+      const res = await fetch(fileUrl(file, true), { headers: userHeaders });
+      if (!res.ok) throw new Error("Could not download file.");
+      const objectUrl = URL.createObjectURL(await res.blob());
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = file;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -306,11 +371,8 @@ export default function DriveView() {
                 {isImage ? (
                   <button
                     className="drive-item-button drive-image-thumb-button"
-                    onClick={() =>
-                      previewUrl && setPreviewImage({ name: file, url: previewUrl })
-                    }
+                    onClick={() => openPreview(file)}
                     aria-label={`View ${file}`}
-                    disabled={!previewUrl}
                   >
                     {previewUrl ? (
                       <img
@@ -325,11 +387,26 @@ export default function DriveView() {
                     )}
                   </button>
                 ) : (
-                  <div className="drive-content-logo">
-                    <FontAwesomeIcon icon={faFile} />
-                  </div>
+                  <button
+                    className="drive-item-button drive-file-preview-button"
+                    onClick={() => openPreview(file)}
+                    aria-label={`Preview ${file}`}
+                  >
+                    <span className="drive-content-logo">
+                      <FontAwesomeIcon icon={faFile} />
+                    </span>
+                  </button>
                 )}
                 <div className="drive-content-text">{file}</div>
+                <button
+                  type="button"
+                  className="drive-download-btn"
+                  onClick={() => downloadFile(file)}
+                  aria-label={`Download ${file}`}
+                  title="Download file"
+                >
+                  <FontAwesomeIcon icon={faDownload} />
+                </button>
                 {canWrite && (
                   <button
                     className="drive-delete-btn"
@@ -345,10 +422,10 @@ export default function DriveView() {
           })}
         </div>
       </div>
-      {previewImage && (
+      {previewFile && (
         <div
           className="drive-image-lightbox-overlay"
-          onClick={() => setPreviewImage(null)}
+          onClick={closePreview}
         >
           <div
             className="drive-image-lightbox-content"
@@ -356,18 +433,36 @@ export default function DriveView() {
           >
             <button
               className="drive-image-lightbox-close"
-              onClick={() => setPreviewImage(null)}
+              onClick={closePreview}
               aria-label="Close preview"
             >
               <FontAwesomeIcon icon={faX} />
             </button>
-            <img
-              src={previewImage.url}
-              alt={previewImage.name}
-              style={{ maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain" }}
-            />
+            <div className="drive-preview-body">
+              {previewFile.type === "image" && <img src={previewFile.url} alt={previewFile.name} />}
+              {previewFile.type === "video" && <video src={previewFile.url} controls autoPlay />}
+              {previewFile.type === "audio" && <audio src={previewFile.url} controls autoPlay />}
+              {previewFile.type === "pdf" && <iframe src={previewFile.url} title={previewFile.name} />}
+              {previewFile.type === "text" && <iframe src={previewFile.url} title={previewFile.name} />}
+              {previewFile.type === "model" && <ModelViewer sourceUrl={previewFile.url} fileName={previewFile.name} />}
+              {previewFile.type === "document" && (
+                <iframe src={previewFile.url} title={previewFile.name} />
+              )}
+            </div>
+            {previewFile.type === "document" && (
+              <p className="drive-preview-note">
+                If this format is not previewed by your browser, download it to open it in the appropriate app.
+              </p>
+            )}
             <div className="drive-image-lightbox-caption">
-              {previewImage.name}
+              {previewFile.name}
+              <button
+                type="button"
+                onClick={() => downloadFile(previewFile.name)}
+                className="drive-preview-download"
+              >
+                <FontAwesomeIcon icon={faDownload} /> Download
+              </button>
             </div>
           </div>
         </div>

@@ -7,29 +7,31 @@ export default function TasksPanel() {
   const api = useURL();
   const actor = localStorage.getItem("currentUser") || "";
   const [tasks, setTasks] = useState([]);
-  const [subgroups, setSubgroups] = useState([]);
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
+  const [assigneeQuery, setAssigneeQuery] = useState("");
+  const [assignee, setAssignee] = useState("");
+
   const load = async () => {
     try {
-      const [tasksRes, groupsRes, peopleRes] = await Promise.all([
+      const [tasksRes, peopleRes] = await Promise.all([
         fetch(`${api}/tasks?actor=${encodeURIComponent(actor)}`),
-        fetch(`${api}/subgroups`),
         fetch(`${api}/directory?actor=${encodeURIComponent(actor)}`),
       ]);
       const taskData = await tasksRes.json();
       if (!tasksRes.ok) throw new Error(taskData.error);
       setTasks(taskData);
-      setSubgroups(await groupsRes.json());
       setUsers(await peopleRes.json());
     } catch (err) {
       setError(err.message);
     }
   };
+
   useEffect(() => {
     load();
   }, []);
+
   const create = async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -41,19 +43,21 @@ export default function TasksPanel() {
           actor,
           title: form.get("title"),
           description: form.get("description"),
-          subgroup: form.get("subgroup"),
-          assignee: form.get("assignee"),
+          assignee,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setShowForm(false);
       event.currentTarget.reset();
+      setAssigneeQuery("");
+      setAssignee("");
       load();
     } catch (err) {
       setError(err.message);
     }
   };
+
   const complete = async (task) => {
     const res = await fetch(`${api}/tasks/${task.id}`, {
       method: "PATCH",
@@ -63,8 +67,36 @@ export default function TasksPanel() {
         status: task.status === "complete" ? "open" : "complete",
       }),
     });
-    if (res.ok) load();
+    if (res.ok) {
+      const updatedTask = await res.json();
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? updatedTask : item)),
+      );
+      if (updatedTask.status === "complete") {
+        setTimeout(() => {
+          setTasks((current) =>
+            current.filter(
+              (item) =>
+                item.id !== updatedTask.id ||
+                item.status !== "complete" ||
+                item.completed_at !== updatedTask.completed_at,
+            ),
+          );
+        }, 30 * 1000);
+      }
+    }
   };
+
+  const matchingUsers = users.filter((user) => {
+    const query = assigneeQuery.trim().toLowerCase();
+    return (
+      !query ||
+      user.username.toLowerCase().includes(query) ||
+      user.subgroup?.toLowerCase().includes(query) ||
+      user.role?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <section className="tasks-panel">
       <div className="tasks-header">
@@ -80,23 +112,57 @@ export default function TasksPanel() {
         <form className="task-form" onSubmit={create}>
           <input name="title" required placeholder="Task title" />
           <textarea name="description" placeholder="Details (optional)" />
-          <select name="subgroup" required defaultValue="">
-            <option value="" disabled>
-              Assign to subgroup
-            </option>
-            {subgroups.map((group) => (
-              <option key={group}>{group}</option>
-            ))}
-          </select>
-          <select name="assignee" defaultValue="">
-            <option value="">Whole subgroup</option>
-            {users.map((user) => (
-              <option key={user.username} value={user.username}>
-                {user.username} · {user.subgroup || user.role}
-              </option>
-            ))}
-          </select>
-          <button type="submit">Create task</button>
+          <div className="task-assignee-picker">
+            <label htmlFor="task-assignee-search">Assign to</label>
+            <input
+              id="task-assignee-search"
+              value={assigneeQuery}
+              onChange={(event) => {
+                setAssigneeQuery(event.target.value);
+                setAssignee("");
+              }}
+              placeholder="Search people by name, subgroup, or role"
+              autoComplete="off"
+              required={!assignee}
+            />
+            {assignee && (
+              <p className="task-selected-assignee">
+                Assigning to <strong>{assignee}</strong>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAssignee("");
+                    setAssigneeQuery("");
+                  }}
+                >
+                  Change
+                </button>
+              </p>
+            )}
+            {!assignee && assigneeQuery && (
+              <div className="task-person-results" role="listbox" aria-label="People">
+                {matchingUsers.length ? (
+                  matchingUsers.map((user) => (
+                    <button
+                      type="button"
+                      role="option"
+                      key={user.username}
+                      onClick={() => {
+                        setAssignee(user.username);
+                        setAssigneeQuery(user.username);
+                      }}
+                    >
+                      <strong>{user.username}</strong>
+                      <span>{user.subgroup || user.role}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-muted">No matching people.</p>
+                )}
+              </div>
+            )}
+          </div>
+          <button type="submit" disabled={!assignee}>Create task</button>
         </form>
       )}
       <div className="tasks-list">
@@ -113,8 +179,7 @@ export default function TasksPanel() {
                 <strong>{task.title}</strong>
                 {task.description && <p>{task.description}</p>}
                 <span>
-                  {task.assignee || task.subgroup} · assigned by{" "}
-                  {task.assigned_by}
+                  {task.assignee || task.subgroup} · assigned by {task.assigned_by}
                 </span>
               </div>
             </div>

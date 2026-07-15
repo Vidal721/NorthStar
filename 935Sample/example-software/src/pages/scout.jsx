@@ -20,6 +20,7 @@ import {
   faChartColumn,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig"
+import FeedbackButton from "../componets/FeedbackButton";
 
 export default function MainMenu() {
   // 1. Manage theme state inside the component
@@ -68,6 +69,8 @@ export default function MainMenu() {
           className="logo"
           id="logo"
         />
+
+        <FeedbackButton />
 
         <button onClick={logout} className="avatar">
           {getInitials()}

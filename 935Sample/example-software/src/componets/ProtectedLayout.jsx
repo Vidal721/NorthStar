@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import PushNotifications from "./PushNotifications";
 
 // 1. Add allowedSubgroups to the parameters
 export default function ProtectedLayout({ allowedRoles, allowedSubgroups }) {
@@ -23,5 +24,5 @@ export default function ProtectedLayout({ allowedRoles, allowedSubgroups }) {
   }
 
   // 5. Permitted access layout rendering
-  return <Outlet />;
+  return <><PushNotifications /><Outlet /></>;
 }

@@ -6,6 +6,7 @@ import LeadershipManager from "../componets/LeadershipManager";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
 import AnnouncementBell from "../componets/AnnouncementBell";
+import FeedbackButton from "../componets/FeedbackButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -377,6 +378,7 @@ export default function HelperPage({ roleLabel = "Helper" }) {
         />
 
         <AnnouncementBell />
+        <FeedbackButton />
         <div
           className="admin-profile-badge"
           onClick={() => setIsLogoutOpen((isOpen) => !isOpen)}

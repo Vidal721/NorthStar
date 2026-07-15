@@ -298,13 +298,99 @@ app.patch("/leadership/users/:username", (req, res) => {
 });
 
 const getActor = (name) => getUsers().find((user) => user.username === name);
+const isLeader = (user) => ["admin", "coach", "mentor", "programmer"].includes(normalizeRole(user?.role));
 const canLeadSubgroup = (user, subgroup) =>
   ["admin", "coach"].includes(normalizeRole(user?.role)) ||
   (user?.leadershipSubgroups || []).includes(subgroup);
+const TASK_COMPLETION_RETENTION_MS = 30 * 1000;
+const removeExpiredCompletedTasks = () => {
+  const cutoff = new Date(Date.now() - TASK_COMPLETION_RETENTION_MS).toISOString();
+  db.prepare(
+    "DELETE FROM tasks WHERE status = 'complete' AND completed_at IS NOT NULL AND completed_at <= ?",
+  ).run(cutoff);
+};
+
+const getMessageRecipients = (message) => {
+  if (["everyone", "announcement"].includes(message.recipient_type)) {
+    return getUsers().map((user) => user.username);
+  }
+  if (message.recipient_type === "subgroup") {
+    return getUsers()
+      .filter((user) => user.subgroup === message.recipient_value)
+      .map((user) => user.username);
+  }
+  if (message.recipient_type === "person") return [message.recipient_value];
+  if (message.recipient_type === "group") {
+    const group = db.prepare("SELECT members FROM message_groups WHERE id = ?").get(message.recipient_value);
+    if (!group) return [];
+    try {
+      return JSON.parse(group.members);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+const notifyMessageRecipients = async (message) => {
+  if (!webPushEnabled) return;
+  const recipients = new Set(getMessageRecipients(message));
+  recipients.delete(message.sender);
+  if (!recipients.size) return;
+
+  const subscriptions = db.prepare("SELECT endpoint, username, subscription FROM push_subscriptions").all();
+  const title = message.recipient_type === "announcement"
+    ? `Announcement from ${message.sender}`
+    : `New message from ${message.sender}`;
+  const payload = JSON.stringify({
+    title,
+    body: message.body,
+    url: "/",
+    tag: `message-${message.id}`,
+  });
+
+  await Promise.allSettled(
+    subscriptions
+      .filter((row) => recipients.has(row.username))
+      .map(async (row) => {
+        try {
+          await webpush.sendNotification(JSON.parse(row.subscription), payload);
+        } catch (error) {
+          if ([404, 410].includes(error.statusCode)) {
+            db.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").run(row.endpoint);
+            return;
+          }
+          console.error("[push] Failed to deliver notification:", error.message);
+        }
+      }),
+  );
+};
+
+app.get("/push/vapid-public-key", (req, res) => {
+  if (!getActor(req.query.actor)) return res.status(401).json({ error: "Sign in to enable notifications." });
+  if (!webPushEnabled) return res.status(503).json({ error: "Push notifications are not configured." });
+  res.json({ publicKey: vapidPublicKey });
+});
+
+app.post("/push/subscriptions", (req, res) => {
+  const actor = getActor(req.body?.actor);
+  const subscription = req.body?.subscription;
+  if (!actor) return res.status(401).json({ error: "Sign in to enable notifications." });
+  if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+    return res.status(400).json({ error: "Invalid push subscription." });
+  }
+  db.prepare(
+    `INSERT INTO push_subscriptions (endpoint, username, subscription, created_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(endpoint) DO UPDATE SET username = excluded.username, subscription = excluded.subscription, created_at = excluded.created_at`,
+  ).run(subscription.endpoint, actor.username, JSON.stringify(subscription), new Date().toISOString());
+  res.status(201).json({ success: true });
+});
 
 app.get("/tasks", (req, res) => {
   const actor = getActor(req.query.actor);
   if (!actor) return res.status(401).json({ error: "Sign in to view tasks." });
+  removeExpiredCompletedTasks();
   const isManager = ["admin", "coach"].includes(normalizeRole(actor.role));
   const rows = db
     .prepare(
@@ -339,6 +425,8 @@ app.post("/tasks", (req, res) => {
       .status(400)
       .json({ error: "A signed-in user and task title are required." });
   const targetUser = assignee && getActor(assignee);
+  if (assignee && !targetUser)
+    return res.status(400).json({ error: "Choose a person from the directory." });
   const targetSubgroup = subgroup || targetUser?.subgroup;
   if (!targetSubgroup || !canLeadSubgroup(actor, targetSubgroup))
     return res
@@ -361,9 +449,10 @@ app.post("/tasks", (req, res) => {
     assigned_by: actor.username,
     status: "open",
     created_at: new Date().toISOString(),
+    completed_at: null,
   };
   db.prepare(
-    "INSERT INTO tasks (id,title,description,subgroup,assignee,assigned_by,status,created_at) VALUES (@id,@title,@description,@subgroup,@assignee,@assigned_by,@status,@created_at)",
+    "INSERT INTO tasks (id,title,description,subgroup,assignee,assigned_by,status,created_at,completed_at) VALUES (@id,@title,@description,@subgroup,@assignee,@assigned_by,@status,@created_at,@completed_at)",
   ).run(task);
   res.status(201).json(task);
 });
@@ -381,8 +470,20 @@ app.patch("/tasks/:id", (req, res) => {
   )
     return res.status(403).json({ error: "You cannot update this task." });
   const status = req.body?.status === "complete" ? "complete" : "open";
-  db.prepare("UPDATE tasks SET status = ? WHERE id = ?").run(status, task.id);
-  res.json({ ...task, status });
+  const completedAt = status === "complete" ? new Date().toISOString() : null;
+  db.prepare("UPDATE tasks SET status = ?, completed_at = ? WHERE id = ?").run(
+    status,
+    completedAt,
+    task.id,
+  );
+  if (status === "complete") {
+    setTimeout(() => {
+      db.prepare(
+        "DELETE FROM tasks WHERE id = ? AND status = 'complete' AND completed_at = ?",
+      ).run(task.id, completedAt);
+    }, TASK_COMPLETION_RETENTION_MS);
+  }
+  res.json({ ...task, status, completed_at: completedAt });
 });
 
 app.get("/messages", (req, res) => {
@@ -428,6 +529,8 @@ app.post("/messages", (req, res) => {
       .json({ error: "Choose recipients and write a message." });
   if (recipientType === "subgroup" && !getSubgroups().includes(recipientValue))
     return res.status(400).json({ error: "Unknown subgroup." });
+  if (recipientType === "announcement" && !isLeader(actor))
+    return res.status(403).json({ error: "Only team leaders can make announcements." });
   const message = {
     id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     sender: actor.username,
@@ -439,7 +542,66 @@ app.post("/messages", (req, res) => {
   db.prepare(
     "INSERT INTO messages (id,sender,recipient_type,recipient_value,body,created_at) VALUES (@id,@sender,@recipient_type,@recipient_value,@body,@created_at)",
   ).run(message);
+  void notifyMessageRecipients(message);
   res.status(201).json(message);
+});
+
+// ==== FEEDBACK ==== //
+app.post("/feedback", (req, res) => {
+  const actor = getActor(req.body?.actor);
+  const { category, title, details } = req.body || {};
+  const allowedCategories = ["bug", "feature", "improvement", "other"];
+  if (!actor || !allowedCategories.includes(category) || !title?.trim() || !details?.trim()) {
+    return res.status(400).json({ error: "Choose a category and provide a title and description." });
+  }
+  const feedback = {
+    id: `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    submitted_by: actor.username,
+    category,
+    title: String(title).trim().slice(0, 160),
+    details: String(details).trim().slice(0, 4000),
+    status: "open",
+    created_at: new Date().toISOString(),
+    completed_at: null,
+  };
+  db.prepare(
+    "INSERT INTO feedback (id,submitted_by,category,title,details,status,created_at,completed_at) VALUES (@id,@submitted_by,@category,@title,@details,@status,@created_at,@completed_at)",
+  ).run(feedback);
+  res.status(201).json(feedback);
+});
+
+app.get("/feedback", (req, res) => {
+  const actor = getActor(req.query.actor);
+  if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) {
+    return res.status(403).json({ error: "Only administrators can review feedback." });
+  }
+  res.json(db.prepare("SELECT * FROM feedback ORDER BY status = 'open' DESC, created_at DESC").all());
+});
+
+app.patch("/feedback/:id", (req, res) => {
+  const actor = getActor(req.body?.actor);
+  if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) {
+    return res.status(403).json({ error: "Only administrators can update feedback." });
+  }
+  const feedback = db.prepare("SELECT * FROM feedback WHERE id = ?").get(req.params.id);
+  if (!feedback) return res.status(404).json({ error: "Feedback not found." });
+  const status = req.body?.status === "complete" ? "complete" : "open";
+  const completedAt = status === "complete" ? new Date().toISOString() : null;
+  db.prepare("UPDATE feedback SET status = ?, completed_at = ? WHERE id = ?").run(status, completedAt, feedback.id);
+
+  if (status === "complete" && feedback.status !== "complete") {
+    db.prepare(
+      "INSERT INTO messages (id,sender,recipient_type,recipient_value,body,created_at) VALUES (@id,@sender,@recipient_type,@recipient_value,@body,@created_at)",
+    ).run({
+      id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      sender: "North Star Feedback",
+      recipient_type: "person",
+      recipient_value: feedback.submitted_by,
+      body: `Your ${feedback.category} feedback, “${feedback.title}”, has been marked implemented. Thank you for helping improve North Star!`,
+      created_at: completedAt,
+    });
+  }
+  res.json({ ...feedback, status, completed_at: completedAt });
 });
 
 app.get("/message-groups", (req, res) => {
@@ -1417,8 +1579,13 @@ app.get("/drive/file", (req, res) => {
     // Allow file reads without subgroup permission checks; directory path
     // membership is enough to locate the file.
 
-    // Use express's sendFile which will set appropriate Content-Type headers.
-    res.sendFile(targetFile, (err) => {
+    // Downloads must use an attachment header; otherwise send inline so browsers
+    // can preview media, PDFs, and other formats they support.
+    const send = req.query.download === "1"
+      ? (callback) => res.download(targetFile, path.basename(targetFile), callback)
+      : (callback) => res.sendFile(targetFile, callback);
+
+    send((err) => {
       if (err) {
         console.error(err);
         if (!res.headersSent) res.status(500).json({ error: "Could not read file." });

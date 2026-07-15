@@ -13,6 +13,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "service-worker.js",
       includeAssets: [
         "favicon.ico",
         "apple-touch-icon.png",
@@ -21,6 +24,10 @@ export default defineConfig({
         "apple-splash-1242x2688.png",
         "apple-splash-2048x2732.png",
       ],
+      // STEP/IGES conversion uses OpenCascade WebAssembly (~7.6 MB).
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+      },
 
       manifest: {
         name: "Team 935 Scouting App",
@@ -65,4 +72,4 @@ export default defineConfig({
       },
     },
   },
-});
+});

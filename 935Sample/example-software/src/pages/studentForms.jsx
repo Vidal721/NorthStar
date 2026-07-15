@@ -21,6 +21,7 @@ import SharedDriveView from "../componets/DriveView";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
 import AnnouncementBell from "../componets/AnnouncementBell";
+import FeedbackButton from "../componets/FeedbackButton";
 import UpdateModal from '../componets/UpdateModal';
 import appInfo from './info.json';
 
@@ -161,6 +162,7 @@ function StudentShell({
         />
 
         <AnnouncementBell />
+        <FeedbackButton />
         <div
           className="admin-profile-badge"
           onClick={() => setIsLogoutOpen((isOpen) => !isOpen)}

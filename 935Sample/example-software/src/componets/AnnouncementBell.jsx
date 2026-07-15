@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
+import { enablePushNotifications } from "./PushNotifications";
 
 export default function AnnouncementBell() {
   const api = useURL();
@@ -9,15 +10,22 @@ export default function AnnouncementBell() {
   const [announcements, setAnnouncements] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [pushStatus, setPushStatus] = useState(
+    typeof Notification !== "undefined" ? Notification.permission : "unsupported",
+  );
   const containerRef = useRef(null);
   const isFirstLoad = useRef(true);
+  const readIds = JSON.parse(localStorage.getItem("read_announcements") || "[]");
 
-  // Request browser Notification permission
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
+  const enableNotifications = async () => {
+    try {
+      await enablePushNotifications(api, actor);
+      setPushStatus("granted");
+    } catch (error) {
+      setPushStatus(Notification.permission);
+      console.warn("[push] Could not enable notifications:", error);
     }
-  }, []);
+  };
 
   // Fetch announcements
   const fetchAnnouncements = async () => {
@@ -31,21 +39,23 @@ export default function AnnouncementBell() {
       );
       if (res.ok) {
         const allMessages = await res.json();
-        // Filter for announcements
+        // Include team announcements and implementation updates for this user.
         const annList = allMessages.filter(
-          (msg) => msg.recipient_type === "announcement",
+          (msg) =>
+            msg.recipient_type === "announcement" ||
+            (msg.recipient_type === "person" && msg.sender === "North Star Feedback"),
         );
 
         // Sort by date descending (newest first)
         annList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         // Get read announcement IDs from localStorage
-        const readIds = JSON.parse(
+        const savedReadIds = JSON.parse(
           localStorage.getItem("read_announcements") || "[]",
         );
 
         // Calculate unread
-        const unread = annList.filter((ann) => !readIds.includes(ann.id));
+        const unread = annList.filter((ann) => !savedReadIds.includes(ann.id));
         setUnreadCount(unread.length);
 
         // Check if there are new announcements to notify (only if it's not the very first page load)
@@ -59,7 +69,7 @@ export default function AnnouncementBell() {
 
           if (brandNew.length > 0 && Notification.permission === "granted") {
             brandNew.forEach((msg) => {
-              new Notification(`North Star Announcement from ${msg.sender}`, {
+              new Notification(`North Star notification from ${msg.sender}`, {
                 body: msg.body,
                 icon: "/pwa-512x512.png",
               });
@@ -141,8 +151,10 @@ export default function AnnouncementBell() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="announcement-dropdown-header">
-            <span>Announcements</span>
-            {unreadCount > 0 && (
+            <span>Notifications</span>
+            {pushStatus === "default" ? (
+              <button onClick={enableNotifications}>Enable alerts</button>
+            ) : unreadCount > 0 && (
               <button onClick={markAllAsRead}>Mark all as read</button>
             )}
           </div>

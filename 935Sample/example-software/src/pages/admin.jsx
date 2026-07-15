@@ -24,12 +24,15 @@ import {
   faShapes,
   faGear,
   faFolderOpen,
+  faCommentDots,
 } from "@fortawesome/free-solid-svg-icons";
 import DriveView from "../componets/DriveView";
 import LeadershipManager from "../componets/LeadershipManager";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
 import AnnouncementBell from "../componets/AnnouncementBell";
+import FeedbackButton from "../componets/FeedbackButton";
+import FeedbackPanel from "../componets/FeedbackPanel";
 import {
   API_ENDPOINTS,
   getApiBaseUrl,
@@ -383,6 +386,15 @@ export default function AdminDashboard() {
           <FontAwesomeIcon icon={faFolderOpen} /> Drive
         </button>
         <button
+          className={`admin-tab-btn-mobile ${activeTab === "feedback" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("feedback");
+            toggleMobileSidebar();
+          }}
+        >
+          <FontAwesomeIcon icon={faCommentDots} /> Feedback
+        </button>
+        <button
           className={`admin-tab-btn-mobile ${activeTab === "visibility" ? "active" : ""}`}
           onClick={() => {
             setActiveTab("visibility");
@@ -418,6 +430,7 @@ export default function AdminDashboard() {
           onClick={toggleMobileSidebar}
         />
         <AnnouncementBell />
+        <FeedbackButton />
         <div className="admin-profile-badge" onClick={openLogout}>
           <FontAwesomeIcon id="mobileUser" icon={faUser} />
         </div>
@@ -466,6 +479,12 @@ export default function AdminDashboard() {
           Drive
         </button>
         <button
+          className={`admin-tab-btn ${activeTab === "feedback" ? "active" : ""}`}
+          onClick={() => setActiveTab("feedback")}
+        >
+          Feedback
+        </button>
+        <button
           className={`admin-tab-btn ${activeTab === "visibility" ? "active" : ""}`}
           onClick={() => setActiveTab("visibility")}
         >
@@ -483,6 +502,7 @@ export default function AdminDashboard() {
         <TasksPanel />
         {activeTab === "drive" && <DriveView />}
         {activeTab === "leaders" && <LeadershipManager />}
+        {activeTab === "feedback" && <FeedbackPanel />}
         {activeTab === "matches" && (
           <div className="admin-grid-layout">
             <div className="admin-controls-card">

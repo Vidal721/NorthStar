@@ -65,7 +65,8 @@ db.exec(`
     assignee TEXT,
     assigned_by TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'open',
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    completed_at TEXT
   );
 
   CREATE TABLE IF NOT EXISTS messages (
@@ -94,6 +95,20 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_push_subscriptions_username
     ON push_subscriptions(username);
+
+  CREATE TABLE IF NOT EXISTS feedback (
+    id TEXT PRIMARY KEY,
+    submitted_by TEXT NOT NULL,
+    category TEXT NOT NULL,
+    title TEXT NOT NULL,
+    details TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TEXT NOT NULL,
+    completed_at TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_feedback_status_created
+    ON feedback(status, created_at DESC);
 `);
 
 const defaultSubgroups = ["Manufacturing", "Programming", "Design", "Electronics", "Media"];
@@ -103,6 +118,11 @@ defaultSubgroups.forEach((name) => addSubgroup.run(name, new Date().toISOString(
 const regionalColumns = db.prepare(`PRAGMA table_info(regionals)`).all();
 if (!regionalColumns.some((column) => column.name === "visible_in_vis")) {
   db.exec(`ALTER TABLE regionals ADD COLUMN visible_in_vis INTEGER NOT NULL DEFAULT 1`);
+}
+
+const taskColumns = db.prepare(`PRAGMA table_info(tasks)`).all();
+if (!taskColumns.some((column) => column.name === "completed_at")) {
+  db.exec(`ALTER TABLE tasks ADD COLUMN completed_at TEXT`);
 }
 
 // Helper: get or create a regional by name, returns its id

@@ -1,7 +1,7 @@
 {
-  "version": "1.1.1",
+  "version": "1.2.0",
   "email": "team935scouting@gmail.com",
   "releaseNotes": [
-    "[ Bug Fix ] Fixed the issue where the notificaitons section was cut off on mobile"
+    "[ New Feature ] Notifications will now work even when you have the app closed for anyone who has downloaded it"
   ]
 }
