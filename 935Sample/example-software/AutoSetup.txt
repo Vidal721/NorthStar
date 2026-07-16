@@ -25,3 +25,4 @@ Here are some other helpful commands
 
 
 If the watcher is working, it will log watcher initalized in the logs.
+Takes about 20 sec from the time you click sync chages, also depends on if there are any new packages to install as well
