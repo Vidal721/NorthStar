@@ -1,0 +1,27 @@
+Make sure the following are installed
+
+ - git
+    - git --version
+    - sudo apt update && sudo apt install git -y
+ - Node.js
+    - node -v
+ - PM2
+    - pm2 -v 
+    - sudo npm install -g pm2
+
+After everything is installed, run these commands once to get it started (make sure you are in the server folder)
+ - pm2 start index.js --name "main-server"
+ - pm2 start watcher.js --name "auto-update"
+
+ Try these, but they may nt work and that is ok for now
+ - pm2 startup
+ - pm2 save
+
+Here are some other helpful commands
+ - Stop the server
+    - pm2 stop "name"
+ - Log pm2 
+    - pm2 logs
+
+
+If the watcher is working, it will log watcher initalized in the logs
