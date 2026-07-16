@@ -1,5 +1,5 @@
 import https from "https"
-const { execSync } = require("child_process");
+import { execSync } from "child_process"
 
 // --- CONFIGURATION ---
 const OWNER = "Vidal721";
@@ -16,7 +16,7 @@ let lastKnownSha = "";
 
 function getLatestCommit() {
   const options = {
-    hostname: "://github.com",
+    hostname: "api.github.com",
     path: `/repos/${OWNER}/${REPO}/commits/${BRANCH}`,
     method: "GET",
     headers: {
