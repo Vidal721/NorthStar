@@ -24,4 +24,4 @@ Here are some other helpful commands
     - pm2 logs
 
 
-If the watcher is working, it will log watcher initalized in the logs
+If the watcher is working, it will log watcher initalized in the logs.
