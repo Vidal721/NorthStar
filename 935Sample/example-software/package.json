@@ -25,6 +25,7 @@
     "express": "^5.2.1",
     "multer": "^2.2.0",
     "occt-import-js": "^0.0.23",
+    "pm2": "^7.0.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1",
