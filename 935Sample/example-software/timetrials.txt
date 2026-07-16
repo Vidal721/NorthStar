@@ -1,0 +1,198 @@
+Here when we run time trials we can log the times it took
+
+Time Trial Instructions:
+    - Start the timer as soon as the sync changes button is clicked
+    - When the first log appears lap the timer
+    - Stop the timer the moment this message is logged:
+        - [Watcher] Deployment completed successfully.
+
+Time Trial Key:
+
+    - TTL = time to start logs
+    - TTF = time to finish
+    - EXC = Extreme Conditions (New packages to install ect.)
+    - TLD = Difference between the start logs time from the past trials
+    - TFD = Difference between the finsih time from the past trial
+
+Logs:
+
+Trial 1:
+    TTL
+        23.44 sec
+    TTF
+        29.58 sec
+    EXC
+        none
+    TLD
+        none
+    TFD
+        none
+
+
+Trial 2:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+
+Trial 3:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 4:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 5:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 6:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 7:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 8:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 9:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 10:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 11:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 12:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 13:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+Trial 14:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
+
+Trial 15:
+    TTL
+
+    TTF
+
+    EXC
+
+    TLD
+
+    TFD
+
