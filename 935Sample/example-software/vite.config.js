@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "injectManifest",
       strategies: "injectManifest",
       srcDir: "src",
       filename: "service-worker.js",
