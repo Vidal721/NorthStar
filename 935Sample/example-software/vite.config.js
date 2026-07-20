@@ -61,15 +61,16 @@ export default defineConfig({
     proxy: {
       // In Vite dev mode on localhost, /backend proxies to your LOCAL server.
       // To use ngrok instead, change LOCAL_BACKEND to NGROK_TARGET above.
+      // Inside your server.proxy block:
       "/backend": {
-        target: LOCAL_BACKEND,
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/backend/, ""),
-        headers: {
-          "ngrok-skip-browser-warning": "69420",
-        },
-      },
+         target: NGROK_TARGET, // <-- Change from LOCAL_BACKEND to NGROK_TARGET
+         changeOrigin: true,
+         secure: false,
+         rewrite: (path) => path.replace(/^\/backend/, ""),
+         headers: {
+           "ngrok-skip-browser-warning": "69420",
+         },
+       },
     },
   },
 });
