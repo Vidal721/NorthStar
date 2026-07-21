@@ -35,13 +35,14 @@ export async function enablePushNotifications(api, actor) {
   return subscription;
 }
 
-/** Keeps a previously-approved browser subscription associated with the signed-in user. */
 export default function PushNotifications() {
   const api = useURL();
   const actor = localStorage.getItem("currentUser") || "";
 
   useEffect(() => {
-    if (!actor || Notification.permission !== "granted") return;
+    if (!actor) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
     enablePushNotifications(api, actor).catch((error) => console.warn("[push] subscription failed:", error));
   }, [api, actor]);
 
