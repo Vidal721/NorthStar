@@ -9,17 +9,50 @@ import {
   faPlus,
   faTrash,
   faX,
+  faList,
+  faTable,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
 import ModelViewer from "./ModelViewer";
 
-const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif"];
+const IMAGE_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+  "svg",
+  "bmp",
+  "avif",
+];
 const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "mov", "m4v"];
 const AUDIO_EXTENSIONS = ["mp3", "wav", "ogg", "m4a", "aac", "flac"];
 const PDF_EXTENSIONS = ["pdf"];
-const MODEL_EXTENSIONS = ["stl", "obj", "ply", "gltf", "glb", "step", "stp", "iges", "igs", "brep"];
+const MODEL_EXTENSIONS = [
+  "stl",
+  "obj",
+  "ply",
+  "gltf",
+  "glb",
+  "step",
+  "stp",
+  "iges",
+  "igs",
+  "brep",
+];
 const TEXT_EXTENSIONS = [
-  "txt", "md", "csv", "json", "xml", "html", "css", "js", "jsx", "ts", "tsx", "log",
+  "txt",
+  "md",
+  "csv",
+  "json",
+  "xml",
+  "html",
+  "css",
+  "js",
+  "jsx",
+  "ts",
+  "tsx",
+  "log",
 ];
 
 const getExtension = (name) => name.split(".").pop()?.toLowerCase() || "";
@@ -49,6 +82,7 @@ export default function DriveView() {
   const [canWrite, setCanWrite] = useState(false);
   const [imagePreviews, setImagePreviews] = useState({});
   const [previewFile, setPreviewFile] = useState(null);
+  const [driveViewState, setDriveViewState] = useState("grid");
   const userHeaders = {
     "x-drive-user": localStorage.getItem("currentUser") || "",
   };
@@ -268,6 +302,18 @@ export default function DriveView() {
               <FontAwesomeIcon icon={isMenuOpen ? faX : faPlus} /> New
             </button>
           )}
+          <button
+            id="drive-state-change-btn"
+            onClick={() =>
+              setDriveViewState(driveViewState === "grid" ? "list" : "grid")
+            }
+          >
+            {driveViewState === "grid" ? (
+              <FontAwesomeIcon icon={faList} />
+            ) : (
+              <FontAwesomeIcon icon={faTable} />
+            )}
+          </button>
         </div>
       </div>
       <div className="drive-main">
@@ -303,7 +349,7 @@ export default function DriveView() {
             {error}
           </p>
         )}
-        <div id="drive-content-all">
+        <div id="drive-content-all" className={driveViewState === "grid" ? "drive-grid" : "drive-list"}>
           {currentPath && (
             <button
               onClick={goBack}
@@ -340,20 +386,20 @@ export default function DriveView() {
           {folders.map((folder) => (
             <div
               key={folder}
-              className="drive-content folder drive-folder-card"
+              className={`drive-content folder drive-folder-card ${driveViewState}`}
             >
               <button
                 onClick={() => openFolder(folder)}
                 className="drive-folder-open drive-item-button"
               >
-                <span className="drive-content-logo">
+                <span className={`drive-content-logo ${driveViewState}`}>
                   <FontAwesomeIcon icon={faFolder} />
                 </span>
-                <span className="drive-content-text">{folder}</span>
+                <span className={`drive-content-text ${driveViewState}`}>{folder}</span>
               </button>
               {canWrite && (
                 <button
-                  className="drive-delete-btn"
+                  className={`drive-delete-btn ${driveViewState}`}
                   onClick={() => deleteFolder(folder)}
                   aria-label={`Delete ${folder}`}
                   title="Delete folder"
@@ -367,10 +413,10 @@ export default function DriveView() {
             const isImage = isImageFile(file);
             const previewUrl = imagePreviews[file];
             return (
-              <div key={file} className="drive-content file drive-file-card">
+              <div key={file} className={`drive-content file drive-file-card ${driveViewState}`} onClick={() => openPreview(file)}>
                 {isImage ? (
                   <button
-                    className="drive-item-button drive-image-thumb-button"
+                    className={`drive-item-button drive-image-thumb-button ${driveViewState}`}
                     onClick={() => openPreview(file)}
                     aria-label={`View ${file}`}
                   >
@@ -378,7 +424,7 @@ export default function DriveView() {
                       <img
                         src={previewUrl}
                         alt={file}
-                        className="drive-content-logo drive-image-thumb"
+                        className={`drive-content-logo drive-image-thumb ${driveViewState}`}
                       />
                     ) : (
                       <span className="drive-content-logo">
@@ -397,7 +443,7 @@ export default function DriveView() {
                     </span>
                   </button>
                 )}
-                <div className="drive-content-text">{file}</div>
+                <div className={`drive-content-text ${driveViewState}`}>{file}</div>
                 <button
                   type="button"
                   className="drive-download-btn"
@@ -423,10 +469,7 @@ export default function DriveView() {
         </div>
       </div>
       {previewFile && (
-        <div
-          className="drive-image-lightbox-overlay"
-          onClick={closePreview}
-        >
+        <div className="drive-image-lightbox-overlay" onClick={closePreview}>
           <div
             className="drive-image-lightbox-content"
             onClick={(event) => event.stopPropagation()}
@@ -439,19 +482,35 @@ export default function DriveView() {
               <FontAwesomeIcon icon={faX} />
             </button>
             <div className="drive-preview-body">
-              {previewFile.type === "image" && <img src={previewFile.url} alt={previewFile.name} />}
-              {previewFile.type === "video" && <video src={previewFile.url} controls autoPlay />}
-              {previewFile.type === "audio" && <audio src={previewFile.url} controls autoPlay />}
-              {previewFile.type === "pdf" && <iframe src={previewFile.url} title={previewFile.name} />}
-              {previewFile.type === "text" && <iframe src={previewFile.url} title={previewFile.name} />}
-              {previewFile.type === "model" && <ModelViewer sourceUrl={previewFile.url} fileName={previewFile.name} />}
+              {previewFile.type === "image" && (
+                <img src={previewFile.url} alt={previewFile.name} />
+              )}
+              {previewFile.type === "video" && (
+                <video src={previewFile.url} controls autoPlay />
+              )}
+              {previewFile.type === "audio" && (
+                <audio src={previewFile.url} controls autoPlay />
+              )}
+              {previewFile.type === "pdf" && (
+                <iframe src={previewFile.url} title={previewFile.name} />
+              )}
+              {previewFile.type === "text" && (
+                <iframe src={previewFile.url} title={previewFile.name} />
+              )}
+              {previewFile.type === "model" && (
+                <ModelViewer
+                  sourceUrl={previewFile.url}
+                  fileName={previewFile.name}
+                />
+              )}
               {previewFile.type === "document" && (
                 <iframe src={previewFile.url} title={previewFile.name} />
               )}
             </div>
             {previewFile.type === "document" && (
               <p className="drive-preview-note">
-                If this format is not previewed by your browser, download it to open it in the appropriate app.
+                If this format is not previewed by your browser, download it to
+                open it in the appropriate app.
               </p>
             )}
             <div className="drive-image-lightbox-caption">

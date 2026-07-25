@@ -441,6 +441,7 @@ function SubgroupView() {
     <section style={{ padding: "1rem" }}>
       <h1>My Subgroup</h1>
       <div className="form-title-card" style={{ marginTop: "1rem" }}>
+        <h3>Current Subgroup: {localStorage.getItem("userSubgroup")}</h3>
         <p>Subgroup Functionality coming soon.</p>
       </div>
     </section>
