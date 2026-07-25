@@ -20,6 +20,7 @@ import StudentFormsPage from "./pages/studentForms";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
 import ProtectedLayout from "./componets/ProtectedLayout";
+import LeadScoutPage from './pages/leadScout'
 import { useURL } from "./urlConfig";
 import "./App.css";
 
@@ -383,6 +384,7 @@ function App() {
         <Route element={<ProtectedLayout allowedRoles={["admin", "coach"]} />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/form" element={<FormBuilder />} />
+          <Route path="/lead" element={<LeadScoutPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
