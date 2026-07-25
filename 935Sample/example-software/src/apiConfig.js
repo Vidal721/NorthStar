@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// 🔧 DEV OVERRIDE: Set this to `true` to ALWAYS use the local backend
-//    (http://localhost:3000) regardless of the toggle in the Admin dashboard.
-//    Set to `false` to use the URL stored in localStorage (Admin toggle).
+// 🔧 MASTER SWITCH: Set to `true` to ALWAYS use local backend (http://localhost:3000)
+//    Set to `false` to ALWAYS use online backend (ngrok) everywhere.
 // ─────────────────────────────────────────────────────────────────────────────
 export const USE_LOCAL_BACKEND = false;
 
@@ -27,22 +26,16 @@ function readStoredUseLocalApi() {
 }
 
 export function getUseLocalApi() {
-  if (USE_LOCAL_BACKEND) return true;
-  return readStoredUseLocalApi();
+  // Always enforce the top variable strictly
+  return USE_LOCAL_BACKEND;
 }
 
 export function getConnectionMode() {
   return getUseLocalApi() ? "local" : "online";
 }
 
-/** In Vite dev on localhost, use same-origin `/backend` proxy (avoids CORS + ngrok interstitial). */
 export function getApiBaseUrl() {
-  if (import.meta.env.DEV && typeof window !== "undefined") {
-    const host = window.location.hostname;
-    if (host === "localhost" || host === "127.0.0.1") {
-      return "/backend";
-    }
-  }
+  // Always route directly based on USE_LOCAL_BACKEND, bypassing dev proxies
   return API_ENDPOINTS[getConnectionMode()];
 }
 

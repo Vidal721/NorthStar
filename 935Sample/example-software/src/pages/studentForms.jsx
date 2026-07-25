@@ -24,6 +24,7 @@ import AnnouncementBell from "../componets/AnnouncementBell";
 import FeedbackButton from "../componets/FeedbackButton";
 import UpdateModal from '../componets/UpdateModal';
 import appInfo from './info.json';
+import BottomBar from '../componets/bottombar'
 
 const apiBaseUrl = useURL();
 
@@ -127,6 +128,7 @@ function StudentShell({
 
   return (
     <div className="admin-container fade-in">
+      <BottomBar />
       {hasNewUpdate && <UpdateModal onClose={handleDismissUpdate} />}
       <MessagingDrawer />
       <div
@@ -428,8 +430,7 @@ function SettingsView() {
       <div className="form-title-card" style={{ marginTop: "1rem" }}>
         <p>Settings Functionality coming soon.</p>
         <p>Current Version: {appInfo.version}</p>
-        <p>Please email or text us about any bugs or feature requests</p>
-        <a href="mailto:team935scouting@gmail.com">{appInfo.email}</a>
+        <p>Please fill out a feedback form if you have any feature requests or bug reports.</p>
       </div>
     </section>
   );

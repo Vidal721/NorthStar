@@ -153,14 +153,13 @@ export default function PitScouting() {
   const [values, setValues] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const apiUrl = useURL();
   
   // Track the index of the currently open section (defaulting to 0 for the first section)
   const [openSectionIdx, setOpenSectionIdx] = useState(0);
 
   useEffect(() => {
-    fetch(`${useURL()}/pit/form`, {
-      headers: getDefaultHeaders(),
-    })
+    fetch(`${apiUrl}/pit/form`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -209,7 +208,7 @@ export default function PitScouting() {
     };
 
     try {
-      const res = await fetch(`${useURL()}/pit/upload`, {
+      const res = await fetch(`${apiUrl}/pit/upload`, {
         method: "POST",
         headers: getDefaultHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),

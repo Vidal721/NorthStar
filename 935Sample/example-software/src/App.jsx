@@ -370,7 +370,7 @@ function App() {
         </Route>
 
         <Route
-          element={<ProtectedLayout allowedRoles={["scouter", "admin", "coach"]} />}
+          element={<ProtectedLayout allowedRoles={["scouter", "admin", "coach", "students"]} />}
         >
           <Route path="/scout" element={<MainScout />} />
           <Route path="/pit" element={<PitScout />} />

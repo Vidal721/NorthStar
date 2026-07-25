@@ -17,7 +17,7 @@ input:-webkit-autofill:active {
 :root {
   --bg-app: #f8f7f2;
   --bg-surface: rgba(255, 255, 255, 0.6);
-  --bg-elevated: rgba(255, 255, 255, 0.85);
+  --bg-elevated: rgba(255, 255, 255, 1);
 
   --text-primary: #1a1a18;
   --text-secondary: #4a4a45;
@@ -7615,4 +7615,16 @@ input[type="file"] {
   .feedback-complete-btn {
     width: 100%;
   }
+}
+#mainContainer {
+  z-index: 1000;
+  width: 200px;
+  height: 90px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--input-border);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
 }
