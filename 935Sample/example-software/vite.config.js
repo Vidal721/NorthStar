@@ -57,6 +57,9 @@ export default defineConfig({
       },
     }),
   ],
+  define: {
+    'process.env': {}
+  },
   server: {
     proxy: {
       // In Vite dev mode on localhost, /backend proxies to your LOCAL server.

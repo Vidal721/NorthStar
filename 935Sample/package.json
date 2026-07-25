@@ -3,6 +3,7 @@
     "expo": "^57.0.1",
     "expo-dev-client": "^57.0.4",
     "multer": "^2.2.0",
+    "react-rnd": "^10.5.3",
     "react-router-dom": "^7.15.1"
   }
 }

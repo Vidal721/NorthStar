@@ -805,6 +805,9 @@ export default function AdminDashboard() {
               <Link to="/pit" rel="noopener noreferrer" className="adminApps">
                 Parent Helper
               </Link>
+              <Link to="/lead" rel="noopener noreferrer" className="adminApps">
+                Lead Scout
+              </Link>
             </div>
           </section>
         )}

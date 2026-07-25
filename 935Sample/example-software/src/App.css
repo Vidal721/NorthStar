@@ -7628,3 +7628,133 @@ input[type="file"] {
   width: 100%;
   opacity: 0;
 }
+
+/* Lead Scout Styles */
+
+/* =========================================
+   Lead Scout Dashboard Styles
+   ========================================= */
+
+.dashboard-container {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #f4f7fe;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  z-index: 10;
+}
+
+.dashboard-title {
+  margin: 0;
+  color: #1e293b;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.btn-add-widget {
+  padding: 10px 20px;
+  background-color: #4318FF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(67, 24, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-add-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(67, 24, 255, 0.4);
+}
+
+/* Grid Area */
+.grid-wrapper {
+  flex: 1;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* Individual Widgets */
+.widget-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.widget-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+.drag-handle {
+  padding: 15px 20px;
+  cursor: grab;
+  background-color: transparent;
+  border-bottom: 1px solid #f1f5f9;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-icon {
+  opacity: 0.4;
+  font-size: 1.1rem;
+}
+
+.widget-content-area {
+  padding: 0; /* Padding is handled inside the DataWidget now */
+  flex: 1;
+  overflow: hidden; /* DataWidget handles its own scrolling */
+}
+
+/* =========================================
+   React Grid Layout Overrides (Premium Placeholder)
+   ========================================= */
+.react-grid-item.react-grid-placeholder {
+  background-color: #4318FF !important; /* Matches your Add Widget button */
+  opacity: 0.15 !important; /* Soft, transparent look */
+  border-radius: 16px !important; /* Matches your widget border radius */
+  transition-duration: 100ms;
+}
+
+.btn-delete-widget {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Required for z-index */
+  z-index: 10;        /* Sits above the draggable area */
+}
+
+.btn-delete-widget:hover {
+  color: #ef4444; 
+  background-color: #fee2e2;
+}
