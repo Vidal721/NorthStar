@@ -118,10 +118,7 @@ export default function LeadScoutPage() {
           maxRows={10}
           useCSSTransforms
           draggableHandle=".drag-handle"
-
-          // ⭐ THIS IS THE IMPORTANT LINE
           draggableCancel=".btn-delete-widget"
-
           onLayoutChange={handleLayoutChange}
         >
           {layout.map((item) => (

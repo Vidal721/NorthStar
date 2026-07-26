@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 // Set your endpoints here for easy adjustment
-const CLOUD_URL = "https://your-cloud-server.com/api";
+const CLOUD_URL = "http://localhost:3000/match/Data";
 const PI_URL = "http://192.168.1.100:8080/api"; // Replace with your Pi's static IP
 
 export function useScoutData(endpoint) {
@@ -17,12 +17,13 @@ export function useScoutData(endpoint) {
       setLoading(true);
       try {
         // 1. Try the Cloud first
-        const response = await fetch(`${CLOUD_URL}${endpoint}`);
+        const response = await fetch(`${CLOUD_URL}`);
         if (!response.ok) throw new Error("Cloud fetch failed");
         const json = await response.json();
         
         if (isMounted) {
           setData(json);
+          console.log(json)
           setSource("cloud");
         }
       } catch (cloudError) {

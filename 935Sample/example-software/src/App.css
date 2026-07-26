@@ -7688,7 +7688,7 @@ input[type="file"] {
 /* Individual Widgets */
 .widget-card {
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 38px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
@@ -7702,7 +7702,7 @@ input[type="file"] {
 }
 
 .drag-handle {
-  padding: 15px 20px;
+  padding: 30px 30px;
   cursor: grab;
   background-color: transparent;
   border-bottom: 1px solid #f1f5f9;
@@ -7732,9 +7732,9 @@ input[type="file"] {
    React Grid Layout Overrides (Premium Placeholder)
    ========================================= */
 .react-grid-item.react-grid-placeholder {
-  background-color: #4318FF !important; /* Matches your Add Widget button */
+  background-color: #f7ff18 !important; /* Matches your Add Widget button */
   opacity: 0.15 !important; /* Soft, transparent look */
-  border-radius: 16px !important; /* Matches your widget border radius */
+  border-radius: 38px !important; /* Matches your widget border radius */
   transition-duration: 100ms;
 }
 
