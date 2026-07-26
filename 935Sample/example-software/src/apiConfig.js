@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// 🔧 MASTER SWITCH: Set to `true` to ALWAYS use local backend (http://localhost:3000)
-//    Set to `false` to ALWAYS use online backend (ngrok) everywhere.
-// ─────────────────────────────────────────────────────────────────────────────
 export const USE_LOCAL_BACKEND = false;
 
 export const CONNECTION_MODE_KEY = "useLocalApi";
