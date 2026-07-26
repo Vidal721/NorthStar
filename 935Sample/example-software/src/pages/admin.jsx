@@ -808,6 +808,9 @@ export default function AdminDashboard() {
               <Link to="/lead" rel="noopener noreferrer" className="adminApps">
                 Lead Scout
               </Link>
+              <Link to="/lead" rel="noopener noreferrer" className="adminApps">
+                Drive Dash
+              </Link>
             </div>
           </section>
         )}
