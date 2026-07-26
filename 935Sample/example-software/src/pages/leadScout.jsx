@@ -54,6 +54,8 @@ export default function LeadScoutPage() {
   const addWidget = () => {
     const newId = `widget-${Date.now()}`;
 
+    const configID = prompt("config type")
+
     setLayout((prev) => [
       ...prev,
       {
@@ -65,7 +67,7 @@ export default function LeadScoutPage() {
         minW: 2,
         minH: 2,
         maxH: 8,
-        config: null,
+        config: configIDf,
       },
     ]);
   };

@@ -8,7 +8,6 @@ export default function DataWidget({ config }) {
   if (error) return <div style={{ padding: "20px", color: "red" }}>{error}</div>;
   if (!data) return <div style={{ padding: "20px" }}>No data available.</div>;
 
-  // Render different modes based on config.type
   const renderContent = () => {
     switch (config.type) {
       case "leaderboard":
@@ -18,7 +17,7 @@ export default function DataWidget({ config }) {
             {data.slice(0, 5).map((item, index) => (
               <li key={index} style={{ marginBottom: "8px", fontWeight: index === 0 ? "bold" : "normal" }}>
                 {/* Dynamically access data using your mapping */}
-                {item[config.dataMapping.name]} - Score: {item[config.dataMapping.score]}
+                Fit Score: {item.fitScore} {/*item[config.dataMapping.score]*/}
               </li>
             ))}
           </ol>
@@ -29,15 +28,15 @@ export default function DataWidget({ config }) {
           <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ borderBottom: "2px solid #eee" }}>
-                <th>{config.dataMapping.col1Label}</th>
-                <th>{config.dataMapping.col2Label}</th>
+                <th>Team Number</th>
+                <th>Match Number</th>
               </tr>
             </thead>
             <tbody>
               {data.map((item, index) => (
                 <tr key={index}>
-                  <td style={{ padding: "8px 0", borderBottom: "1px solid #eee" }}>{item[config.dataMapping.col1Key]}</td>
-                  <td style={{ padding: "8px 0", borderBottom: "1px solid #eee" }}>{item[config.dataMapping.col2Key]}</td>
+                  <td style={{ padding: "8px 0", borderBottom: "1px solid #eee" }}>{item.meta.teamNumber}</td>
+                  <td style={{ padding: "8px 0", borderBottom: "1px solid #eee" }}>{item.meta.matchNumber}</td>
                 </tr>
               ))}
             </tbody>
@@ -49,7 +48,7 @@ export default function DataWidget({ config }) {
         return (
           <div>
             <h1 style={{ fontSize: "2.5rem", margin: "0 0 10px 0" }}>
-              {data[config.dataMapping.valueKey]}
+              Metrics
             </h1>
           </div>
         );
