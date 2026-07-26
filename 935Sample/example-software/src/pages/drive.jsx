@@ -1,55 +1,532 @@
-import React, { useRef, useState, useEffect } from "react";
-
-// Import your image here so Webpack/Vite bundles it correctly
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowRotateLeft,
+  faArrowRotateRight,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import bgImage from "../assets/field.png";
 
-const DrawingPage = () => {
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [brushColor, setBrushColor] = useState("#ff0000");
-  const [brushSize, setBrushSize] = useState(5);
+const TBA_BASE = "https://www.thebluealliance.com/api/v3";
+const TEAM_COLORS = [
+  "#FF375F",
+  "#FF9F0A",
+  "#FFD60A",
+  "#30D158",
+  "#0A84FF",
+  "#BF5AF2",
+];
+const CANVAS_WIDTH = 1000;
+const CANVAS_HEIGHT = 500;
+const COMP_ORDER = { qm: 0, ef: 1, qf: 2, sf: 3, f: 4 };
+const COMP_NAMES = { ef: "Eighth", qf: "Quarter", sf: "Semi", f: "Final" };
 
-  // History tracking for Undo/Redo
+function tbaFetch(path, key) {
+  return fetch(`${TBA_BASE}${path}`, { headers: { "X-TBA-Auth-Key": key } });
+}
+
+function matchLabel(m) {
+  if (m.comp_level === "qm") return `Qual ${m.match_number}`;
+  const set = m.set_number ? `${m.set_number}-` : "";
+  return `${COMP_NAMES[m.comp_level] || m.comp_level.toUpperCase()} ${set}${m.match_number}`;
+}
+
+function matchSortKey(m) {
+  return (
+    (COMP_ORDER[m.comp_level] ?? 5) * 100000 +
+    (m.set_number || 0) * 1000 +
+    m.match_number
+  );
+}
+
+function myAlliance(match, teamKey) {
+  if (match.alliances?.red?.team_keys?.includes(teamKey)) return "red";
+  if (match.alliances?.blue?.team_keys?.includes(teamKey)) return "blue";
+  return null;
+}
+
+/* ============================== Onboarding (first run) ============================== */
+function OnboardingScreen({ onComplete }) {
+  const [team, setTeam] = useState("");
+  const [key, setKey] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    const teamTrimmed = team.trim();
+    const keyTrimmed = key.trim();
+    if (!/^[0-9]{1,5}$/.test(teamTrimmed)) {
+      setError("Enter a valid team number.");
+      return;
+    }
+    if (!keyTrimmed) {
+      setError("Enter your TBA API key.");
+      return;
+    }
+    setChecking(true);
+    try {
+      const res = await tbaFetch("/status", keyTrimmed);
+      if (!res.ok) throw new Error("bad key");
+      const data = await res.json();
+      if (!data || data.Error) throw new Error("bad key");
+      onComplete(teamTrimmed, keyTrimmed);
+    } catch {
+      setError(
+        "That API key couldn't be verified. Double-check it and try again.",
+      );
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <div className="setup-screen">
+      <div className="setup-card">
+        <h1>Welcome</h1>
+        <p className="setup-sub">Set up your team to get started.</p>
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="team-input">Team Number</label>
+          <input
+            id="team-input"
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+            placeholder="935"
+            inputMode="numeric"
+            autoFocus
+          />
+          <label htmlFor="key-input">TBA API Key</label>
+          <input
+            id="key-input"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="Paste your Read API Key"
+            type="password"
+          />
+          <div className="setup-hint">
+            Get a key at{" "}
+            <a
+              href="https://www.thebluealliance.com/account"
+              target="_blank"
+              rel="noreferrer"
+            >
+              thebluealliance.com/account
+            </a>
+          </div>
+          {error && <div className="setup-error">{error}</div>}
+          <button type="submit" className="primary-btn" disabled={checking}>
+            {checking ? "Verifying…" : "Continue"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== Settings sheet ============================== */
+function SettingsSheet({
+  teamNumber,
+  tbaKey,
+  year,
+  event,
+  onClose,
+  onSave,
+  onFetchEvents,
+  events,
+  loadingEvents,
+  onDeleteAllDrawings,
+}) {
+  const [team, setTeam] = useState(teamNumber);
+  const [key, setKey] = useState(tbaKey);
+  const [pendingYear, setPendingYear] = useState(year);
+  const [search, setSearch] = useState("");
+  const [pendingEvent, setPendingEvent] = useState(event);
+  const [error, setError] = useState("");
+
+  const years = useMemo(() => {
+    const current = new Date().getFullYear();
+    const arr = [];
+    for (let y = current + 1; y >= current - 4; y--) arr.push(y);
+    return arr;
+  }, []);
+
+  const filteredEvents = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return events;
+    return events.filter(
+      (ev) =>
+        ev.name.toLowerCase().includes(q) ||
+        (ev.city || "").toLowerCase().includes(q),
+    );
+  }, [events, search]);
+
+  const handleSave = () => {
+    if (!/^[0-9]{1,5}$/.test(team.trim())) {
+      setError("Enter a valid team number.");
+      return;
+    }
+    if (!key.trim()) {
+      setError("Enter your TBA API key.");
+      return;
+    }
+    onSave({
+      team: team.trim(),
+      key: key.trim(),
+      year: pendingYear,
+      event: pendingEvent,
+    });
+  };
+
+  return (
+    <div className="sb-sheet-overlay">
+      <div className="sb-sheet">
+        <div className="sb-sheet-header">
+          <button className="sb-sheet-btn cancel" onClick={onClose}>
+            Cancel
+          </button>
+          <h3>Settings</h3>
+          <button className="sb-sheet-btn save" onClick={handleSave}>
+            Save
+          </button>
+        </div>
+        <div className="sb-sheet-body">
+          <div className="sb-sheet-group-label">Account</div>
+          <div className="sb-sheet-row">
+            <label>Team Number</label>
+            <input
+              value={team}
+              onChange={(e) => setTeam(e.target.value)}
+              inputMode="numeric"
+            />
+          </div>
+          <div className="sb-sheet-row">
+            <label>TBA API Key</label>
+            <input
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              type="password"
+              placeholder="Paste your key here"
+            />
+            <div className="sb-sheet-hint">
+              Get a key at{" "}
+              <a
+                href="https://www.thebluealliance.com/account"
+                target="_blank"
+                rel="noreferrer"
+              >
+                thebluealliance.com
+              </a>
+            </div>
+          </div>
+          {error && <div className="setup-error">{error}</div>}
+
+          <div className="sb-sheet-group-label">Event</div>
+          <div className="sb-sheet-row">
+            <label>Season</label>
+            <select
+              value={pendingYear}
+              onChange={(e) => setPendingYear(Number(e.target.value))}
+            >
+              {years.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input
+            className="sb-sheet-event-search"
+            placeholder="Search events…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="sb-sheet-event-list">
+            {loadingEvents && <div className="sb-loading">Loading events…</div>}
+            {!loadingEvents && filteredEvents.length === 0 && (
+              <div className="sb-empty">
+                No events yet — try Fetch Events below.
+              </div>
+            )}
+            {!loadingEvents &&
+              filteredEvents.map((ev) => (
+                <div
+                  key={ev.key}
+                  className={`sb-sheet-event-item${pendingEvent?.key === ev.key ? " active" : ""}`}
+                  onClick={() => setPendingEvent(ev)}
+                >
+                  {ev.name}
+                  <div className="sub">
+                    {ev.city ? `${ev.city}, ${ev.state_prov || ""}` : ""}
+                  </div>
+                </div>
+              ))}
+          </div>
+          <button
+            className="sb-sheet-btn save"
+            style={{ marginTop: 8 }}
+            onClick={() =>
+              onFetchEvents(
+                team.trim() || teamNumber,
+                key.trim() || tbaKey,
+                pendingYear,
+              )
+            }
+          >
+            ↓ Fetch Events for {pendingYear}
+          </button>
+
+          <div className="sb-sheet-group-label">Data</div>
+          <button className="sb-sheet-danger-btn" onClick={onDeleteAllDrawings}>
+            Delete All Match Drawings
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== Video Modal ============================== */
+function VideoModal({ videoKey, onClose }) {
+  return (
+    <div className="sb-modal-overlay" onClick={onClose}>
+      <button className="sb-modal-close" onClick={onClose}>
+        ✕
+      </button>
+      <div className="sb-modal" onClick={(e) => e.stopPropagation()}>
+        <iframe
+          src={`https://www.youtube.com/embed/${videoKey}?autoplay=1`}
+          title="Match video"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ============================== Sidebar (matches column) ============================== */
+function Sidebar({
+  collapsed,
+  onToggle,
+  teamNumber,
+  event,
+  onOpenSettings,
+  onRefresh,
+  matches,
+  loadingMatches,
+  onOpenMatch,
+  selectedMatchKey,
+}) {
+  const teamKey = `frc${teamNumber}`;
+  const sorted = useMemo(
+    () => [...matches].sort((a, b) => matchSortKey(a) - matchSortKey(b)),
+    [matches],
+  );
+
+  return (
+    <div className={`sb-sidebar${collapsed ? " collapsed" : ""}`}>
+      <div className="sb-sidebar-header">
+        <button
+          className="sb-iconbtn"
+          onClick={onOpenSettings}
+          title="Settings"
+        >
+          ⚙
+        </button>
+        <div className="sb-sidebar-title">
+          <div className="name">{event ? event.name : "No event selected"}</div>
+          <div className="sub">Team {teamNumber}</div>
+        </div>
+        <button
+          className="sb-iconbtn"
+          onClick={onRefresh}
+          title="Refresh matches"
+        >
+          ⟳
+        </button>
+        <button className="sb-iconbtn" onClick={onToggle} title="Collapse">
+          ◧
+        </button>
+      </div>
+      <div className="sb-section-label">Qualifications &amp; Playoffs</div>
+      <div className="sb-match-list">
+        {!event && (
+          <div className="sb-empty">Open Settings to choose a regional.</div>
+        )}
+        {event && loadingMatches && (
+          <div className="sb-loading">Loading matches…</div>
+        )}
+        {event && !loadingMatches && sorted.length === 0 && (
+          <div className="sb-empty">
+            No matches found yet for team {teamNumber}.
+          </div>
+        )}
+        {event &&
+          sorted.map((m) => {
+            const mine = myAlliance(m, teamKey);
+            const redScore = m.alliances?.red?.score;
+            const blueScore = m.alliances?.blue?.score;
+            const played =
+              m.winning_alliance !== undefined &&
+              m.winning_alliance !== null &&
+              redScore != null &&
+              redScore >= 0 &&
+              m.comp_level &&
+              m.winning_alliance !== "";
+            const won = played && m.winning_alliance === mine;
+            return (
+              <div
+                key={m.key}
+                className={`sb-match-row${mine ? ` mine-${mine}` : ""}${m.key === selectedMatchKey ? " active" : ""}`}
+                onClick={() => onOpenMatch(m)}
+              >
+                <SidebarMatchRow
+                  m={m}
+                  mine={mine}
+                  played={played}
+                  won={won}
+                  teamKey={teamKey}
+                />
+              </div>
+            );
+          })}
+      </div>
+    </div>
+  );
+}
+
+function SidebarMatchRow({ m, mine, played, won, teamKey }) {
+  return (
+    <MatchRowInner
+      m={m}
+      mine={mine}
+      played={played}
+      won={won}
+      teamKey={teamKey}
+    />
+  );
+}
+
+function MatchRowInner({ m, mine, played, won, teamKey }) {
+  const redTeams = m.alliances.red.team_keys.map((t) => t.replace("frc", ""));
+  const blueTeams = m.alliances.blue.team_keys.map((t) => t.replace("frc", ""));
+  return (
+    <>
+      <div className="sb-match-row-top">
+        <span className="label">{matchLabel(m)}</span>
+        {played && (
+          <span className="score">
+            <span
+              className={`sb-score-part ${m.winning_alliance === "red" ? "win" : "lose"}`}
+            >
+              {m.alliances.red.score}
+            </span>
+            –
+            <span
+              className={`sb-score-part ${m.winning_alliance === "blue" ? "win" : "lose"}`}
+            >
+              {m.alliances.blue.score}
+            </span>
+            {mine && (
+              <span className={`sb-result-dot ${won ? "win" : "lose"}`}>
+                {won ? "✓" : "✕"}
+              </span>
+            )}
+          </span>
+        )}
+      </div>
+      <div className="sb-team-line">
+        <span className="swatch red" />
+        {redTeams.map((t, i) => (
+          <React.Fragment key={t}>
+            {i > 0 && <span>·</span>}
+            {`frc${t}` === teamKey ? <b>{t}</b> : t}
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="sb-team-line">
+        <span className="swatch blue" />
+        {blueTeams.map((t, i) => (
+          <React.Fragment key={t}>
+            {i > 0 && <span>·</span>}
+            {`frc${t}` === teamKey ? <b>{t}</b> : t}
+          </React.Fragment>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ============================== Strategy Board ============================== */
+function StrategyBoard({
+  match,
+  teamNumber,
+  onWatchVideo,
+  onOpenSidebar,
+  sidebarCollapsed,
+}) {
+  const canvasRef = useRef(null);
+  const isDrawingRef = useRef(false);
   const historyRef = useRef([]);
   const historyStepRef = useRef(-1);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [brushColor, setBrushColor] = useState(TEAM_COLORS[0]);
+  const [brushSize, setBrushSize] = useState(5);
+  const [armedTeam, setArmedTeam] = useState(null);
+  const [slots, setSlots] = useState({
+    red: [null, null, null],
+    blue: [null, null, null],
+  });
 
-  const CANVAS_WIDTH = 800;
-  const CANVAS_HEIGHT = 600;
-
-  // Use the imported image variable directly
-  const myImagePath = bgImage;
-
-  const [headerJSON, setHeaderJSON] = useState([]);
-
-  useEffect(() => {
-    async function getData() {
-      try {
-        const res = await fetch(`http://localhost:3000/api/regionals`);
-        if (res.ok) {
-          const json = await res.json();
-          console.log(json);
-          // 3. Save the data to React state
-          setHeaderJSON(json);
-        }
-      } catch (err) {
-        console.error("Could not fetch regionals listing:", err);
-      }
-    }
-    
-    getData();
-  }, []);
+  const storageKey = `sb_board_${match.key}`;
+  const teamKeyMine = `frc${teamNumber}`;
+  const mine = myAlliance(match, teamKeyMine);
+  const redTeams = match.alliances.red.team_keys.map((t) =>
+    t.replace("frc", ""),
+  );
+  const blueTeams = match.alliances.blue.team_keys.map((t) =>
+    t.replace("frc", ""),
+  );
+  const allTeamsOrdered = [...redTeams, ...blueTeams];
+  const colorFor = (team) =>
+    TEAM_COLORS[allTeamsOrdered.indexOf(team) % TEAM_COLORS.length];
+  const video = (match.videos || []).find((v) => v.type === "youtube");
 
   const updateHistoryState = () => {
     setCanUndo(historyStepRef.current > 0);
     setCanRedo(historyStepRef.current < historyRef.current.length - 1);
   };
 
-  const saveState = (canvas = canvasRef.current) => {
+  const persist = useCallback(
+    (slotsOverride) => {
+      try {
+        const canvas = canvasRef.current;
+        const dataUrl = canvas ? canvas.toDataURL("image/png") : null;
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({ drawing: dataUrl, slots: slotsOverride || slots }),
+        );
+      } catch (err) {
+        console.error("Could not save strategy board:", err);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [slots, storageKey],
+  );
+
+  const saveState = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
     historyRef.current = historyRef.current.slice(
       0,
       historyStepRef.current + 1,
@@ -57,105 +534,101 @@ const DrawingPage = () => {
     historyRef.current.push(data);
     historyStepRef.current += 1;
     updateHistoryState();
-  };
+    persist();
+  }, [persist]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
-    // 1. Set the canvas size immediately
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
 
-    // 2. Save a completely blank canvas as the baseline right away.
-    // This fixes the "Clear" bug even if the image fails to load.
     historyRef.current = [];
     historyStepRef.current = -1;
-    saveState(canvas);
+    setArmedTeam(null);
 
-    if (!myImagePath) return;
+    let saved = null;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) saved = JSON.parse(raw);
+    } catch {
+      saved = null;
+    }
+    setSlots(
+      saved?.slots || { red: [null, null, null], blue: [null, null, null] },
+    );
+
+    const drawBaseline = () => {
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      historyRef.current = [data];
+      historyStepRef.current = 0;
+      updateHistoryState();
+    };
+
+    if (saved?.drawing) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        drawBaseline();
+      };
+      img.src = saved.drawing;
+      return;
+    }
 
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = myImagePath;
-
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const widthScale = CANVAS_WIDTH / img.width;
-      const heightScale = CANVAS_HEIGHT / img.height;
-      const scaledWidth = img.width * widthScale;
-      const scaledHeight = img.height * heightScale;
-      const offsetX = (CANVAS_WIDTH - scaledWidth) / 2;
-      const offsetY = 0;
-
-      ctx.drawImage(
-        img,
-        0,
-        0,
-        img.width,
-        img.height,
-        offsetX,
-        offsetY,
-        scaledWidth,
-        scaledHeight,
+      const scale = Math.min(
+        CANVAS_WIDTH / img.width,
+        CANVAS_HEIGHT / img.height,
       );
-
-      // 3. Once the image loads successfully, reset the history to make the image the NEW baseline.
-      historyRef.current = [];
-      historyStepRef.current = -1;
-      saveState(canvas);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (CANVAS_WIDTH - w) / 2, (CANVAS_HEIGHT - h) / 2, w, h);
+      drawBaseline();
     };
-
-    img.onerror = () => {
-      console.error("The image failed to load! Check your file path.");
-    };
-  }, []); // Only runs once on mount
+    img.onerror = () => drawBaseline();
+    img.src = bgImage;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [match.key]);
 
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top) * (canvas.height / rect.height),
     };
   };
 
   const startDrawing = (e) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvasRef.current.getContext("2d");
     const { x, y } = getCoordinates(e);
-
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.lineWidth = brushSize;
     ctx.strokeStyle = brushColor;
-
     ctx.beginPath();
     ctx.moveTo(x, y);
-    setIsDrawing(true);
+    isDrawingRef.current = true;
   };
 
   const draw = (e) => {
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     if (e.cancelable && e.type === "touchmove") e.preventDefault();
-
     const ctx = canvasRef.current.getContext("2d");
     const { x, y } = getCoordinates(e);
-
     ctx.lineTo(x, y);
     ctx.stroke();
   };
 
   const stopDrawing = () => {
-    if (isDrawing) {
-      setIsDrawing(false);
+    if (isDrawingRef.current) {
+      isDrawingRef.current = false;
       saveState();
     }
   };
@@ -163,121 +636,374 @@ const DrawingPage = () => {
   const handleUndo = () => {
     if (historyStepRef.current > 0) {
       historyStepRef.current -= 1;
-      const ctx = canvasRef.current.getContext("2d");
-      ctx.putImageData(historyRef.current[historyStepRef.current], 0, 0);
+      canvasRef.current
+        .getContext("2d")
+        .putImageData(historyRef.current[historyStepRef.current], 0, 0);
       updateHistoryState();
+      persist();
     }
   };
 
   const handleRedo = () => {
     if (historyStepRef.current < historyRef.current.length - 1) {
       historyStepRef.current += 1;
-      const ctx = canvasRef.current.getContext("2d");
-      ctx.putImageData(historyRef.current[historyStepRef.current], 0, 0);
+      canvasRef.current
+        .getContext("2d")
+        .putImageData(historyRef.current[historyStepRef.current], 0, 0);
       updateHistoryState();
+      persist();
     }
   };
 
-  const handleDelete = () => {
+  const handleClear = () => {
     if (historyRef.current.length > 0) {
-      const ctx = canvasRef.current.getContext("2d");
-      ctx.putImageData(historyRef.current[0], 0, 0);
+      canvasRef.current
+        .getContext("2d")
+        .putImageData(historyRef.current[0], 0, 0);
       saveState();
     }
   };
 
   const exportImage = () => {
     const dataUrl = canvasRef.current.toDataURL("image/png");
-    console.log("Combined base64 image data string:", dataUrl);
+    const link = document.createElement("a");
+    link.download = `${match.key}-strategy.png`;
+    link.href = dataUrl;
+    link.click();
   };
 
-  async function getData() {
-    try {
-      const res = await fetch(`http://localhost:3000/api/regionals`);
-      if (res.ok) {
-        const json = await res.json();
-        console.log(json);
-        headerJSON = json
-      }
-    } catch (err) {
-      console.error("Could not fetch regionals listing:", err);
+  const selectTeam = (team) => {
+    setArmedTeam(team);
+    setBrushColor(colorFor(team));
+  };
+
+  const assignSlot = (alliance, index, team) => {
+    setSlots((prev) => {
+      const next = { red: [...prev.red], blue: [...prev.blue] };
+      next[alliance][index] = team;
+      persist(next);
+      return next;
+    });
+  };
+
+  const handleSlotClick = (alliance, index) => {
+    if (slots[alliance][index]) {
+      assignSlot(alliance, index, null);
+    } else if (armedTeam) {
+      assignSlot(alliance, index, armedTeam);
     }
-  }
+  };
 
-
-  return (
-    <div className="app-container">
-<div className="sidebar">
-        {/* 4. Use .map() instead of .forEach() and add a unique key */}
-        {headerJSON.map((item, index) => (
-            <h1 key={item.id || index}>{item.name}</h1>
-        ))}
-      </div>
-
-      <div className="main-content">
-        <div className="toolbar">
-          <div className="tool-group">
-            <label htmlFor="colorPicker" title="Brush Color">
-              🎨
-            </label>
-            <input
-              id="colorPicker"
-              type="color"
-              value={brushColor}
-              onChange={(e) => setBrushColor(e.target.value)}
-            />
-          </div>
-
-          <div className="tool-group">
-            <label htmlFor="brushSize" title="Brush Size">
-              🖌️ {brushSize}px
-            </label>
-            <input
-              id="brushSize"
-              type="range"
-              min="1"
-              max="50"
-              value={brushSize}
-              onChange={(e) => setBrushSize(parseInt(e.target.value))}
-            />
-          </div>
-
-          <div className="divider"></div>
-
-          <button onClick={handleUndo} disabled={!canUndo} className="icon-btn">
-            ↩️ Undo
-          </button>
-          <button onClick={handleRedo} disabled={!canRedo} className="icon-btn">
-            ↪️ Redo
-          </button>
-          <button onClick={handleDelete} className="icon-btn delete-btn">
-            🗑️ Clear
-          </button>
-
-          <div className="divider"></div>
-
-          <button className="export-btn" onClick={exportImage}>
-            Export
-          </button>
-        </div>
-
-        <div className="canvas-wrapper">
-          <canvas
-            ref={canvasRef}
-            className="drawing-canvas fixed-size"
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-            onTouchStart={startDrawing}
-            onTouchMove={draw}
-            onTouchEnd={stopDrawing}
-            onTouchCancel={stopDrawing}
-          />
-        </div>
-      </div>
+  const TeamPill = ({ team }) => (
+    <div
+      className={`sb-team-pill${armedTeam === team ? " armed" : ""}${team === teamNumber ? " mine" : ""}`}
+      style={{ background: colorFor(team) }}
+      onClick={() => selectTeam(team)}
+      title={`Team ${team}`}
+    >
+      {team}
     </div>
   );
-};
 
-export default DrawingPage;
+  const SlotStack = ({ alliance }) => (
+    <div className="sb-slot-row">
+      {[0, 1, 2].map((i) => {
+        const assigned = slots[alliance][i];
+        return (
+          <div
+            key={i}
+            className={`sb-slot${assigned ? " filled" : ""}`}
+            style={
+              assigned
+                ? {
+                    background: colorFor(assigned),
+                    borderColor: colorFor(assigned),
+                  }
+                : {}
+            }
+            onClick={() => handleSlotClick(alliance, i)}
+            title={
+              assigned
+                ? `Team ${assigned} — tap to clear`
+                : `Starting spot ${i + 1}`
+            }
+          >
+            {assigned || i + 1}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <>
+      <div className="sb-topbar">
+        {sidebarCollapsed && (
+          <button
+            className="sb-iconbtn"
+            onClick={onOpenSidebar}
+            title="Show matches"
+          >
+            ☰
+          </button>
+        )}
+        <h3>{matchLabel(match)}</h3>
+        {mine && (
+          <span className="my-alliance">
+            <span className={`sb-dot ${mine}`} />
+            with{" "}
+            {(mine === "red" ? redTeams : blueTeams)
+              .filter((t) => t !== teamNumber)
+              .join(", ")}
+          </span>
+        )}
+        {video && (
+          <button
+            className="sb-video-btn"
+            onClick={() => onWatchVideo(video.key)}
+          >
+            ▶ Watch Match
+          </button>
+        )}
+      </div>
+      <div className="sb-board-wrap">
+        <div className="sb-edge-col1">
+          {redTeams.map((t) => (
+            <TeamPill key={t} team={t} />
+          ))}
+        </div>
+        <div className="sb-edge-col3">
+          <SlotStack alliance="red" />
+        </div>
+
+        <div className="sb-canvas-area">
+          <div className="sb-toolbar">
+            <div className="sb-tool-group">
+              <input
+                type="color"
+                value={brushColor}
+                onChange={(e) => {
+                  setArmedTeam(null);
+                  setBrushColor(e.target.value);
+                }}
+              />
+            </div>
+            <div className="sb-tool-group">
+              <span>{brushSize}px</span>
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={brushSize}
+                onChange={(e) => setBrushSize(parseInt(e.target.value, 10))}
+              />
+            </div>
+            <div className="sb-divider" />
+            <button
+              className="sb-icon-btn"
+              disabled={!canUndo}
+              onClick={handleUndo}
+            >
+              <FontAwesomeIcon icon={faArrowRotateLeft} />
+            </button>
+            <button
+              className="sb-icon-btn"
+              disabled={!canRedo}
+              onClick={handleRedo}
+            >
+              <FontAwesomeIcon icon={faArrowRotateRight} />
+            </button>
+            <button className="sb-icon-btn danger" onClick={handleClear}>
+              <FontAwesomeIcon icon={faTrash} />
+            </button>
+            <div className="sb-divider" />
+            <button className="sb-icon-btn primary" onClick={exportImage}>
+              Export
+            </button>
+          </div>
+          <div className="sb-canvas-frame">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
+              onTouchCancel={stopDrawing}
+            />
+          </div>
+        </div>
+
+        <div className="sb-edge-col2">
+          {blueTeams.map((t) => (
+            <TeamPill key={t} team={t} />
+          ))}
+        </div>
+        <div className="sb-edge-col4">
+          <SlotStack alliance="blue" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ============================== App Root ============================== */
+export default function StrategyApp() {
+  const [teamNumber, setTeamNumber] = useState(
+    () => localStorage.getItem("sb_team_number") || "",
+  );
+  const [tbaKey, setTbaKey] = useState(
+    () => localStorage.getItem("sb_tba_key") || "",
+  );
+  const [ready, setReady] = useState(false);
+
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(() => {
+    try {
+      const raw = localStorage.getItem("sb_selected_event");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [matches, setMatches] = useState([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [videoKey, setVideoKey] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (teamNumber && tbaKey) setReady(true);
+    else setSettingsOpen(false);
+  }, [teamNumber, tbaKey]);
+
+  const fetchEvents = useCallback((team, key, forYear) => {
+    if (!team || !key) return;
+    setLoadingEvents(true);
+    tbaFetch(`/team/frc${team}/events/${forYear}/simple`, key)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setEvents(Array.isArray(data) ? data : []))
+      .catch(() => setEvents([]))
+      .finally(() => setLoadingEvents(false));
+  }, []);
+
+  const fetchMatches = useCallback((event, team, key) => {
+    if (!event) return;
+    setLoadingMatches(true);
+    const teamKey = `frc${team}`;
+    tbaFetch(`/event/${event.key}/matches`, key)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const ours = (Array.isArray(data) ? data : []).filter(
+          (m) =>
+            m.alliances?.red?.team_keys?.includes(teamKey) ||
+            m.alliances?.blue?.team_keys?.includes(teamKey),
+        );
+        setMatches(ours);
+      })
+      .catch(() => setMatches([]))
+      .finally(() => setLoadingMatches(false));
+  }, []);
+
+  useEffect(() => {
+    if (ready && teamNumber && tbaKey) fetchEvents(teamNumber, tbaKey, year);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
+  useEffect(() => {
+    if (ready && selectedEvent) fetchMatches(selectedEvent, teamNumber, tbaKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, selectedEvent]);
+
+  const handleOnboardingComplete = (team, key) => {
+    localStorage.setItem("sb_team_number", team);
+    localStorage.setItem("sb_tba_key", key);
+    setTeamNumber(team);
+    setTbaKey(key);
+    setReady(true);
+    fetchEvents(team, key, year);
+  };
+
+  const handleSettingsSave = ({ team, key, year: newYear, event }) => {
+    localStorage.setItem("sb_team_number", team);
+    localStorage.setItem("sb_tba_key", key);
+    setTeamNumber(team);
+    setTbaKey(key);
+    setYear(newYear);
+    if (event && event.key !== selectedEvent?.key) {
+      setSelectedEvent(event);
+      localStorage.setItem("sb_selected_event", JSON.stringify(event));
+      setSelectedMatch(null);
+    }
+    setSettingsOpen(false);
+  };
+
+  const handleDeleteAllDrawings = () => {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sb_board_"))
+      .forEach((k) => localStorage.removeItem(k));
+    setSettingsOpen(false);
+  };
+
+  if (!ready) return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+
+  return (
+    <div className="sb-root">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed((c) => !c)}
+        teamNumber={teamNumber}
+        event={selectedEvent}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onRefresh={() =>
+          selectedEvent && fetchMatches(selectedEvent, teamNumber, tbaKey)
+        }
+        matches={matches}
+        loadingMatches={loadingMatches}
+        onOpenMatch={setSelectedMatch}
+        selectedMatchKey={selectedMatch?.key}
+      />
+      <div className="sb-main">
+        {!selectedMatch && (
+          <div className="sb-empty-state">
+            {selectedEvent
+              ? "Select a match from the sidebar to open its strategy board."
+              : "Open Settings to choose your regional."}
+          </div>
+        )}
+        {selectedMatch && (
+          <StrategyBoard
+            match={selectedMatch}
+            teamNumber={teamNumber}
+            onWatchVideo={setVideoKey}
+            onOpenSidebar={() => setSidebarCollapsed(false)}
+            sidebarCollapsed={sidebarCollapsed}
+          />
+        )}
+      </div>
+      {settingsOpen && (
+        <SettingsSheet
+          teamNumber={teamNumber}
+          tbaKey={tbaKey}
+          year={year}
+          event={selectedEvent}
+          events={events}
+          loadingEvents={loadingEvents}
+          onClose={() => setSettingsOpen(false)}
+          onSave={handleSettingsSave}
+          onFetchEvents={fetchEvents}
+          onDeleteAllDrawings={handleDeleteAllDrawings}
+        />
+      )}
+      {videoKey && (
+        <VideoModal videoKey={videoKey} onClose={() => setVideoKey(null)} />
+      )}
+    </div>
+  );
+}
