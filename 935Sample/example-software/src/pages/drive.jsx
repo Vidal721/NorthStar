@@ -52,6 +52,139 @@ function myAlliance(match, teamKey) {
   return null;
 }
 
+/* ---------- Offline cache helpers (stale-while-revalidate via localStorage) ---------- */
+const REFRESH_INTERVAL_MS = 3 * 60 * 1000; // keep matches fresh every few minutes
+
+function readCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(key, value) {
+  try {
+    localStorage.setItem(
+      key,
+      JSON.stringify({ data: value, cachedAt: Date.now() }),
+    );
+  } catch (err) {
+    console.error("Cache write failed:", err);
+  }
+}
+
+/* ---------- Hold-to-perfect-shape recognition ----------
+   Classifies a freehand stroke as a line, rectangle/square, or circle
+   if it closely matches one, otherwise returns null (keep freehand). */
+const HOLD_MS = 2000;
+const HOLD_MOVE_TOLERANCE = 6; // px (canvas space) movement allowed while "holding"
+
+function pointDist(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function recognizeShape(points) {
+  if (!points || points.length < 6) return null;
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const minX = Math.min(...xs),
+    maxX = Math.max(...xs);
+  const minY = Math.min(...ys),
+    maxY = Math.max(...ys);
+  const w = maxX - minX;
+  const h = maxY - minY;
+  const diag = Math.hypot(w, h);
+  if (diag < 20) return null; // too small / a tap
+
+  const first = points[0];
+  const last = points[points.length - 1];
+  const closed = pointDist(first, last) < Math.max(24, diag * 0.18);
+
+  // ---- Line check: low deviation from the straight first->last segment ----
+  const lineLen = pointDist(first, last);
+  if (lineLen > diag * 0.7) {
+    const dx = last.x - first.x;
+    const dy = last.y - first.y;
+    const len = Math.hypot(dx, dy) || 1;
+    let maxDev = 0;
+    for (const p of points) {
+      const t = ((p.x - first.x) * dx + (p.y - first.y) * dy) / (len * len);
+      const projX = first.x + t * dx;
+      const projY = first.y + t * dy;
+      maxDev = Math.max(maxDev, pointDist(p, { x: projX, y: projY }));
+    }
+    if (maxDev < Math.max(10, len * 0.06)) {
+      return { type: "line", x1: first.x, y1: first.y, x2: last.x, y2: last.y };
+    }
+  }
+
+  if (!closed) return null;
+
+  // ---- Circle check: low variance of radius from centroid ----
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const radii = points.map((p) => pointDist(p, { x: cx, y: cy }));
+  const avgR = radii.reduce((a, b) => a + b, 0) / radii.length;
+  const variance =
+    radii.reduce((a, r) => a + (r - avgR) * (r - avgR), 0) / radii.length;
+  const stdDev = Math.sqrt(variance);
+  const aspect = w / h || 1;
+  if (stdDev / avgR < 0.16 && aspect > 0.7 && aspect < 1.4) {
+    return { type: "circle", cx, cy, r: avgR };
+  }
+
+  // ---- Rectangle/square check: points hug the bounding-box perimeter ----
+  const edgeTolerance = Math.max(14, diag * 0.08);
+  let onEdge = 0;
+  for (const p of points) {
+    const nearLeft = Math.abs(p.x - minX) < edgeTolerance;
+    const nearRight = Math.abs(p.x - maxX) < edgeTolerance;
+    const nearTop = Math.abs(p.y - minY) < edgeTolerance;
+    const nearBottom = Math.abs(p.y - maxY) < edgeTolerance;
+    if (nearLeft || nearRight || nearTop || nearBottom) onEdge++;
+  }
+  if (onEdge / points.length > 0.75 && w > 20 && h > 20) {
+    return { type: "rect", x: minX, y: minY, w, h };
+  }
+
+  return null;
+}
+
+function drawRecognizedShape(ctx, shape, color, lineWidth) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  if (shape.type === "line") {
+    ctx.moveTo(shape.x1, shape.y1);
+    ctx.lineTo(shape.x2, shape.y2);
+  } else if (shape.type === "circle") {
+    ctx.arc(shape.cx, shape.cy, shape.r, 0, Math.PI * 2);
+  } else if (shape.type === "rect") {
+    ctx.rect(shape.x, shape.y, shape.w, shape.h);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFreehand(ctx, points, color, lineWidth) {
+  if (points.length < 2) return;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
 /* ============================== Onboarding (first run) ============================== */
 function OnboardingScreen({ onComplete }) {
   const [team, setTeam] = useState("");
@@ -324,6 +457,8 @@ function Sidebar({
   loadingMatches,
   onOpenMatch,
   selectedMatchKey,
+  isOnline,
+  lastSynced,
 }) {
   const teamKey = `frc${teamNumber}`;
   const sorted = useMemo(
@@ -355,6 +490,14 @@ function Sidebar({
         <button className="sb-iconbtn" onClick={onToggle} title="Collapse">
           ◧
         </button>
+      </div>
+      <div className={`sb-sync-pill${isOnline ? "" : " offline"}`}>
+        <span className="sb-sync-dot" />
+        {isOnline
+          ? lastSynced
+            ? `Synced ${lastSynced}`
+            : "Online"
+          : "Offline — showing saved data"}
       </div>
       <div className="sb-section-label">Qualifications &amp; Playoffs</div>
       <div className="sb-match-list">
@@ -482,6 +625,18 @@ function StrategyBoard({
   const [brushColor, setBrushColor] = useState(TEAM_COLORS[0]);
   const [brushSize, setBrushSize] = useState(5);
   const [armedTeam, setArmedTeam] = useState(null);
+  const [shapeAssist, setShapeAssist] = useState(true);
+  const [shapeToast, setShapeToast] = useState(null);
+  const [holdProgress, setHoldProgress] = useState(null); // {x, y, pct} in screen space
+
+  // Live stroke state (kept in refs so handlers stay cheap/synchronous)
+  const pointsRef = useRef([]);
+  const preStrokeSnapshotRef = useRef(null);
+  const holdTimerRef = useRef(null);
+  const holdRafRef = useRef(null);
+  const holdStartRef = useRef(0);
+  const lastMovePointRef = useRef(null);
+  const shapeLockedRef = useRef(false);
   const [slots, setSlots] = useState({
     red: [null, null, null],
     blue: [null, null, null],
@@ -606,33 +761,113 @@ function StrategyBoard({
     };
   };
 
+  const getScreenPoint = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  };
+
+  const clearHoldTimer = () => {
+    if (holdRafRef.current) cancelAnimationFrame(holdRafRef.current);
+    holdRafRef.current = null;
+  };
+
+  const triggerShapeRecognition = () => {
+    clearHoldTimer();
+    setHoldProgress(null);
+    const shape = recognizeShape(pointsRef.current);
+    if (!shape) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (preStrokeSnapshotRef.current) {
+      ctx.putImageData(preStrokeSnapshotRef.current, 0, 0);
+    }
+    drawRecognizedShape(ctx, shape, brushColor, brushSize);
+    shapeLockedRef.current = true;
+    const label =
+      shape.type === "rect"
+        ? "Rectangle"
+        : shape.type === "circle"
+          ? "Circle"
+          : "Straight line";
+    setShapeToast(label);
+    if (navigator.vibrate) navigator.vibrate(15);
+    setTimeout(() => setShapeToast(null), 1300);
+  };
+
+  const armHoldTimer = (e) => {
+    clearHoldTimer();
+    const screenPt = getScreenPoint(e);
+    holdStartRef.current = performance.now();
+    setHoldProgress({ x: screenPt.x, y: screenPt.y, pct: 0 });
+    const tick = () => {
+      const elapsed = performance.now() - holdStartRef.current;
+      const pct = Math.min(1, elapsed / HOLD_MS);
+      setHoldProgress((prev) => (prev ? { ...prev, pct } : prev));
+      if (pct >= 1) {
+        triggerShapeRecognition();
+        return;
+      }
+      holdRafRef.current = requestAnimationFrame(tick);
+    };
+    holdRafRef.current = requestAnimationFrame(tick);
+  };
+
   const startDrawing = (e) => {
-    const ctx = canvasRef.current.getContext("2d");
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
     const { x, y } = getCoordinates(e);
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.lineWidth = brushSize;
-    ctx.strokeStyle = brushColor;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    preStrokeSnapshotRef.current = ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+    pointsRef.current = [{ x, y }];
+    lastMovePointRef.current = { x, y };
+    shapeLockedRef.current = false;
     isDrawingRef.current = true;
+    drawFreehand(ctx, pointsRef.current, brushColor, brushSize);
+    if (shapeAssist) armHoldTimer(e);
   };
 
   const draw = (e) => {
-    if (!isDrawingRef.current) return;
+    if (!isDrawingRef.current || shapeLockedRef.current) return;
     if (e.cancelable && e.type === "touchmove") e.preventDefault();
-    const ctx = canvasRef.current.getContext("2d");
     const { x, y } = getCoordinates(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
+    pointsRef.current.push({ x, y });
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (preStrokeSnapshotRef.current) {
+      ctx.putImageData(preStrokeSnapshotRef.current, 0, 0);
+    }
+    drawFreehand(ctx, pointsRef.current, brushColor, brushSize);
+    if (shapeAssist) {
+      const last = lastMovePointRef.current;
+      if (!last || pointDist(last, { x, y }) > HOLD_MOVE_TOLERANCE) {
+        lastMovePointRef.current = { x, y };
+        armHoldTimer(e);
+      }
+    }
   };
 
   const stopDrawing = () => {
     if (isDrawingRef.current) {
       isDrawingRef.current = false;
+      clearHoldTimer();
+      setHoldProgress(null);
       saveState();
+      pointsRef.current = [];
+      preStrokeSnapshotRef.current = null;
+      shapeLockedRef.current = false;
     }
   };
+
+  useEffect(() => {
+    return () => clearHoldTimer();
+  }, []);
 
   const handleUndo = () => {
     if (historyStepRef.current > 0) {
