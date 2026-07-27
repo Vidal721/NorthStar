@@ -10,6 +10,7 @@ import {
   faArrowRotateLeft,
   faArrowRotateRight,
   faTrash,
+  faCirclePlay,
 } from "@fortawesome/free-solid-svg-icons";
 import bgImage from "../assets/field.png";
 
@@ -762,7 +763,7 @@ function StrategyBoard({
             className="sb-video-btn"
             onClick={() => onWatchVideo(video.key)}
           >
-            ▶ Watch Match
+            <FontAwesomeIcon icon={faCirclePlay} />
           </button>
         )}
       </div>
