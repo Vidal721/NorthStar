@@ -7,6 +7,8 @@ import {
   useNavigate,
   useActionData,
 } from "react-router-dom";
+
+// Pages
 import MatchScout from "./pages/match";
 import DataVis from "./pages/vis";
 import PitScout from "./pages/pit";
@@ -19,12 +21,20 @@ import CoachPage from "./pages/coach";
 import StudentFormsPage from "./pages/studentForms";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
-import ProtectedLayout from "./componets/ProtectedLayout";
 import LeadScoutPage from './pages/leadScout'
 import DrivePage from './pages/drive'
+import MatchBuilder from './pages/matchBuilder'
+
+// Componets
+import ProtectedLayout from "./componets/ProtectedLayout";
+
+// URL Config
 import { useURL } from "./urlConfig";
+
+// CSS
 import "./App.css";
 
+// Headers to bypass CORS errors on backend
 const defaultHeaders = (extra = {}) => ({
   "ngrok-skip-browser-warning": "69420",
   ...extra,
@@ -60,9 +70,12 @@ function LoginScreen() {
       localStorage.setItem("currentUser", data.username);
       localStorage.setItem("userRole", data.role);
       localStorage.setItem("userSubgroup", data.subgroup || "");
+      localStorage.setItem('userCompetitionRole', data.competitionRole || "");
 
       const userRole = String(data.role).toLowerCase();
 
+      // TODO: Consider changing to switch and case if we need to add more
+      // Determins what page to send the user too
       if (userRole === "admin") {
         navigate("/admin");
       } else if (userRole === "family") {
@@ -146,10 +159,14 @@ function LoginScreen() {
 function RegisterScreen() {
   const navigate = useNavigate();
   
-  // 1. Manage form fields using React state instead of DOM selections
+  // Login variables
   const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("students"); // Match the default option value
+  const [role, setRole] = useState("students");
+
+  // Subgroup
   const [subgroup, setSubgroup] = useState("Manufacturing");
   const [subgroups, setSubgroups] = useState(["Manufacturing", "Programming", "Design", "Electronics", "Media"]);
   
@@ -179,7 +196,9 @@ function RegisterScreen() {
     }
 
     // Only submit subgroup if the user is a student or programmer
-    const finalSubgroup = role === "students" || role === "programmer" ? subgroup : "none";
+    const finalSubgroup = role === "students" ? subgroup : "none";
+    
+    // Only submit competition role if the user is a student, coach, or parent helper
 
     try {
       const response = await fetch(`${useURL()}/auth/register`, {
@@ -233,7 +252,7 @@ function RegisterScreen() {
       {/* Controlled Input: Username */}
       <fieldset className="fieldset-container">
         <legend className="fieldset-legend">
-          <label htmlFor="regUsername">Name (First and Last</label>
+          <label htmlFor="regUsername">Name (First and Last)</label>
         </legend>
         <input
           type="text"
@@ -245,7 +264,6 @@ function RegisterScreen() {
         />
       </fieldset>
 
-      {/* Controlled Input: Password */}
       <fieldset className="fieldset-container">
         <legend className="fieldset-legend">
           <label htmlFor="regPassword">Password</label>
@@ -260,7 +278,6 @@ function RegisterScreen() {
         />
       </fieldset>
 
-      {/* Controlled Input: Role */}
       <fieldset className="fieldset-container">
         <legend className="fieldset-legend">
           <label htmlFor="regRole">Role</label>
@@ -278,7 +295,6 @@ function RegisterScreen() {
             outline: "none",
           }}
         >
-          {/* NOTE: Changed option value to "students" to match state and your option tag */}
           <option value="students" style={{ background: "#ffffff" }}>
             Student
           </option>
@@ -291,9 +307,6 @@ function RegisterScreen() {
           <option value="helper" style={{ background: "#ffffff" }}>
             Parent Helper
           </option>
-          <option value="programmer" style={{ background: "#ffffff" }}>
-            Programmer
-          </option>
           <option value="Mentor" style={{ background: "#ffffff" }}>
             Mentor
           </option>
@@ -301,7 +314,29 @@ function RegisterScreen() {
       </fieldset>
 
       {/* 2. Conditional Rendering: Only show Subgroup if role is "students" */}
-      {(role === "students" || role === "programmer") && (
+      {(role === "students") && (
+        <fieldset id="studentOnly" className="fieldset-container">
+          <legend className="fieldset-legend">
+            <label htmlFor="buildSeason">Subgroup</label>
+          </legend>
+          <select
+            id="buildSeason"
+            className="fieldset-input"
+            value={subgroup}
+            onChange={(e) => setSubgroup(e.target.value)}
+            style={{
+              width: "100%",
+              background: "transparent",
+              color: "inherit",
+              border: "none",
+              outline: "none",
+            }}
+          >
+            {subgroups.map((group) => <option key={group} value={group} style={{ background: "#ffffff" }}>{group}</option>)}
+          </select>
+        </fieldset>
+      )}
+      {(role === "students" || "helper" || "coach") && (
         <fieldset id="studentOnly" className="fieldset-container">
           <legend className="fieldset-legend">
             <label htmlFor="buildSeason">Subgroup</label>
@@ -346,33 +381,39 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Hub Routes */}
+        {/* Public Routes */}
         <Route path="/" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
 
+        {/* Family Only Routes */}
         <Route element={<ProtectedLayout allowedRoles={["admin", "family"]} />}>
           <Route path="/family" element={<FamilyPage />} />
         </Route>
 
+        {/* Helper Only Routes */}
         <Route element={<ProtectedLayout allowedRoles={["admin", "helper"]} />}>
           <Route path="/helper" element={<HelperPage />} />
         </Route>
 
+        {/* Mentor Only Routes */}
         <Route element={<ProtectedLayout allowedRoles={["admin", "Mentor"]} />}>
           <Route path="/mentor" element={<MentorPage />} />
         </Route>
 
+        {/* Coach/Admin Routes */}
         <Route element={<ProtectedLayout allowedRoles={["admin", "coach"]} />}>
           <Route path="/coach" element={<CoachPage />} />
         </Route>
 
-        <Route element={<ProtectedLayout allowedRoles={["admin", "students", "helper", "Mentor", "coach", "programmer"]} />}>
+        {/* All Authenticated Users Login */}
+        <Route element={<ProtectedLayout allowedRoles={["admin", "students", "helper", "Mentor", "coach"]} />}>
           <Route path="/student" element={<StudentFormsPage />} />
           <Route path="/form/:formId" element={<StudentFormsPage />} />
         </Route>
 
+        {/* Competition Roles */}
         <Route
-          element={<ProtectedLayout allowedRoles={["scouter", "admin", "coach", "students"]} />}
+          element={<ProtectedLayout allowedRoles={["scouter"]} />}
         >
           <Route path="/scout" element={<MainScout />} />
           <Route path="/pit" element={<PitScout />} />
@@ -382,11 +423,12 @@ function App() {
         </Route>
 
         {/* High Protection Level: Admins Only */}
-        <Route element={<ProtectedLayout allowedRoles={["admin", "coach"]} />}>
+        <Route element={<ProtectedLayout allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/form" element={<FormBuilder />} />
           <Route path="/lead" element={<LeadScoutPage />} />
           <Route path="/drive" element={<DrivePage />} />
+          <Route path="/matchBuilder" element={<MatchBuilder />} />
         </Route>
       </Routes>
     </BrowserRouter>

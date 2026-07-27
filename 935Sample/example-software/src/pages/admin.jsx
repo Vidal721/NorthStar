@@ -778,6 +778,9 @@ export default function AdminDashboard() {
               <Link to="/match" rel="noopener noreferrer" className="adminApps">
                 Match Scouting
               </Link>
+              <Link to="/matchBuilder" rel="noopener noreferrer" className="adminApps">
+                Match Builder
+              </Link>
               <Link to="/vis" rel="noopener noreferrer" className="adminApps">
                 Visualization
               </Link>

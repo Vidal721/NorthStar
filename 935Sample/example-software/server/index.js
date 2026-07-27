@@ -123,6 +123,7 @@ const getSubgroups = () =>
     .prepare("SELECT name FROM subgroups ORDER BY name")
     .all()
     .map((row) => row.name);
+
 const ensureSubgroupFolders = () => {
   getSubgroups().forEach((subgroup) => {
     fs.mkdirSync(path.resolve(__dirname, "uploads", subgroup), {
@@ -266,7 +267,9 @@ app.patch("/leadership/users/:username", (req, res) => {
   if (!target) return res.status(404).json({ error: "User not found." });
   if (req.body?.role !== undefined) {
     if (normalizeRole(actor.role) !== "admin")
-      return res.status(403).json({ error: "Only admins can change account roles." });
+      return res
+        .status(403)
+        .json({ error: "Only admins can change account roles." });
     const allowedRoles = [
       "admin",
       "scouter",
@@ -298,13 +301,18 @@ app.patch("/leadership/users/:username", (req, res) => {
 });
 
 const getActor = (name) => getUsers().find((user) => user.username === name);
-const isLeader = (user) => ["admin", "coach", "mentor", "programmer"].includes(normalizeRole(user?.role));
+const isLeader = (user) =>
+  ["admin", "coach", "mentor", "programmer"].includes(
+    normalizeRole(user?.role),
+  );
 const canLeadSubgroup = (user, subgroup) =>
   ["admin", "coach"].includes(normalizeRole(user?.role)) ||
   (user?.leadershipSubgroups || []).includes(subgroup);
 const TASK_COMPLETION_RETENTION_MS = 30 * 1000;
 const removeExpiredCompletedTasks = () => {
-  const cutoff = new Date(Date.now() - TASK_COMPLETION_RETENTION_MS).toISOString();
+  const cutoff = new Date(
+    Date.now() - TASK_COMPLETION_RETENTION_MS,
+  ).toISOString();
   db.prepare(
     "DELETE FROM tasks WHERE status = 'complete' AND completed_at IS NOT NULL AND completed_at <= ?",
   ).run(cutoff);
@@ -321,7 +329,9 @@ const getMessageRecipients = (message) => {
   }
   if (message.recipient_type === "person") return [message.recipient_value];
   if (message.recipient_type === "group") {
-    const group = db.prepare("SELECT members FROM message_groups WHERE id = ?").get(message.recipient_value);
+    const group = db
+      .prepare("SELECT members FROM message_groups WHERE id = ?")
+      .get(message.recipient_value);
     if (!group) return [];
     try {
       return JSON.parse(group.members);
@@ -338,10 +348,13 @@ const notifyMessageRecipients = async (message) => {
   recipients.delete(message.sender);
   if (!recipients.size) return;
 
-  const subscriptions = db.prepare("SELECT endpoint, username, subscription FROM push_subscriptions").all();
-  const title = message.recipient_type === "announcement"
-    ? `Announcement from ${message.sender}`
-    : `New message from ${message.sender}`;
+  const subscriptions = db
+    .prepare("SELECT endpoint, username, subscription FROM push_subscriptions")
+    .all();
+  const title =
+    message.recipient_type === "announcement"
+      ? `Announcement from ${message.sender}`
+      : `New message from ${message.sender}`;
   const payload = JSON.stringify({
     title,
     body: message.body,
@@ -357,33 +370,52 @@ const notifyMessageRecipients = async (message) => {
           await webpush.sendNotification(JSON.parse(row.subscription), payload);
         } catch (error) {
           if ([404, 410].includes(error.statusCode)) {
-            db.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").run(row.endpoint);
+            db.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").run(
+              row.endpoint,
+            );
             return;
           }
-          console.error("[push] Failed to deliver notification:", error.message);
+          console.error(
+            "[push] Failed to deliver notification:",
+            error.message,
+          );
         }
       }),
   );
 };
 
 app.get("/push/vapid-public-key", (req, res) => {
-  if (!getActor(req.query.actor)) return res.status(401).json({ error: "Sign in to enable notifications." });
-  if (!webPushEnabled) return res.status(503).json({ error: "Push notifications are not configured." });
+  if (!getActor(req.query.actor))
+    return res.status(401).json({ error: "Sign in to enable notifications." });
+  if (!webPushEnabled)
+    return res
+      .status(503)
+      .json({ error: "Push notifications are not configured." });
   res.json({ publicKey: vapidPublicKey });
 });
 
 app.post("/push/subscriptions", (req, res) => {
   const actor = getActor(req.body?.actor);
   const subscription = req.body?.subscription;
-  if (!actor) return res.status(401).json({ error: "Sign in to enable notifications." });
-  if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+  if (!actor)
+    return res.status(401).json({ error: "Sign in to enable notifications." });
+  if (
+    !subscription?.endpoint ||
+    !subscription?.keys?.p256dh ||
+    !subscription?.keys?.auth
+  ) {
     return res.status(400).json({ error: "Invalid push subscription." });
   }
   db.prepare(
     `INSERT INTO push_subscriptions (endpoint, username, subscription, created_at)
      VALUES (?, ?, ?, ?)
      ON CONFLICT(endpoint) DO UPDATE SET username = excluded.username, subscription = excluded.subscription, created_at = excluded.created_at`,
-  ).run(subscription.endpoint, actor.username, JSON.stringify(subscription), new Date().toISOString());
+  ).run(
+    subscription.endpoint,
+    actor.username,
+    JSON.stringify(subscription),
+    new Date().toISOString(),
+  );
   res.status(201).json({ success: true });
 });
 
@@ -426,7 +458,9 @@ app.post("/tasks", (req, res) => {
       .json({ error: "A signed-in user and task title are required." });
   const targetUser = assignee && getActor(assignee);
   if (assignee && !targetUser)
-    return res.status(400).json({ error: "Choose a person from the directory." });
+    return res
+      .status(400)
+      .json({ error: "Choose a person from the directory." });
   const targetSubgroup = subgroup || targetUser?.subgroup;
   if (!targetSubgroup || !canLeadSubgroup(actor, targetSubgroup))
     return res
@@ -522,7 +556,9 @@ app.post("/messages", (req, res) => {
   if (
     !actor ||
     !body ||
-    !["everyone", "subgroup", "person", "group", "announcement"].includes(recipientType)
+    !["everyone", "subgroup", "person", "group", "announcement"].includes(
+      recipientType,
+    )
   )
     return res
       .status(400)
@@ -530,7 +566,9 @@ app.post("/messages", (req, res) => {
   if (recipientType === "subgroup" && !getSubgroups().includes(recipientValue))
     return res.status(400).json({ error: "Unknown subgroup." });
   if (recipientType === "announcement" && !isLeader(actor))
-    return res.status(403).json({ error: "Only team leaders can make announcements." });
+    return res
+      .status(403)
+      .json({ error: "Only team leaders can make announcements." });
   const message = {
     id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     sender: actor.username,
@@ -551,8 +589,17 @@ app.post("/feedback", (req, res) => {
   const actor = getActor(req.body?.actor);
   const { category, title, details } = req.body || {};
   const allowedCategories = ["bug", "feature", "improvement", "other"];
-  if (!actor || !allowedCategories.includes(category) || !title?.trim() || !details?.trim()) {
-    return res.status(400).json({ error: "Choose a category and provide a title and description." });
+  if (
+    !actor ||
+    !allowedCategories.includes(category) ||
+    !title?.trim() ||
+    !details?.trim()
+  ) {
+    return res
+      .status(400)
+      .json({
+        error: "Choose a category and provide a title and description.",
+      });
   }
   const feedback = {
     id: `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -573,21 +620,35 @@ app.post("/feedback", (req, res) => {
 app.get("/feedback", (req, res) => {
   const actor = getActor(req.query.actor);
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) {
-    return res.status(403).json({ error: "Only administrators can review feedback." });
+    return res
+      .status(403)
+      .json({ error: "Only administrators can review feedback." });
   }
-  res.json(db.prepare("SELECT * FROM feedback ORDER BY status = 'open' DESC, created_at DESC").all());
+  res.json(
+    db
+      .prepare(
+        "SELECT * FROM feedback ORDER BY status = 'open' DESC, created_at DESC",
+      )
+      .all(),
+  );
 });
 
 app.patch("/feedback/:id", (req, res) => {
   const actor = getActor(req.body?.actor);
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) {
-    return res.status(403).json({ error: "Only administrators can update feedback." });
+    return res
+      .status(403)
+      .json({ error: "Only administrators can update feedback." });
   }
-  const feedback = db.prepare("SELECT * FROM feedback WHERE id = ?").get(req.params.id);
+  const feedback = db
+    .prepare("SELECT * FROM feedback WHERE id = ?")
+    .get(req.params.id);
   if (!feedback) return res.status(404).json({ error: "Feedback not found." });
   const status = req.body?.status === "complete" ? "complete" : "open";
   const completedAt = status === "complete" ? new Date().toISOString() : null;
-  db.prepare("UPDATE feedback SET status = ?, completed_at = ? WHERE id = ?").run(status, completedAt, feedback.id);
+  db.prepare(
+    "UPDATE feedback SET status = ?, completed_at = ? WHERE id = ?",
+  ).run(status, completedAt, feedback.id);
 
   if (status === "complete" && feedback.status !== "complete") {
     db.prepare(
@@ -651,6 +712,19 @@ function getPit() {
 
 function getPitForm() {
   return JSON.parse(fs.readFileSync("pitForm.json", "utf8"));
+}
+
+function getMatchForm() {
+  try {
+    return JSON.parse(fs.readFileSync("matchForm.json", "utf8"));
+  } catch {
+
+    const seed = JSON.parse(
+      fs.readFileSync("matchForm.default.json", "utf8"),
+    );
+    fs.writeFileSync("matchForm.json", JSON.stringify(seed, null, 2), "utf-8");
+    return seed;
+  }
 }
 
 function getAdmin() {
@@ -773,12 +847,10 @@ app.post("/auth/register", async (req, res) => {
       "students",
       "teamMember",
       "coach",
-      "Mentor",
-      "programmer",
-      "programmers",
+      "Mentor"
     ];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ error: "Unsupported account role" });
+      return res.status(400).json({ error: "Un-verified account role" });
     }
 
     const users = getUsers();
@@ -800,6 +872,7 @@ app.post("/auth/register", async (req, res) => {
       role,
       subgroup,
     };
+
     users.push(newUser);
 
     // 5. Save back to users.json file sync
@@ -1171,6 +1244,32 @@ app.post("/pit/save", (req, res) => {
   }
 });
 
+// ---- 2. Add near the /pit/form routes ----
+app.get("/match/form", (req, res) => {
+  try {
+    res.json(getMatchForm());
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load match form", detail: err.message });
+  }
+});
+ 
+app.post("/match/form/save", (req, res) => {
+  const config = req.body;
+ 
+  if (!config || !config.timing || !config.phases) {
+    return res.status(400).json({ error: "Invalid match config — missing timing/phases" });
+  }
+ 
+  try {
+    fs.writeFileSync("matchForm.json", JSON.stringify(config, null, 2), "utf-8");
+    console.log("[match/form] Match config saved.");
+    res.json({ success: true, file: "matchForm.json" });
+  } catch (err) {
+    console.error("[match/form] Failed to save config:", err.message);
+    res.status(500).json({ error: "Failed to save match config", detail: err.message });
+  }
+});
+
 // ==== REGIONALS GATEWAY ==== //
 app.get("/api/regionals", (req, res) => {
   try {
@@ -1301,13 +1400,17 @@ app.delete("/messages/:id", (req, res) => {
   }
   const isLeader = ["admin", "coach"].includes(normalizeRole(actor.role));
   // Fetch the message first to check ownership
-  const message = db.prepare("SELECT * FROM messages WHERE id = ?").get(req.params.id);
+  const message = db
+    .prepare("SELECT * FROM messages WHERE id = ?")
+    .get(req.params.id);
   if (!message) {
     return res.status(404).json({ error: "Message not found." });
   }
   const isOwner = message.sender === actor.username;
   if (!isLeader && !isOwner) {
-    return res.status(403).json({ error: "You can only delete your own messages." });
+    return res
+      .status(403)
+      .json({ error: "You can only delete your own messages." });
   }
   try {
     db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
@@ -1324,7 +1427,9 @@ app.delete("/users/:username", (req, res) => {
   }
   const isLeader = ["admin", "coach"].includes(normalizeRole(actor.role));
   if (!isLeader) {
-    return res.status(403).json({ error: "Only admins and coaches can delete users." });
+    return res
+      .status(403)
+      .json({ error: "Only admins and coaches can delete users." });
   }
   try {
     const users = getUsers();
@@ -1370,12 +1475,10 @@ app.get("/regionals", (req, res) => {
 // Drive endpoints
 app.post("/upload", (req, res, next) => {
   if (!canManageDrivePath(getDriveUser(req), req.query.path || "")) {
-    return res
-      .status(403)
-      .json({
-        success: false,
-        message: "You can only add files as a leader of this subgroup.",
-      });
+    return res.status(403).json({
+      success: false,
+      message: "You can only add files as a leader of this subgroup.",
+    });
   }
   upload.single("file")(req, res, (err) => {
     if (err) {
@@ -1405,12 +1508,10 @@ app.post("/folder", (req, res) => {
   const { name, path: relativePath = "" } = req.body;
 
   if (!canManageDrivePath(getDriveUser(req), relativePath)) {
-    return res
-      .status(403)
-      .json({
-        success: false,
-        message: "You can only create folders as a leader of this subgroup.",
-      });
+    return res.status(403).json({
+      success: false,
+      message: "You can only create folders as a leader of this subgroup.",
+    });
   }
 
   if (
@@ -1568,27 +1669,35 @@ app.get("/drive/file", (req, res) => {
     // Ensure the requested path is inside the uploads directory.
     if (
       !relativePath ||
-      !(targetFile === baseUploadsDir || targetFile.startsWith(`${baseUploadsDir}${path.sep}`))
+      !(
+        targetFile === baseUploadsDir ||
+        targetFile.startsWith(`${baseUploadsDir}${path.sep}`)
+      )
     ) {
       return res.status(403).json({ error: "Access denied." });
     }
 
-    if (!fs.existsSync(targetFile)) return res.status(404).json({ error: "File not found." });
-    if (!fs.lstatSync(targetFile).isFile()) return res.status(400).json({ error: "That item is not a file." });
+    if (!fs.existsSync(targetFile))
+      return res.status(404).json({ error: "File not found." });
+    if (!fs.lstatSync(targetFile).isFile())
+      return res.status(400).json({ error: "That item is not a file." });
 
     // Allow file reads without subgroup permission checks; directory path
     // membership is enough to locate the file.
 
     // Downloads must use an attachment header; otherwise send inline so browsers
     // can preview media, PDFs, and other formats they support.
-    const send = req.query.download === "1"
-      ? (callback) => res.download(targetFile, path.basename(targetFile), callback)
-      : (callback) => res.sendFile(targetFile, callback);
+    const send =
+      req.query.download === "1"
+        ? (callback) =>
+            res.download(targetFile, path.basename(targetFile), callback)
+        : (callback) => res.sendFile(targetFile, callback);
 
     send((err) => {
       if (err) {
         console.error(err);
-        if (!res.headersSent) res.status(500).json({ error: "Could not read file." });
+        if (!res.headersSent)
+          res.status(500).json({ error: "Could not read file." });
       }
     });
   } catch (error) {

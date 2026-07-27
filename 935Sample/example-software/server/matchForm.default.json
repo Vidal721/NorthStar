@@ -1,0 +1,209 @@
+{
+  "id": 1,
+  "event": "",
+  "mode": "live",
+  "timing": {
+    "matchTotal": 160,
+    "autoEnd": 140,
+    "transitEnd": 130,
+    "endgameStart": 30,
+    "shiftLen": 25
+  },
+  "phases": {
+    "auto": {
+      "label": "Autonomous",
+      "accent": "var(--scout-indigo-soft)",
+      "sections": [
+        {
+          "sectionLabel": "Start Cycle",
+          "cols": 1,
+          "buttons": [
+            { "id": "gain", "label": "Gain Possession", "icon": "handFist", "color": "action", "action": "startCycle" }
+          ]
+        },
+        {
+          "sectionLabel": "Shooting",
+          "cols": 1,
+          "buttons": [
+            { "id": "shoot", "label": "Start Shooting", "icon": "crosshairs", "color": "neutral", "action": "startShooting", "requiresCycle": true }
+          ]
+        },
+        {
+          "sectionLabel": "Finish Cycle",
+          "cols": 2,
+          "buttons": [
+            { "id": "full", "label": "Full Score", "icon": "circleCheck", "color": "success", "action": "finishFull", "requiresCycle": true },
+            { "id": "partial", "label": "Partial", "icon": "bolt", "color": "warn", "action": "finishPartial", "requiresCycle": true },
+            { "id": "fail", "label": "Failed", "icon": "xmark", "color": "danger", "action": "finishFail", "requiresCycle": true },
+            { "id": "break", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" }
+          ]
+        }
+      ]
+    },
+    "transit": {
+      "label": "Transition Shift",
+      "accent": "var(--scout-yellow-soft)",
+      "sections": [
+        {
+          "sectionLabel": "Did They Score?",
+          "cols": 2,
+          "buttons": [
+            { "id": "txScore", "label": "Scored", "icon": "circleCheck", "color": "success", "action": "transitStat", "statKey": "transitScore" },
+            { "id": "txFail", "label": "Missed", "icon": "xmark", "color": "danger", "action": "transitStat", "statKey": "transitMiss" }
+          ]
+        },
+        {
+          "sectionLabel": "What Did We Do?",
+          "cols": 3,
+          "buttons": [
+            { "id": "txCollect", "label": "Collect", "icon": "circle", "color": "action", "action": "transitStat", "statKey": "transitCollect" },
+            { "id": "txDefend", "label": "Defend", "icon": "shield", "color": "defend", "action": "transitStat", "statKey": "transitDefend" },
+            { "id": "txScore2", "label": "We Scored", "icon": "crosshairs", "color": "success", "action": "transitStat", "statKey": "transitWeScore" }
+          ]
+        },
+        {
+          "sectionLabel": "Other",
+          "cols": 2,
+          "buttons": [
+            { "id": "txBreak", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" },
+            { "id": "txNone", "label": "Nothing", "icon": "minus", "color": "neutral", "action": "transitStat", "statKey": "transitNothing" }
+          ]
+        }
+      ]
+    },
+    "ourShift": {
+      "label": "Our Shift",
+      "accent": "var(--scout-green-soft)",
+      "sections": [
+        {
+          "sectionLabel": "Start Cycle",
+          "cols": 1,
+          "buttons": [
+            { "id": "gain", "label": "Gain Possession", "icon": "handFist", "color": "action", "action": "startCycle" }
+          ]
+        },
+        {
+          "sectionLabel": "Shooting",
+          "cols": 1,
+          "buttons": [
+            { "id": "shoot", "label": "Start Shooting", "icon": "crosshairs", "color": "neutral", "action": "startShooting", "requiresCycle": true }
+          ]
+        },
+        {
+          "sectionLabel": "Actions",
+          "cols": 2,
+          "buttons": [
+            { "id": "defend", "label": "Defended", "icon": "shield", "color": "defend", "action": "defend", "requiresCycle": true },
+            { "id": "break", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" }
+          ]
+        },
+        {
+          "sectionLabel": "Finish Cycle",
+          "cols": 2,
+          "buttons": [
+            { "id": "full", "label": "Full Score", "icon": "circleCheck", "color": "success", "action": "finishFull", "requiresCycle": true },
+            { "id": "partial", "label": "Partial", "icon": "bolt", "color": "warn", "action": "finishPartial", "requiresCycle": true },
+            { "id": "fail", "label": "Failed", "icon": "xmark", "color": "danger", "action": "finishFail", "requiresCycle": true }
+          ]
+        }
+      ],
+      "endgameSections": [
+        {
+          "sectionLabel": "Endgame — Climb",
+          "cols": 2,
+          "buttons": [
+            { "id": "climbOk", "label": "Climb OK", "icon": "rocket", "color": "success", "action": "climbOk" },
+            { "id": "climbFail", "label": "Climb Fail", "icon": "bomb", "color": "danger", "action": "climbFail" }
+          ]
+        }
+      ]
+    },
+    "offShift": {
+      "label": "Their Shift",
+      "accent": "var(--scout-red-soft)",
+      "sections": [
+        {
+          "sectionLabel": "Ball Interactions",
+          "cols": 3,
+          "buttons": [
+            { "id": "collect", "label": "Collect", "icon": "circle", "color": "action", "action": "offStat", "statKey": "offCollect" },
+            { "id": "push", "label": "Push", "icon": "handPointRight", "color": "action", "action": "offStat", "statKey": "offPush" },
+            { "id": "shoot", "label": "Shoot", "icon": "crosshairs", "color": "action", "action": "offStat", "statKey": "offShoot" }
+          ]
+        },
+        {
+          "sectionLabel": "Other",
+          "cols": 3,
+          "buttons": [
+            { "id": "dispense", "label": "Dispense", "sub": "to their side", "icon": "arrowTurnUp", "color": "neutral", "action": "offStat", "statKey": "offDispense" },
+            { "id": "offdefend", "label": "Defend", "icon": "shield", "color": "defend", "action": "offStat", "statKey": "offDefend" },
+            { "id": "break", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" }
+          ]
+        }
+      ],
+      "endgameSections": [
+        {
+          "sectionLabel": "Endgame — Climb",
+          "cols": 2,
+          "buttons": [
+            { "id": "climbOk", "label": "Climb OK", "icon": "rocket", "color": "success", "action": "climbOk" },
+            { "id": "climbFail", "label": "Climb Fail", "icon": "bomb", "color": "danger", "action": "climbFail" }
+          ]
+        }
+      ]
+    }
+  },
+  "equations": [
+    {
+      "key": "csr",
+      "label": "Cycle Success Rate",
+      "formula": "totalCycles > 0 ? (fullScores + partialScores * 0.6) / totalCycles : 0",
+      "desc": "Weighted scoring efficiency over all cycles. Full=1pt, Partial=0.6pt. Safe divide guard.",
+      "weight": 0.25,
+      "builtin": true
+    },
+    {
+      "key": "quality",
+      "label": "Scoring Quality",
+      "formula": "scoringCycles > 0 ? fullScores / scoringCycles : 0",
+      "desc": "Proportion of successful cycles that were full scores. High = robot consistently scores full.",
+      "weight": 0.18,
+      "builtin": true
+    },
+    {
+      "key": "dr",
+      "label": "Defense Resistance",
+      "formula": "totalCycles > 0 ? 1 - (defendedFails / Math.max(totalCycles, 1)) * 1.5 : 0.5",
+      "desc": "Penalizes defended fails weighted 1.5x against total cycles. Neutral (0.5) when no data.",
+      "weight": 0.18,
+      "builtin": true
+    },
+    {
+      "key": "rs",
+      "label": "Reliability",
+      "formula": "Math.max(0, 1 - (failures / Math.max(shiftsCompleted, 1)) * 0.4)",
+      "desc": "Breakdown rate per completed shift, weighted at 0.4 impact per breakdown. Floors at 0.",
+      "weight": 0.15,
+      "builtin": true
+    },
+    {
+      "key": "cr",
+      "label": "Climb Rate",
+      "formula": "totalClimbs > 0 ? climbSuccess / totalClimbs : 0.5",
+      "desc": "Successful climbs / total attempts. Neutral 0.5 when no climb data (no penalty, no bonus).",
+      "weight": 0.12,
+      "builtin": true
+    },
+    {
+      "key": "offUtil",
+      "label": "Off-Shift Utility",
+      "formula": "offShiftSeconds > 0 ? Math.min(1, (offActions / (offShiftSeconds / 60)) / 5) : 0",
+      "desc": "Off-shift actions per minute normalized to 5 actions/min ceiling. Capped at 1.",
+      "weight": 0.12,
+      "builtin": true
+    }
+  ],
+  "formSchema": {
+    "fields": []
+  }
+}

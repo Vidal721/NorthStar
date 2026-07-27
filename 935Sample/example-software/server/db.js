@@ -111,13 +111,27 @@ db.exec(`
     ON feedback(status, created_at DESC);
 `);
 
-const defaultSubgroups = ["Manufacturing", "Programming", "Design", "Electronics", "Media"];
-const addSubgroup = db.prepare("INSERT OR IGNORE INTO subgroups (name, created_at) VALUES (?, ?)");
-defaultSubgroups.forEach((name) => addSubgroup.run(name, new Date().toISOString()));
+const defaultSubgroups = [
+  "Manufacturing",
+  "Programming",
+  "Design",
+  "Electronics",
+  "Media",
+];
+
+const addSubgroup = db.prepare(
+  "INSERT OR IGNORE INTO subgroups (name, created_at) VALUES (?, ?)",
+);
+
+defaultSubgroups.forEach((name) =>
+  addSubgroup.run(name, new Date().toISOString()),
+);
 
 const regionalColumns = db.prepare(`PRAGMA table_info(regionals)`).all();
 if (!regionalColumns.some((column) => column.name === "visible_in_vis")) {
-  db.exec(`ALTER TABLE regionals ADD COLUMN visible_in_vis INTEGER NOT NULL DEFAULT 1`);
+  db.exec(
+    `ALTER TABLE regionals ADD COLUMN visible_in_vis INTEGER NOT NULL DEFAULT 1`,
+  );
 }
 
 const taskColumns = db.prepare(`PRAGMA table_info(tasks)`).all();
@@ -129,7 +143,9 @@ if (!taskColumns.some((column) => column.name === "completed_at")) {
 export function getOrCreateRegional(name) {
   if (!name) return null;
   db.prepare(`INSERT OR IGNORE INTO regionals (name) VALUES (?)`).run(name);
-  return db.prepare(`SELECT id FROM regionals WHERE name = ?`).get(name)?.id ?? null;
+  return (
+    db.prepare(`SELECT id FROM regionals WHERE name = ?`).get(name)?.id ?? null
+  );
 }
 
 export default db;

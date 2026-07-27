@@ -1,4 +1,4 @@
-export const USE_LOCAL_BACKEND = false;
+export const USE_LOCAL_BACKEND = true;
 
 export const CONNECTION_MODE_KEY = "useLocalApi";
 
