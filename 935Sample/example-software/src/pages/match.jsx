@@ -1,39 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faHandFist,
-  faCrosshairs,
-  faCircleCheck,
-  faBolt,
-  faXmark,
-  faTriangleExclamation,
-  faCircle,
-  faShield,
-  faMinus,
-  faRocket,
-  faBomb,
-  faHandPointRight,
-  faArrowTurnUp,
-} from "@fortawesome/free-solid-svg-icons";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { resolveIcon } from "../matchIcons.jsx";
 import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
 import { useURL } from "../urlConfig.js"
-import "../App.css";
 
-// ============================================================
-//    MATCH TIMING
-// ============================================================
-const MATCH_CONFIG = {
-  matchTotal: 160,
-  autoStart: 160,
-  autoEnd: 140,
-  transitEnd: 130,
-  endgameStart: 30,
-  shiftLen: 25,
-};
-
-// ── Action button color palettes ────────────────────────────
-// These map to CSS variable names; resolved at runtime so the
-// CSS file is the single source of truth.
 const C = {
   action: {
     bg: "var(--scout-indigo-bg-alt)",
@@ -68,23 +37,15 @@ const C = {
 };
 
 // ============================================================
-//  🔘 BUTTON CONFIG  ← EDIT YOUR BUTTONS HERE
+//  🔘 DEFAULT BUTTON CONFIG — fallback only. The live copy lives
+//  in matchConfig (fetched from /match/form) and is edited from
+//  Admin ▸ Match Builder. Shape:
+//    label / icon(string key, see matchIcons.js) / color(palette
+//    key: action|success|warn|danger|neutral|defend) / sub
+//  DO NOT change: id, action, statKey, requiresCycle when editing
+//  in the builder — those are logic hooks the engine relies on.
 // ============================================================
-//  Each button object supports:
-//    label    – Text shown on the button
-//    icon     – Emoji fallback (used when faIcon is not set)
-//    faIcon   – Font Awesome class string, e.g. "fa-solid fa-hand-fist"
-//               Set this to replace the emoji with an FA icon.
-//               Leave undefined (or delete the line) to use emoji instead.
-//    color    – One of: C.action  C.success  C.warn  C.danger  C.neutral  C.defend
-//    sub      – (optional) Small subtitle text under the label
-//  DO NOT change: id, action, statKey, requiresCycle — those are logic hooks.
-// ============================================================
-
-const BUTTON_GROUPS = {
-  // ----------------------------------------------------------
-  //  AUTO  (Autonomous period)
-  // ----------------------------------------------------------
+const DEFAULT_PHASES = {
   auto: {
     label: "Autonomous",
     accent: "var(--scout-indigo-soft)",
@@ -93,71 +54,28 @@ const BUTTON_GROUPS = {
         sectionLabel: "Start Cycle",
         cols: 1,
         buttons: [
-          {
-            id: "gain",
-            label: "Gain Possession",   // ← edit label
-            icon: <FontAwesomeIcon icon={faHandFist} />,
-            color: C.action,
-            action: "startCycle",
-          },
+          { id: "gain", label: "Gain Possession", icon: "handFist", color: "action", action: "startCycle" },
         ],
       },
       {
         sectionLabel: "Shooting",
         cols: 1,
         buttons: [
-          {
-            id: "shoot",
-            label: "Start Shooting",
-            icon: <FontAwesomeIcon icon={faCrosshairs} />,
-            color: C.neutral,
-            action: "startShooting",
-            requiresCycle: true,
-          },
+          { id: "shoot", label: "Start Shooting", icon: "crosshairs", color: "neutral", action: "startShooting", requiresCycle: true },
         ],
       },
       {
         sectionLabel: "Finish Cycle",
         cols: 2,
         buttons: [
-          {
-            id: "full",
-            label: "Full Score",
-            icon: <FontAwesomeIcon icon={faCircleCheck} />,
-            color: C.success,
-            action: "finishFull",
-            requiresCycle: true,
-          },
-          {
-            id: "partial",
-            label: "Partial",
-            icon: <FontAwesomeIcon icon={faBolt} />,
-            color: C.warn,
-            action: "finishPartial",
-            requiresCycle: true,
-          },
-          {
-            id: "fail",
-            label: "Failed",
-            icon: <FontAwesomeIcon icon={faXmark} />,
-            color: C.danger,
-            action: "finishFail",
-            requiresCycle: true,
-          },
-          {
-            id: "break",
-            label: "Breakdown",
-            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
-            color: C.danger,
-            action: "breakdown",
-          },
+          { id: "full", label: "Full Score", icon: "circleCheck", color: "success", action: "finishFull", requiresCycle: true },
+          { id: "partial", label: "Partial", icon: "bolt", color: "warn", action: "finishPartial", requiresCycle: true },
+          { id: "fail", label: "Failed", icon: "xmark", color: "danger", action: "finishFail", requiresCycle: true },
+          { id: "break", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
         ],
       },
     ],
   },
-  // ----------------------------------------------------------
-  //  TRANSIT  (Transition shift)
-  // ----------------------------------------------------------
   transit: {
     label: "Transition Shift",
     accent: "var(--scout-yellow-soft)",
@@ -166,80 +84,29 @@ const BUTTON_GROUPS = {
         sectionLabel: "Did They Score?",
         cols: 2,
         buttons: [
-          {
-            id: "txScore",
-            label: "Scored",
-            icon: <FontAwesomeIcon icon={faCircleCheck} />,
-            color: C.success,
-            action: "transitStat",
-            statKey: "transitScore",
-          },
-          {
-            id: "txFail",
-            label: "Missed",
-            icon: <FontAwesomeIcon icon={faXmark} />,
-            color: C.danger,
-            action: "transitStat",
-            statKey: "transitMiss",
-          },
+          { id: "txScore", label: "Scored", icon: "circleCheck", color: "success", action: "transitStat", statKey: "transitScore" },
+          { id: "txFail", label: "Missed", icon: "xmark", color: "danger", action: "transitStat", statKey: "transitMiss" },
         ],
       },
       {
         sectionLabel: "What Did We Do?",
         cols: 3,
         buttons: [
-          {
-            id: "txCollect",
-            label: "Collect",
-            icon: <FontAwesomeIcon icon={faCircle} />,
-            color: C.action,
-            action: "transitStat",
-            statKey: "transitCollect",
-          },
-          {
-            id: "txDefend",
-            label: "Defend",
-            icon: <FontAwesomeIcon icon={faShield} />,
-            color: C.defend,
-            action: "transitStat",
-            statKey: "transitDefend",
-          },
-          {
-            id: "txScore2",
-            label: "We Scored",
-            icon: <FontAwesomeIcon icon={faCrosshairs} />,
-            color: C.success,
-            action: "transitStat",
-            statKey: "transitWeScore",
-          },
+          { id: "txCollect", label: "Collect", icon: "circle", color: "action", action: "transitStat", statKey: "transitCollect" },
+          { id: "txDefend", label: "Defend", icon: "shield", color: "defend", action: "transitStat", statKey: "transitDefend" },
+          { id: "txScore2", label: "We Scored", icon: "crosshairs", color: "success", action: "transitStat", statKey: "transitWeScore" },
         ],
       },
       {
         sectionLabel: "Other",
         cols: 2,
         buttons: [
-          {
-            id: "txBreak",
-            label: "Breakdown",
-            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
-            color: C.danger,
-            action: "breakdown",
-          },
-          {
-            id: "txNone",
-            label: "Nothing",
-            icon: <FontAwesomeIcon icon={faMinus} />,
-            color: C.neutral,
-            action: "transitStat",
-            statKey: "transitNothing",
-          },
+          { id: "txBreak", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
+          { id: "txNone", label: "Nothing", icon: "minus", color: "neutral", action: "transitStat", statKey: "transitNothing" },
         ],
       },
     ],
   },
-  // ----------------------------------------------------------
-  //  OUR SHIFT
-  // ----------------------------------------------------------
   ourShift: {
     label: "Our Shift",
     accent: "var(--scout-green-soft)",
@@ -248,78 +115,31 @@ const BUTTON_GROUPS = {
         sectionLabel: "Start Cycle",
         cols: 1,
         buttons: [
-          {
-            id: "gain",
-            label: "Gain Possession",
-            icon: <FontAwesomeIcon icon={faHandFist} />,
-            color: C.action,
-            action: "startCycle",
-          },
+          { id: "gain", label: "Gain Possession", icon: "handFist", color: "action", action: "startCycle" },
         ],
       },
       {
         sectionLabel: "Shooting",
         cols: 1,
         buttons: [
-          {
-            id: "shoot",
-            label: "Start Shooting",
-            icon: <FontAwesomeIcon icon={faCrosshairs} />,
-            color: C.neutral,
-            action: "startShooting",
-            requiresCycle: true,
-          },
+          { id: "shoot", label: "Start Shooting", icon: "crosshairs", color: "neutral", action: "startShooting", requiresCycle: true },
         ],
       },
       {
         sectionLabel: "Actions",
         cols: 2,
         buttons: [
-          {
-            id: "defend",
-            label: "Defended",
-            icon: <FontAwesomeIcon icon={faShield} />,
-            color: C.defend,
-            action: "defend",
-            requiresCycle: true,
-          },
-          {
-            id: "break",
-            label: "Breakdown",
-            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
-            color: C.danger,
-            action: "breakdown",
-          },
+          { id: "defend", label: "Defended", icon: "shield", color: "defend", action: "defend", requiresCycle: true },
+          { id: "break", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
         ],
       },
       {
         sectionLabel: "Finish Cycle",
         cols: 2,
         buttons: [
-          {
-            id: "full",
-            label: "Full Score",
-            icon: <FontAwesomeIcon icon={faCircleCheck} />,
-            color: C.success,
-            action: "finishFull",
-            requiresCycle: true,
-          },
-          {
-            id: "partial",
-            label: "Partial",
-            icon: <FontAwesomeIcon icon={faBolt} />,
-            color: C.warn,
-            action: "finishPartial",
-            requiresCycle: true,
-          },
-          {
-            id: "fail",
-            label: "Failed",
-            icon: <FontAwesomeIcon icon={faXmark} />,
-            color: C.danger,
-            action: "finishFail",
-            requiresCycle: true,
-          },
+          { id: "full", label: "Full Score", icon: "circleCheck", color: "success", action: "finishFull", requiresCycle: true },
+          { id: "partial", label: "Partial", icon: "bolt", color: "warn", action: "finishPartial", requiresCycle: true },
+          { id: "fail", label: "Failed", icon: "xmark", color: "danger", action: "finishFail", requiresCycle: true },
         ],
       },
     ],
@@ -328,27 +148,12 @@ const BUTTON_GROUPS = {
         sectionLabel: "Endgame — Climb",
         cols: 2,
         buttons: [
-          {
-            id: "climbOk",
-            label: "Climb OK",
-            icon: <FontAwesomeIcon icon={faRocket} />,
-            color: C.success,
-            action: "climbOk",
-          },
-          {
-            id: "climbFail",
-            label: "Climb Fail",
-            icon: <FontAwesomeIcon icon={faBomb} />,
-            color: C.danger,
-            action: "climbFail",
-          },
+          { id: "climbOk", label: "Climb OK", icon: "rocket", color: "success", action: "climbOk" },
+          { id: "climbFail", label: "Climb Fail", icon: "bomb", color: "danger", action: "climbFail" },
         ],
       },
     ],
   },
-  // ----------------------------------------------------------
-  //  OFF SHIFT  (Their Shift — observing the opponent)
-  // ----------------------------------------------------------
   offShift: {
     label: "Their Shift",
     accent: "var(--scout-red-soft)",
@@ -357,60 +162,18 @@ const BUTTON_GROUPS = {
         sectionLabel: "Ball Interactions",
         cols: 3,
         buttons: [
-          {
-            id: "collect",
-            label: "Collect",
-            icon: <FontAwesomeIcon icon={faCircle} />,
-            color: C.action,
-            action: "offStat",
-            statKey: "offCollect",
-          },
-          {
-            id: "push",
-            label: "Push",
-            icon: <FontAwesomeIcon icon={faHandPointRight} />,
-            color: C.action,
-            action: "offStat",
-            statKey: "offPush",
-          },
-          {
-            id: "shoot",
-            label: "Shoot",
-            icon: <FontAwesomeIcon icon={faCrosshairs} />,
-            color: C.action,
-            action: "offStat",
-            statKey: "offShoot",
-          },
+          { id: "collect", label: "Collect", icon: "circle", color: "action", action: "offStat", statKey: "offCollect" },
+          { id: "push", label: "Push", icon: "handPointRight", color: "action", action: "offStat", statKey: "offPush" },
+          { id: "shoot", label: "Shoot", icon: "crosshairs", color: "action", action: "offStat", statKey: "offShoot" },
         ],
       },
       {
         sectionLabel: "Other",
         cols: 3,
         buttons: [
-          {
-            id: "dispense",
-            label: "Dispense",
-            sub: "to their side",
-            icon: <FontAwesomeIcon icon={faArrowTurnUp} />,
-            color: C.neutral,
-            action: "offStat",
-            statKey: "offDispense",
-          },
-          {
-            id: "offdefend",
-            label: "Defend",
-            icon: <FontAwesomeIcon icon={faShield} />,
-            color: C.defend,
-            action: "offStat",
-            statKey: "offDefend",
-          },
-          {
-            id: "break",
-            label: "Breakdown",
-            icon: <FontAwesomeIcon icon={faTriangleExclamation} />,
-            color: C.danger,
-            action: "breakdown",
-          },
+          { id: "dispense", label: "Dispense", sub: "to their side", icon: "arrowTurnUp", color: "neutral", action: "offStat", statKey: "offDispense" },
+          { id: "offdefend", label: "Defend", icon: "shield", color: "defend", action: "offStat", statKey: "offDefend" },
+          { id: "break", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
         ],
       },
     ],
@@ -419,20 +182,8 @@ const BUTTON_GROUPS = {
         sectionLabel: "Endgame — Climb",
         cols: 2,
         buttons: [
-          {
-            id: "climbOk",
-            label: "Climb OK",
-            icon: <FontAwesomeIcon icon={faRocket} />,
-            color: C.success,
-            action: "climbOk",
-          },
-          {
-            id: "climbFail",
-            label: "Climb Fail",
-            icon: <FontAwesomeIcon icon={faBomb} />,
-            color: C.danger,
-            action: "climbFail",
-          },
+          { id: "climbOk", label: "Climb OK", icon: "rocket", color: "success", action: "climbOk" },
+          { id: "climbFail", label: "Climb Fail", icon: "bomb", color: "danger", action: "climbFail" },
         ],
       },
     ],
@@ -442,7 +193,7 @@ const BUTTON_GROUPS = {
 export { FORMULA_VARIABLES } from "./formulaVariables.js";
 
 // ============================================================
-//  📐 DEFAULT EQUATIONS  (editable)
+//  📐 DEFAULT EQUATIONS  (editable — fallback only, see above)
 // ============================================================
 const DEFAULT_EQUATIONS = [
   {
@@ -497,6 +248,26 @@ const DEFAULT_EQUATIONS = [
     builtin: true,
   },
 ];
+
+// ============================================================
+//  🧩 FULL DEFAULT CONFIG — used only until /match/form responds
+//  (or if it fails). This is the exact same schema the Admin ▸
+//  Match Builder page reads and writes, so once a team saves a
+//  config from the builder, this fallback is never used again.
+// ============================================================
+const DEFAULT_MATCH_CONFIG = {
+  mode: "live", // "live" (button/timer scouting) or "form" (plain fields)
+  timing: {
+    matchTotal: 160,
+    autoEnd: 140,
+    transitEnd: 130,
+    endgameStart: 30,
+    shiftLen: 25,
+  },
+  phases: DEFAULT_PHASES,
+  equations: DEFAULT_EQUATIONS,
+  formSchema: { fields: [] },
+};
 
 // ============================================================
 //  Formula evaluator — safe math sandbox
@@ -568,7 +339,11 @@ function getRoles(metrics, stats) {
 const fmtTime = (t) =>
   `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 
-const initialStats = () => ({
+// `extraKeys` are any custom offStat/transitStat statKey values the admin
+// added in the builder that aren't one of the built-ins below — this is
+// what lets a team add a brand new counter button with zero code changes.
+const initialStats = (extraKeys = []) => ({
+  ...Object.fromEntries(extraKeys.map((k) => [k, 0])),
   // aggregate (used for fit score / metrics, unchanged)
   possessions: 0,
   fullScores: 0,
@@ -624,6 +399,7 @@ const initialMeta = () => ({ teamNumber: "", matchNumber: "", scoutName: "" });
 function ActionButton({ btn, disabled, onClick, isActive }) {
   const [pressed, setPressed] = useState(false);
   const [flash, setFlash] = useState(false);
+  const btnColor = C[btn.color] || C.neutral;
   const activeColor = isActive ? C.warn : null;
   return (
     <button
@@ -639,22 +415,22 @@ function ActionButton({ btn, disabled, onClick, isActive }) {
       id="action-btn"
       style={{
         backgroundColor: flash
-          ? (activeColor || btn.color).glow
-          : (activeColor || btn.color).bg,
-        color: (activeColor || btn.color).fg,
+          ? (activeColor || btnColor).glow
+          : (activeColor || btnColor).bg,
+        color: (activeColor || btnColor).fg,
         opacity: disabled ? 0.22 : 1,
         pointerEvents: disabled ? "none" : "auto",
         transform: pressed ? "scale(0.91)" : "scale(1)",
         boxShadow:
           pressed && !disabled
-            ? `0 0 18px ${(activeColor || btn.color).glow}66`
+            ? `0 0 18px ${(activeColor || btnColor).glow}66`
             : isActive
               ? `0 0 12px ${C.warn.glow}55`
               : "none",
         cursor: disabled ? "default" : "pointer",
       }}
     >
-      <span id="action-btn-icon">{btn.icon}</span>
+      <span id="action-btn-icon">{resolveIcon(btn.icon)}</span>
       <span id="action-btn-label">
         {btn.label}
       </span>
@@ -1369,28 +1145,38 @@ function FormulaEditor({ equations, onSave, onClose }) {
 }
 
 // ============================================================
-//  MAIN APP
+//  LIVE (button/timer) SCOUT APP — rendered once matchConfig has
+//  loaded. All the constants that used to be hardcoded modules-
+//  level (BUTTON_GROUPS, MATCH_CONFIG, DEFAULT_EQUATIONS) now come
+//  in as `matchConfig`, fetched from the server by <App/> below.
 // ============================================================
-export default function App() {
+function ScoutApp({ matchConfig, eventName }) {
   const { matchTotal, autoEnd, transitEnd, endgameStart, shiftLen } =
-    MATCH_CONFIG;
+    matchConfig.timing;
+  const buttonGroups = matchConfig.phases;
 
-  // Sync theme from localStorage (set by main menu)
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") || "light";
-    document.documentElement.setAttribute("data-theme", saved);
-  }, []);
-
-  // Pull event name from pit form schema
-  const [eventName, setEventName] = useState("");
-  useEffect(() => {
-    fetch(`${useURL()}/pit/form`, {
-      headers: getDefaultHeaders(),
-    })
-      .then((r) => r.ok ? r.json() : null)
-      .then((schema) => { if (schema?.event) setEventName(schema.event); })
-      .catch(() => {});
-  }, []);
+  // Any statKey referenced by an offStat/transitStat button that isn't
+  // one of the historical built-ins needs a slot seeded in stats — this
+  // is what makes admin-added counter buttons work with no code changes.
+  const customStatKeys = useMemo(() => {
+    const builtins = new Set(Object.keys(initialStats()));
+    const found = new Set();
+    Object.values(buttonGroups).forEach((group) => {
+      [...(group.sections || []), ...(group.endgameSections || [])].forEach(
+        (sec) =>
+          sec.buttons.forEach((b) => {
+            if (
+              (b.action === "offStat" || b.action === "transitStat") &&
+              b.statKey &&
+              !builtins.has(b.statKey)
+            ) {
+              found.add(b.statKey);
+            }
+          }),
+      );
+    });
+    return [...found];
+  }, [buttonGroups]);
 
   const [screen, setScreen] = useState("start");
   const [matchTime, setMatchTime] = useState(matchTotal);
@@ -1423,12 +1209,12 @@ export default function App() {
   const holdTimerRef = useRef(null);
   const [holdProgress, setHoldProgress] = useState(0);
   const [matchOver, setMatchOver] = useState(false);
-  const [stats, setStats] = useState(initialStats());
-  const statsRef = useRef(initialStats());
+  const [stats, setStats] = useState(initialStats(customStatKeys));
+  const statsRef = useRef(initialStats(customStatKeys));
   const [metrics, setMetrics] = useState(null);
 
   const [equations, setEquations] = useState(() =>
-    DEFAULT_EQUATIONS.map((e) => ({ ...e })),
+    (matchConfig.equations || DEFAULT_EQUATIONS).map((e) => ({ ...e })),
   );
   const [showEditor, setShowEditor] = useState(false);
   const [matchMeta, setMatchMeta] = useState(() => {
@@ -1733,7 +1519,7 @@ export default function App() {
     phaseRef.current = "auto";
     currentShiftRef.current = null;
     shiftTimeLeftRef.current = 0;
-    statsRef.current = initialStats();
+    statsRef.current = initialStats(customStatKeys);
     cycleDefendedRef.current = false;
     shootStartTimeRef.current = null;
     activeCycleRef.current = false;
@@ -1748,7 +1534,7 @@ export default function App() {
     setCarryover(null);
     setShowAutoOverlay(false);
     setMatchOver(false);
-    setStats(initialStats());
+    setStats(initialStats(customStatKeys));
     setMetrics(null);
     setMatchNotes("");
     setEarlyEndReason("");
@@ -1815,6 +1601,11 @@ export default function App() {
         offShiftSeconds: s.offShiftSeconds,
         transitSeconds: s.transitSeconds,
         shiftsCompleted: s.shiftsCompleted,
+        // Any custom counter buttons an admin added in the Match Builder
+        // that aren't one of the built-in fields above land here.
+        customStats: Object.fromEntries(
+          customStatKeys.map((k) => [k, s[k] || 0]),
+        ),
       },
       endgame: {
         climbSuccess: s.endgame.climbSuccess,
@@ -1917,7 +1708,7 @@ export default function App() {
     const climbOk = rand(0, 1);
     const climbFail = climbOk === 1 ? 0 : rand(0, 1);
 
-    const s = initialStats();
+    const s = initialStats(customStatKeys);
     // auto
     s.auto.possessions = autoFull + autoPartial + autoFail;
     s.auto.fullScores = autoFull;
@@ -2016,6 +1807,11 @@ export default function App() {
         offShiftSeconds: s.offShiftSeconds,
         transitSeconds: s.transitSeconds,
         shiftsCompleted: s.shiftsCompleted,
+        // Any custom counter buttons an admin added in the Match Builder
+        // that aren't one of the built-in fields above land here.
+        customStats: Object.fromEntries(
+          customStatKeys.map((k) => [k, s[k] || 0]),
+        ),
       },
       endgame: {
         climbSuccess: s.endgame.climbSuccess,
@@ -2062,7 +1858,7 @@ export default function App() {
     if (currentShift === "ours") return "ourShift";
     return "offShift";
   })();
-  const activeGroup = BUTTON_GROUPS[activeGroupKey];
+  const activeGroup = buttonGroups[activeGroupKey];
   const showEndgame = phase === "endgame";
 
   // Phase-specific dynamic tokens (these are truly runtime-dynamic; they stay inline)
@@ -2700,5 +2496,344 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ============================================================
+//  📝 FORM-MODE SCOUTING — the plain-fields alternative to the
+//  live button/timer engine above. Used when matchConfig.mode
+//  === "form". Field types are rendered generically from
+//  matchConfig.formSchema.fields, so the admin builder can add,
+//  remove, or reorder fields with zero code changes here.
+// ============================================================
+function MatchFormMode({ config, eventName }) {
+  const fields = config.formSchema?.fields || [];
+
+  const [matchMeta, setMatchMeta] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("scoutMeta") || "{}");
+      return {
+        teamNumber: saved.teamNumber || "",
+        matchNumber: saved.matchNumber || "",
+        scoutName: saved.scoutName || "",
+      };
+    } catch {
+      return initialMeta();
+    }
+  });
+  const [values, setValues] = useState(() =>
+    Object.fromEntries(
+      fields.map((f) => [f.id, f.type === "checkbox" ? false : ""]),
+    ),
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "scoutMeta",
+        JSON.stringify({ ...matchMeta }),
+      );
+    } catch {}
+  }, [matchMeta]);
+
+  const setField = (id, val) => setValues((v) => ({ ...v, [id]: val }));
+
+  const handleSubmit = async () => {
+    const matchData = {
+      meta: {
+        teamNumber: matchMeta.teamNumber,
+        matchNumber: matchMeta.matchNumber,
+        scoutName: matchMeta.scoutName,
+        eventName: eventName || null,
+        timestamp: new Date().toISOString(),
+      },
+      mode: "form",
+      fields: values,
+    };
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${useURL()}/match/upload`, {
+        method: "POST",
+        headers: getDefaultHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(matchData),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        console.error("[form-submit] server error:", err);
+      }
+    } catch (err) {
+      console.warn(
+        "[form-submit] backend unreachable, data logged below.",
+      );
+      console.log("Unsaved match data:", JSON.stringify(matchData, null, 2));
+    } finally {
+      setIsSubmitting(false);
+      setJustSubmitted(true);
+      setTimeout(() => setJustSubmitted(false), 2200);
+      const nextMatch = matchMeta.matchNumber
+        ? String(parseInt(matchMeta.matchNumber, 10) + 1)
+        : "";
+      setMatchMeta((m) => ({ ...m, matchNumber: nextMatch }));
+      setValues(
+        Object.fromEntries(
+          fields.map((f) => [f.id, f.type === "checkbox" ? false : ""]),
+        ),
+      );
+    }
+  };
+
+  const renderField = (f) => {
+    const common = { key: f.id };
+    switch (f.type) {
+      case "textarea":
+        return (
+          <div {...common}>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              {f.label}
+              {f.required && " *"}
+            </div>
+            <textarea
+              className="scout-input"
+              rows={4}
+              placeholder={f.placeholder || ""}
+              value={values[f.id] || ""}
+              onChange={(e) => setField(f.id, e.target.value)}
+              style={{ width: "100%", resize: "vertical" }}
+            />
+          </div>
+        );
+      case "select":
+        return (
+          <div {...common}>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              {f.label}
+              {f.required && " *"}
+            </div>
+            <select
+              className="scout-input"
+              value={values[f.id] || ""}
+              onChange={(e) => setField(f.id, e.target.value)}
+              style={{ width: "100%" }}
+            >
+              <option value="">— select —</option>
+              {(f.options || []).map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case "checkbox":
+        return (
+          <label
+            {...common}
+            style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+          >
+            <input
+              type="checkbox"
+              checked={!!values[f.id]}
+              onChange={(e) => setField(f.id, e.target.checked)}
+            />
+            <span className="scout-overline" style={{ margin: 0 }}>
+              {f.label}
+              {f.required && " *"}
+            </span>
+          </label>
+        );
+      case "number":
+        return (
+          <div {...common}>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              {f.label}
+              {f.required && " *"}
+            </div>
+            <input
+              className="scout-input"
+              type="number"
+              placeholder={f.placeholder || ""}
+              value={values[f.id] ?? ""}
+              onChange={(e) => setField(f.id, e.target.value)}
+              style={{ width: "100%" }}
+            />
+          </div>
+        );
+      default: // text
+        return (
+          <div {...common}>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              {f.label}
+              {f.required && " *"}
+            </div>
+            <input
+              className="scout-input"
+              type="text"
+              placeholder={f.placeholder || ""}
+              value={values[f.id] ?? ""}
+              onChange={(e) => setField(f.id, e.target.value)}
+              style={{ width: "100%" }}
+            />
+          </div>
+        );
+    }
+  };
+
+  const canSubmit =
+    matchMeta.teamNumber &&
+    matchMeta.matchNumber &&
+    matchMeta.scoutName &&
+    fields
+      .filter((f) => f.required)
+      .every((f) => {
+        const v = values[f.id];
+        return f.type === "checkbox" ? true : v !== "" && v !== undefined;
+      });
+
+  return (
+    <div id="scout-root" className="scout-root">
+      <div
+        className="scout-screen"
+        style={{
+          transform: "translateX(0)",
+          position: "relative",
+          overflowY: "auto",
+          padding: "20px 16px 90px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+        }}
+      >
+        <div>
+          <div id="start-eyebrow">FRC Scouting · Form Mode</div>
+          <div style={{ fontSize: 28, fontWeight: 800 }}>Match Scout</div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              Team Number
+            </div>
+            <input
+              className="scout-input"
+              type="number"
+              placeholder="e.g. 935"
+              value={matchMeta.teamNumber}
+              onChange={(e) =>
+                setMatchMeta((m) => ({ ...m, teamNumber: e.target.value }))
+              }
+              style={{ width: "100%" }}
+            />
+          </div>
+          <div>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              Match Number
+            </div>
+            <input
+              className="scout-input"
+              type="number"
+              placeholder="e.g. 12"
+              value={matchMeta.matchNumber}
+              onChange={(e) =>
+                setMatchMeta((m) => ({ ...m, matchNumber: e.target.value }))
+              }
+              style={{ width: "100%" }}
+            />
+          </div>
+          <div>
+            <div className="scout-overline" style={{ marginBottom: 6 }}>
+              Scout Name
+            </div>
+            <input
+              className="scout-input"
+              placeholder="Your name"
+              value={matchMeta.scoutName}
+              onChange={(e) =>
+                setMatchMeta((m) => ({ ...m, scoutName: e.target.value }))
+              }
+              style={{ width: "100%" }}
+            />
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: "var(--scout-border-subtle)" }} />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {fields.length === 0 ? (
+            <div style={{ color: "var(--scout-neutral-fg)", fontSize: 13 }}>
+              No fields have been configured yet. Add some from Admin ▸ Match
+              Builder.
+            </div>
+          ) : (
+            fields.map(renderField)
+          )}
+        </div>
+
+        <button
+          className="scout-btn-primary"
+          disabled={!canSubmit || isSubmitting}
+          onClick={handleSubmit}
+          style={{ opacity: !canSubmit || isSubmitting ? 0.5 : 1 }}
+        >
+          {isSubmitting
+            ? "SUBMITTING…"
+            : justSubmitted
+              ? "SAVED ✓"
+              : "SUBMIT MATCH"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  📡 CONFIG LOADER — the real default export. Fetches the saved
+//  match config (built in Admin ▸ Match Builder) and then hands
+//  off to either the live scouting engine or plain form mode.
+// ============================================================
+export default function App() {
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", saved);
+  }, []);
+
+  const [eventName, setEventName] = useState("");
+  const [matchConfig, setMatchConfig] = useState(null);
+
+  useEffect(() => {
+    fetch(`${useURL()}/pit/form`, { headers: getDefaultHeaders() })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((schema) => {
+        if (schema?.event) setEventName(schema.event);
+      })
+      .catch(() => {});
+
+    fetch(`${useURL()}/match/form`, { headers: getDefaultHeaders() })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((cfg) => {
+        setMatchConfig(cfg && cfg.timing ? cfg : DEFAULT_MATCH_CONFIG);
+      })
+      .catch(() => setMatchConfig(DEFAULT_MATCH_CONFIG));
+  }, []);
+
+  if (!matchConfig) {
+    return (
+      <div
+        id="scout-root"
+        className="scout-root"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <div style={{ color: "var(--scout-neutral-fg)", fontSize: 14 }}>
+          Loading scouting config…
+        </div>
+      </div>
+    );
+  }
+
+  return matchConfig.mode === "form" ? (
+    <MatchFormMode config={matchConfig} eventName={eventName} />
+  ) : (
+    <ScoutApp matchConfig={matchConfig} eventName={eventName} />
   );
 }

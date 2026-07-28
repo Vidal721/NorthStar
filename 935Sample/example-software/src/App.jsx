@@ -31,12 +31,17 @@ import ProtectedLayout from "./componets/ProtectedLayout";
 // URL Config
 import { useURL } from "./urlConfig";
 
+// Auth (JWT storage/session helpers)
+import { setToken, clearToken, getSession, authHeader } from "./auth";
+
 // CSS
 import "./App.css";
 
-// Headers to bypass CORS errors on backend
+// Headers to bypass CORS errors on backend, plus the signed auth token
+// whenever we have one so protected endpoints can verify who's asking.
 const defaultHeaders = (extra = {}) => ({
   "ngrok-skip-browser-warning": "69420",
+  ...authHeader(),
   ...extra,
 });
 
@@ -67,10 +72,17 @@ function LoginScreen() {
         throw new Error(data.error || "Login failed");
       }
 
+      // The token is what actually gates access (verified server-side on
+      // every request). The rest below is just for display elsewhere in the
+      // app - editing it in devtools no longer does anything useful, since
+      // ProtectedLayout reads role/subgroup/competitionRole from the token.
+      setToken(data.token);
       localStorage.setItem("currentUser", data.username);
+      localStorage.setItem("userFirstName", data.firstName || "");
+      localStorage.setItem("userLastName", data.lastName || "");
       localStorage.setItem("userRole", data.role);
       localStorage.setItem("userSubgroup", data.subgroup || "");
-      localStorage.setItem('userCompetitionRole', data.competitionRole || "");
+      localStorage.setItem("userCompetitionRole", data.competitionRole || "");
 
       const userRole = String(data.role).toLowerCase();
 
@@ -165,6 +177,8 @@ function RegisterScreen() {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("students");
+  // Note: there is no "competition role" field here on purpose - it always
+  // starts at "none" and can only be set later by a coach/admin.
 
   // Subgroup
   const [subgroup, setSubgroup] = useState("Manufacturing");
@@ -189,7 +203,7 @@ function RegisterScreen() {
     setMessage("");
     setIsError(false);
 
-    if (!username || !password || !role) {
+    if (!username || !password || !role || !firstName || !lastName) {
       setIsError(true);
       setMessage("All registration fields are required.");
       return;
@@ -208,7 +222,9 @@ function RegisterScreen() {
           username,
           password,
           role,
-          subgroup: finalSubgroup
+          subgroup: finalSubgroup,
+          firstName,
+          lastName,
         }),
       });
 
@@ -249,34 +265,66 @@ function RegisterScreen() {
         </p>
       )}
 
-      {/* Controlled Input: Username */}
-      <fieldset className="fieldset-container">
-        <legend className="fieldset-legend">
-          <label htmlFor="regUsername">Name (First and Last)</label>
-        </legend>
-        <input
-          type="text"
-          id="regUsername"
-          className="fieldset-input"
-          placeholder="e.g. scouter935"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </fieldset>
+      <div className="fieldset-row">
+        <fieldset className="fieldset-container">
+          <legend className="fieldset-legend">
+            <label htmlFor="regFirstName">First Name</label>
+          </legend>
+          <input
+            type="text"
+            id="regFirstName"
+            className="fieldset-input"
+            placeholder="Jane"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+        </fieldset>
 
-      <fieldset className="fieldset-container">
-        <legend className="fieldset-legend">
-          <label htmlFor="regPassword">Password</label>
-        </legend>
-        <input
-          type="password"
-          id="regPassword"
-          className="fieldset-input"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </fieldset>
+        <fieldset className="fieldset-container">
+          <legend className="fieldset-legend">
+            <label htmlFor="regLastName">Last Name</label>
+          </legend>
+          <input
+            type="text"
+            id="regLastName"
+            className="fieldset-input"
+            placeholder="Doe"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </fieldset>
+      </div>
+
+      {/* Controlled Inputs: Username & Password */}
+      <div className="fieldset-row">
+        <fieldset className="fieldset-container">
+          <legend className="fieldset-legend">
+            <label htmlFor="regUsername">Username</label>
+          </legend>
+          <input
+            type="text"
+            id="regUsername"
+            className="fieldset-input"
+            placeholder="e.g. scouter935"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </fieldset>
+
+        <fieldset className="fieldset-container">
+          <legend className="fieldset-legend">
+            <label htmlFor="regPassword">Password</label>
+          </legend>
+          <input
+            type="password"
+            id="regPassword"
+            className="fieldset-input"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </fieldset>
+      </div>
 
       <fieldset className="fieldset-container">
         <legend className="fieldset-legend">
@@ -336,29 +384,6 @@ function RegisterScreen() {
           </select>
         </fieldset>
       )}
-      {(role === "students" || "helper" || "coach") && (
-        <fieldset id="studentOnly" className="fieldset-container">
-          <legend className="fieldset-legend">
-            <label htmlFor="buildSeason">Subgroup</label>
-          </legend>
-          <select
-            id="buildSeason"
-            className="fieldset-input"
-            value={subgroup}
-            onChange={(e) => setSubgroup(e.target.value)}
-            style={{
-              width: "100%",
-              background: "transparent",
-              color: "inherit",
-              border: "none",
-              outline: "none",
-            }}
-          >
-            {subgroups.map((group) => <option key={group} value={group} style={{ background: "#ffffff" }}>{group}</option>)}
-          </select>
-        </fieldset>
-      )}
-
       <button
         id="mainRegister"
         onClick={handleRegister}

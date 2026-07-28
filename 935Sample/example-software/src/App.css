@@ -69,6 +69,27 @@ input:-webkit-autofill:active {
 
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
+
+  /* Scout — semantic status colors, layered on the core tokens above */
+  --scout-indigo: #6366f1;
+  --scout-indigo-soft: #a5b4fc;
+  --scout-indigo-bg: rgba(99, 102, 241, 0.1);
+
+  --scout-green: #22c55e;
+  --scout-green-soft: #86efac;
+  --scout-green-bg: rgba(34, 197, 94, 0.12);
+
+  --scout-red: #ef4444;
+  --scout-red-soft: #fca5a5;
+  --scout-red-bg: rgba(239, 68, 68, 0.12);
+
+  --scout-yellow-soft: #fde68a;
+
+  --scout-blue: #3b82f6;
+  --scout-blue-soft: #93c5fd;
+  --scout-blue-bg: rgba(59, 130, 246, 0.12);
+
+  --scout-bg-overlay: rgba(0, 0, 0, 0.55);
 }
 
 [data-theme="dark"] {
@@ -114,17 +135,16 @@ input:-webkit-autofill:active {
 }
 
 html,
-body,
-#root {
+body {
   -webkit-user-select: none;
   user-select: none;
   margin: 0;
   padding: 0;
   min-height: 100dvh;
-  height: 100%;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
 
@@ -143,7 +163,19 @@ body,
 }
 
 #root {
+  -webkit-user-select: none;
+  user-select: none;
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
   height: auto;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  background: var(--bg-app);
+  color: var(--text-primary);
 }
 
 #main-menu-container {
@@ -528,36 +560,6 @@ body {
 }
 
 /* =========================================================
-   SCOUT — DESIGN TOKENS
-   (separate :root block on purpose: semantic status colors for the
-   Scout feature; layered on top of the core tokens defined above,
-   which the scout-bg, scout-text, and scout-border aliases up top
-   pull from directly)
-   ========================================================= */
-
-:root {
-  --scout-indigo: #6366f1;
-  --scout-indigo-soft: #a5b4fc;
-  --scout-indigo-bg: rgba(99, 102, 241, 0.1);
-
-  --scout-green: #22c55e;
-  --scout-green-soft: #86efac;
-  --scout-green-bg: rgba(34, 197, 94, 0.12);
-
-  --scout-red: #ef4444;
-  --scout-red-soft: #fca5a5;
-  --scout-red-bg: rgba(239, 68, 68, 0.12);
-
-  --scout-yellow-soft: #fde68a;
-
-  --scout-blue: #3b82f6;
-  --scout-blue-soft: #93c5fd;
-  --scout-blue-bg: rgba(59, 130, 246, 0.12);
-
-  --scout-bg-overlay: rgba(0, 0, 0, 0.55);
-}
-
-/* =========================================================
    SCOUT — ROOT & SCREEN LAYOUT
    ========================================================= */
 
@@ -581,6 +583,9 @@ body {
   position: absolute;
   inset: 0;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   transition:
     transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.3s ease;
@@ -2183,12 +2188,6 @@ body {
   background: var(--scout-bg-surface);
   border-top: 1px solid var(--scout-border);
 }
-#scout-root {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-}
-
 /* =========================================================
    FIELDSET COMPONENTS — LOGIN & REGISTER
    ========================================================= */
@@ -2271,8 +2270,30 @@ body {
 
 #registerContainer {
   background-color: var(--bg-elevated);
-  padding: 20px;
-  margin: auto;
+  padding: 24px;
+  margin: 40px auto;
+  border-radius: var(--radius-md);
+  max-width: 420px;
+  width: 90%;
+  color: var(--text-primary);
+}
+
+.fieldset-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.fieldset-row .fieldset-container {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .fieldset-row {
+    flex-direction: column;
+    gap: 0;
+  }
 }
 /* Drive thumbnails */
 .drive-content.file {

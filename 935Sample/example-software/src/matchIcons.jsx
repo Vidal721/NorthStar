@@ -93,5 +93,5 @@ export const ICON_OPTIONS = Object.keys(ICON_MAP).map((key) => ({
 // Resolve a stored icon key to a rendered <FontAwesomeIcon>. Falls back to
 // a generic "?" icon so a bad/missing key never crashes the scouting page.
 export function resolveIcon(key) {
-  return <FontAwesomeIcon icon={ICON_MAP[key]} />;
+  return <FontAwesomeIcon icon={ICON_MAP[key] || faQuestion} />;
 }

@@ -1,7 +1,7 @@
 {
-  "id": 1,
+  "id": 1785207089639,
   "event": "",
-  "mode": "live",
+  "mode": "form",
   "timing": {
     "matchTotal": 160,
     "autoEnd": 140,
@@ -405,6 +405,13 @@
     }
   ],
   "formSchema": {
-    "fields": []
+    "fields": [
+      {
+        "id": "field_ofv2j9",
+        "label": "Test",
+        "type": "text",
+        "required": false
+      }
+    ]
   }
 }

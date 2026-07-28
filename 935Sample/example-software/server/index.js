@@ -9,6 +9,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import multer from "multer";
 import webpush from "web-push";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -63,6 +65,69 @@ if (webPushEnabled) {
 const app = express();
 const PORT = 3000;
 
+// ==== JWT AUTH ==== //
+// JWT_SECRET should live in your .env so tokens stay valid across restarts and
+// deploys. If it's missing we generate one for this process only and warn loudly
+// so it's obvious in the logs that sessions won't survive a restart.
+let JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  JWT_SECRET = crypto.randomBytes(48).toString("hex");
+  console.warn(
+    "[auth] WARNING: JWT_SECRET is not set in .env. Using a temporary secret " +
+      "for this run only \u2014 every existing login will be invalidated on the " +
+      "next restart. Add JWT_SECRET=<long random string> to your .env file.",
+  );
+}
+const TOKEN_TTL = "12h";
+
+const signUserToken = (user) =>
+  jwt.sign(
+    {
+      username: user.username,
+      role: user.role,
+      subgroup: user.subgroup || "none",
+      competitionRole: user.competitionRole || "none",
+      leadershipSubgroups: user.leadershipSubgroups || [],
+    },
+    JWT_SECRET,
+    { expiresIn: TOKEN_TTL },
+  );
+
+// Verifies the Authorization: Bearer <token> header (if present) and attaches
+// the decoded, server-signed identity to req.user. This runs on every request
+// but does NOT block routes on its own - it just makes sure req.user can only
+// ever contain values we signed, never values a client typed into a form,
+// query string, or devtools console.
+function authenticateJWT(req, res, next) {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    req.user = null;
+  }
+  next();
+}
+
+const requireAuth = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: "Sign in required." });
+  next();
+};
+
+const requireRole =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: "Sign in required." });
+    const normalized = roles.map((role) => role.toLowerCase());
+    if (!normalized.includes(String(req.user.role || "").toLowerCase()))
+      return res.status(403).json({ error: "Not authorized." });
+    next();
+  };
+
 // CORS must run first so every response (including OPTIONS preflight) gets headers.
 // Reflects request headers automatically, and explicitly allows headers the app sends.
 app.use(
@@ -85,6 +150,7 @@ app.use(
 app.options(/.*/, cors());
 
 app.use(express.json());
+app.use(authenticateJWT);
 
 console.log("Deploy key:", process.env.DEPLOY_KEY);
 
@@ -107,16 +173,116 @@ app.post("/deploy", (req, res) => {
   );
 });
 
-// ==== JSON File Helpers ==== //
+// ==== User Storage (SQLite) ==== //
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    first_name TEXT DEFAULT '',
+    last_name TEXT DEFAULT '',
+    role TEXT NOT NULL,
+    subgroup TEXT DEFAULT 'none',
+    competition_role TEXT DEFAULT 'none',
+    leadership_subgroups TEXT DEFAULT '[]',
+    created_at TEXT NOT NULL
+  )
+`);
+
+const rowToUser = (row) =>
+  !row
+    ? null
+    : {
+        username: row.username,
+        passwordHash: row.password_hash,
+        firstName: row.first_name || "",
+        lastName: row.last_name || "",
+        role: row.role,
+        subgroup: row.subgroup || "none",
+        competitionRole: row.competition_role || "none",
+        leadershipSubgroups: JSON.parse(row.leadership_subgroups || "[]"),
+      };
+
 function getUsers() {
-  // Read our new users tracking file
-  if (!fs.existsSync("users.json")) return [];
-  return JSON.parse(fs.readFileSync("users.json", "utf8"));
+  return db.prepare("SELECT * FROM users ORDER BY id").all().map(rowToUser);
 }
 
-function saveUsers(users) {
-  fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+function getUserByUsername(username) {
+  return rowToUser(
+    db.prepare("SELECT * FROM users WHERE username = ?").get(username),
+  );
 }
+
+function createUser({ username, passwordHash, firstName, lastName, role, subgroup }) {
+  db.prepare(
+    `INSERT INTO users
+      (username, password_hash, first_name, last_name, role, subgroup, competition_role, leadership_subgroups, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'none', '[]', ?)`,
+  ).run(
+    username,
+    passwordHash,
+    firstName || "",
+    lastName || "",
+    role,
+    subgroup || "none",
+    new Date().toISOString(),
+  );
+}
+
+// Existing code edits whole user objects in place (role, subgroup,
+// leadershipSubgroups, competitionRole) then calls saveUsers(list) to persist -
+// keep that contract, just upsert each row into SQLite instead of rewriting JSON.
+function saveUsers(users) {
+  const update = db.prepare(
+    `UPDATE users SET role = ?, subgroup = ?, competition_role = ?, leadership_subgroups = ? WHERE username = ?`,
+  );
+  const tx = db.transaction((list) => {
+    list.forEach((user) => {
+      update.run(
+        user.role,
+        user.subgroup || "none",
+        user.competitionRole || "none",
+        JSON.stringify(user.leadershipSubgroups || []),
+        user.username,
+      );
+    });
+  });
+  tx(users);
+}
+
+// One-time migration: if the users table is empty and a legacy users.json
+// exists, import it so nobody loses their accounts switching to the DB.
+function migrateLegacyUsersJson() {
+  const { c } = db.prepare("SELECT COUNT(*) AS c FROM users").get();
+  if (c > 0 || !fs.existsSync("users.json")) return;
+  const legacy = JSON.parse(fs.readFileSync("users.json", "utf8"));
+  const insert = db.prepare(
+    `INSERT INTO users
+      (username, password_hash, first_name, last_name, role, subgroup, competition_role, leadership_subgroups, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const tx = db.transaction((list) => {
+    list.forEach((user) => {
+      insert.run(
+        user.username,
+        user.passwordHash,
+        user.firstName || "",
+        user.lastName || "",
+        user.role,
+        user.subgroup || "none",
+        user.competitionRole || "none",
+        JSON.stringify(user.leadershipSubgroups || []),
+        new Date().toISOString(),
+      );
+    });
+  });
+  tx(legacy);
+  console.log(
+    `[migrate] Imported ${legacy.length} users from users.json into the database.`,
+  );
+  fs.renameSync("users.json", "users.json.migrated");
+}
+migrateLegacyUsersJson();
 
 const getSubgroups = () =>
   db
@@ -188,7 +354,7 @@ const canReadDrivePath = (user, relativePath) => {
 };
 
 app.get("/leadership/users", (req, res) => {
-  const actor = getUsers().find((user) => user.username === req.query.actor);
+  const actor = req.user;
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role)))
     return res
       .status(403)
@@ -197,7 +363,7 @@ app.get("/leadership/users", (req, res) => {
 });
 
 app.get("/directory", (req, res) => {
-  if (!getActor(req.query.actor))
+  if (!req.user)
     return res.status(401).json({ error: "Sign in to view the directory." });
   res.json(
     getUsers().map(({ username, role, subgroup }) => ({
@@ -211,7 +377,7 @@ app.get("/directory", (req, res) => {
 app.get("/subgroups", (req, res) => res.json(getSubgroups()));
 
 app.post("/subgroups", (req, res) => {
-  const actor = getUsers().find((user) => user.username === req.body?.actor);
+  const actor = req.user;
   const name = String(req.body?.name || "").trim();
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role)))
     return res
@@ -235,7 +401,7 @@ app.post("/subgroups", (req, res) => {
 
 app.delete("/subgroups/:name", (req, res) => {
   const users = getUsers();
-  const actor = users.find((user) => user.username === req.query.actor);
+  const actor = req.user;
   const name = req.params.name;
   if (!actor || normalizeRole(actor.role) !== "admin")
     return res.status(403).json({ error: "Only admins can delete subgroups." });
@@ -258,7 +424,7 @@ app.delete("/subgroups/:name", (req, res) => {
 
 app.patch("/leadership/users/:username", (req, res) => {
   const users = getUsers();
-  const actor = users.find((user) => user.username === req.body?.actor);
+  const actor = req.user;
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role)))
     return res
       .status(403)
@@ -385,7 +551,7 @@ const notifyMessageRecipients = async (message) => {
 };
 
 app.get("/push/vapid-public-key", (req, res) => {
-  if (!getActor(req.query.actor))
+  if (!req.user)
     return res.status(401).json({ error: "Sign in to enable notifications." });
   if (!webPushEnabled)
     return res
@@ -395,7 +561,7 @@ app.get("/push/vapid-public-key", (req, res) => {
 });
 
 app.post("/push/subscriptions", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   const subscription = req.body?.subscription;
   if (!actor)
     return res.status(401).json({ error: "Sign in to enable notifications." });
@@ -420,7 +586,7 @@ app.post("/push/subscriptions", (req, res) => {
 });
 
 app.get("/tasks", (req, res) => {
-  const actor = getActor(req.query.actor);
+  const actor = req.user;
   if (!actor) return res.status(401).json({ error: "Sign in to view tasks." });
   removeExpiredCompletedTasks();
   const isManager = ["admin", "coach"].includes(normalizeRole(actor.role));
@@ -445,7 +611,7 @@ app.get("/tasks", (req, res) => {
 });
 
 app.post("/tasks", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   const {
     title,
     description = "",
@@ -492,7 +658,7 @@ app.post("/tasks", (req, res) => {
 });
 
 app.patch("/tasks/:id", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   const task = db
     .prepare("SELECT * FROM tasks WHERE id = ?")
     .get(req.params.id);
@@ -521,7 +687,7 @@ app.patch("/tasks/:id", (req, res) => {
 });
 
 app.get("/messages", (req, res) => {
-  const actor = getActor(req.query.actor);
+  const actor = req.user;
   if (!actor)
     return res.status(401).json({ error: "Sign in to view messages." });
   const groups = db
@@ -551,7 +717,7 @@ app.get("/messages", (req, res) => {
 });
 
 app.post("/messages", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   const { recipientType, recipientValue = "", body } = req.body || {};
   if (
     !actor ||
@@ -586,7 +752,7 @@ app.post("/messages", (req, res) => {
 
 // ==== FEEDBACK ==== //
 app.post("/feedback", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   const { category, title, details } = req.body || {};
   const allowedCategories = ["bug", "feature", "improvement", "other"];
   if (
@@ -618,7 +784,7 @@ app.post("/feedback", (req, res) => {
 });
 
 app.get("/feedback", (req, res) => {
-  const actor = getActor(req.query.actor);
+  const actor = req.user;
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) {
     return res
       .status(403)
@@ -634,7 +800,7 @@ app.get("/feedback", (req, res) => {
 });
 
 app.patch("/feedback/:id", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   if (!actor || !["admin", "coach"].includes(normalizeRole(actor.role))) {
     return res
       .status(403)
@@ -666,7 +832,7 @@ app.patch("/feedback/:id", (req, res) => {
 });
 
 app.get("/message-groups", (req, res) => {
-  const actor = getActor(req.query.actor);
+  const actor = req.user;
   if (!actor) return res.status(401).json({ error: "Sign in to view groups." });
   res.json(
     db
@@ -683,7 +849,7 @@ app.get("/message-groups", (req, res) => {
 });
 
 app.post("/message-groups", (req, res) => {
-  const actor = getActor(req.body?.actor);
+  const actor = req.user;
   const { name, members = [] } = req.body || {};
   if (!actor || !name || !Array.isArray(members))
     return res
@@ -796,9 +962,7 @@ app.post("/auth/login", async (req, res) => {
       return res.status(400).json({ error: "Missing username or password" });
     }
 
-    const users = getUsers();
-    // Search the JSON structure for a matching username
-    const user = users.find((u) => u.username === username);
+    const user = getUserByUsername(username);
 
     if (!user) {
       return res.status(401).json({ error: "Invalid username or password" });
@@ -811,14 +975,23 @@ app.post("/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
-    // Success! Return user identity and role to your React app
+    // Success! Sign a token containing the role/subgroup/etc as WE know them
+    // (from the DB), not whatever the client claims. This is what the frontend
+    // stores and sends back on every request afterwards - editing it in
+    // localStorage or devtools just breaks the signature and logs you out.
+    const token = signUserToken(user);
+
     console.log(
       `[auth] User ${username} logged in successfully as ${user.role}`,
     );
     res.json({
+      token,
       username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
       subgroup: user.subgroup || "",
+      competitionRole: user.competitionRole || "none",
     });
   } catch (err) {
     console.error("[auth] Login error:", err.message);
@@ -829,13 +1002,13 @@ app.post("/auth/login", async (req, res) => {
 // ==== USER REGISTRATION ENDPOINT ==== //
 app.post("/auth/register", async (req, res) => {
   try {
-    const { username, password, role, subgroup } = req.body;
+    const { username, password, role, subgroup, firstName, lastName } = req.body;
 
     // 1. Validate incoming data payload
-    if (!username || !password || !role || !subgroup) {
+    if (!username || !password || !role || !firstName || !lastName) {
       return res
         .status(400)
-        .json({ error: "Missing username, password, or role" });
+        .json({ error: "Missing username, password, name, or role" });
     }
 
     const allowedRoles = [
@@ -852,12 +1025,12 @@ app.post("/auth/register", async (req, res) => {
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: "Un-verified account role" });
     }
-
-    const users = getUsers();
+    // Note: competitionRole is intentionally NOT accepted here. It always
+    // starts at "none" and can only be set afterwards by a coach/admin via
+    // PATCH /users/:username/competition-role.
 
     // 2. Prevent duplicate usernames
-    const userExists = users.some((u) => u.username === username);
-    if (userExists) {
+    if (getUserByUsername(username)) {
       return res.status(400).json({ error: "User already exists check" });
     }
 
@@ -865,18 +1038,15 @@ app.post("/auth/register", async (req, res) => {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // 4. Construct user profile template and push to array
-    const newUser = {
+    // 4. Persist the new user in the database
+    createUser({
       username,
       passwordHash,
+      firstName,
+      lastName,
       role,
-      subgroup,
-    };
-
-    users.push(newUser);
-
-    // 5. Save back to users.json file sync
-    fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+      subgroup: subgroup || "none",
+    });
 
     console.log(`[auth] Successfully created new ${role} account: ${username}`);
     res.status(201).json({ message: "User registered successfully!" });
@@ -886,15 +1056,55 @@ app.post("/auth/register", async (req, res) => {
   }
 });
 
-app.get("/users", (req, res) => {
+app.get("/users", requireAuth, (req, res) => {
   try {
-    // REMOVED JSON.parse() from here. res.json() handles stringifying the array automatically.
-    res.json(getUsers());
+    // Never send passwordHash to the client - this used to leak every
+    // password hash in the system to anyone who called this endpoint.
+    res.json(getUsers().map(({ passwordHash, ...safeUser }) => safeUser));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve users memory grid." });
   }
 });
+
+// ==== COMPETITION ROLE ==== //
+// Set at signup time nothing is chosen (defaults to "none"). Only a coach or
+// admin can assign it, and only via this endpoint - never via the register
+// form or by editing localStorage.
+const ALLOWED_COMPETITION_ROLES = [
+  "none",
+  "scouter",
+  "lead scouter",
+  "drive team",
+  "pit boss",
+  "strategist",
+];
+
+app.get("/competition-roles", (req, res) => res.json(ALLOWED_COMPETITION_ROLES));
+
+app.patch(
+  "/users/:username/competition-role",
+  requireRole("admin", "coach"),
+  (req, res) => {
+    const target = getUserByUsername(req.params.username);
+    if (!target) return res.status(404).json({ error: "User not found." });
+
+    const competitionRole = String(req.body?.competitionRole || "").trim();
+    if (!ALLOWED_COMPETITION_ROLES.includes(competitionRole)) {
+      return res.status(400).json({ error: "Unsupported competition role." });
+    }
+
+    db.prepare("UPDATE users SET competition_role = ? WHERE username = ?").run(
+      competitionRole,
+      target.username,
+    );
+
+    console.log(
+      `[auth] ${req.user.username} set ${target.username}'s competition role to ${competitionRole}`,
+    );
+    res.json({ username: target.username, competitionRole });
+  },
+);
 
 // ==== Helper form endpoints ==== //
 app.get("/helper/forms", (req, res) => {
@@ -1394,7 +1604,7 @@ app.delete("/delete/pit/:id", (req, res) => {
 });
 
 app.delete("/messages/:id", (req, res) => {
-  const actor = getActor(req.query.actor);
+  const actor = req.user;
   if (!actor) {
     return res.status(401).json({ error: "Sign in to delete messages." });
   }
@@ -1421,7 +1631,7 @@ app.delete("/messages/:id", (req, res) => {
 });
 
 app.delete("/users/:username", (req, res) => {
-  const actor = getActor(req.query.actor);
+  const actor = req.user;
   if (!actor) {
     return res.status(401).json({ error: "Sign in to delete users." });
   }

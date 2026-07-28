@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
@@ -8,27 +8,30 @@ import {
   faFloppyDisk,
   faCircleCheck,
   faTriangleExclamation,
+  faArrowRight,
+  faArrowLeft,
+  faGamepad,
+  faListCheck,
+  faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
-import { resolveIcon, ICON_OPTIONS } from "../matchIcons";
+import { resolveIcon, ICON_OPTIONS } from "../matchIcons.jsx";
 import { getDefaultHeaders } from "../apiConfig";
 import { useURL } from "../urlConfig.js";
-import "../App.css";
 
 // ============================================================
-//  Everything a scout lead needs to reconfigure the match
-//  scouting form for a new game — without touching code. This
-//  page reads/writes the exact same JSON blob match.jsx consumes
-//  (GET/POST /match/form), so hitting Save here changes the live
-//  scouting page immediately, for every scout, with no deploy.
+//  Match Builder — guided setup wizard + freeform dashboard for
+//  the match scouting config (GET/POST /match/form). Whatever is
+//  saved here is exactly what match.jsx renders, so this is the
+//  entire "recode the form" workflow your team needed, as UI.
 // ============================================================
 
 const COLOR_OPTIONS = [
-  { key: "action", label: "Indigo", var: "var(--scout-indigo)" },
-  { key: "success", label: "Green", var: "var(--scout-green)" },
-  { key: "warn", label: "Yellow", var: "var(--scout-yellow)" },
-  { key: "danger", label: "Red", var: "var(--scout-red)" },
-  { key: "neutral", label: "Gray", var: "var(--scout-neutral-glow)" },
-  { key: "defend", label: "Blue", var: "var(--scout-blue)" },
+  { key: "action", label: "Indigo", var: "var(--scout-indigo, #6366f1)" },
+  { key: "success", label: "Green", var: "var(--scout-green, #22c55e)" },
+  { key: "warn", label: "Yellow", var: "var(--scout-yellow, #eab308)" },
+  { key: "danger", label: "Red", var: "var(--scout-red, #ef4444)" },
+  { key: "neutral", label: "Gray", var: "var(--scout-neutral-glow, #64748b)" },
+  { key: "defend", label: "Blue", var: "var(--scout-blue, #3b82f6)" },
 ];
 
 const ACTION_OPTIONS = [
@@ -41,8 +44,8 @@ const ACTION_OPTIONS = [
   { value: "breakdown", label: "Log Breakdown" },
   { value: "climbOk", label: "Endgame — Climb Success" },
   { value: "climbFail", label: "Endgame — Climb Fail" },
-  { value: "offStat", label: "Custom Counter (off-shift style)" },
-  { value: "transitStat", label: "Custom Counter (transit style)" },
+  { value: "offStat", label: "Score / Action Counter" },
+  { value: "transitStat", label: "Score / Action Counter (transit)" },
 ];
 
 const PHASE_KEYS = ["auto", "transit", "ourShift", "offShift"];
@@ -51,6 +54,12 @@ const PHASE_TITLES = {
   transit: "Transition Shift",
   ourShift: "Our Shift",
   offShift: "Their Shift",
+};
+const PHASE_COLORS = {
+  auto: "var(--scout-indigo, #6366f1)",
+  transit: "var(--scout-yellow, #eab308)",
+  ourShift: "var(--scout-green, #22c55e)",
+  offShift: "var(--scout-red, #ef4444)",
 };
 
 const FIELD_TYPES = ["text", "number", "textarea", "select", "checkbox"];
@@ -63,20 +72,8 @@ const emptyButton = () => ({
   action: "offStat",
   statKey: "customStat",
 });
-
-const emptySection = () => ({
-  sectionLabel: "New Section",
-  cols: 2,
-  buttons: [emptyButton()],
-});
-
-const emptyField = () => ({
-  id: `field_${Math.random().toString(36).slice(2, 8)}`,
-  label: "New Field",
-  type: "text",
-  required: false,
-});
-
+const emptySection = () => ({ sectionLabel: "New Section", cols: 2, buttons: [emptyButton()] });
+const emptyField = () => ({ id: `field_${Math.random().toString(36).slice(2, 8)}`, label: "New Field", type: "text", required: false });
 const emptyEquation = () => ({
   key: `metric_${Math.random().toString(36).slice(2, 6)}`,
   label: "New Metric",
@@ -86,13 +83,29 @@ const emptyEquation = () => ({
   builtin: false,
 });
 
+const LIVE_STEPS = [
+  { key: "mode", label: "Mode" },
+  { key: "timing", label: "Timing" },
+  { key: "phases", label: "Buttons" },
+  { key: "formulas", label: "Formulas" },
+  { key: "review", label: "Review" },
+];
+const FORM_STEPS = [
+  { key: "mode", label: "Mode" },
+  { key: "fields", label: "Fields" },
+  { key: "review", label: "Review" },
+];
+
 export default function MatchBuilder() {
   const apiUrl = useURL();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
-  const [tab, setTab] = useState("mode");
+
+  const [uiMode, setUiMode] = useState("wizard"); // "wizard" | "dashboard"
+  const [stepIdx, setStepIdx] = useState(0);
+  const [dashTab, setDashTab] = useState("mode");
   const [activePhase, setActivePhase] = useState("auto");
 
   useEffect(() => {
@@ -102,6 +115,27 @@ export default function MatchBuilder() {
       .catch(() => setSaveMsg({ ok: false, text: "Could not reach server." }))
       .finally(() => setLoading(false));
   }, [apiUrl]);
+
+  const steps = config?.mode === "form" ? FORM_STEPS : LIVE_STEPS;
+  const clampedStep = Math.min(stepIdx, steps.length - 1);
+
+  const dashTabs = useMemo(() => {
+    if (!config) return [];
+    return config.mode === "form"
+      ? [{ key: "mode", label: "Mode" }, { key: "fields", label: "Form Fields" }]
+      : [
+          { key: "mode", label: "Mode" },
+          { key: "timing", label: "Timing" },
+          { key: "phases", label: "Buttons & Phases" },
+          { key: "formulas", label: "Formulas" },
+        ];
+  }, [config?.mode]);
+
+  useEffect(() => {
+    if (dashTabs.length && !dashTabs.find((t) => t.key === dashTab)) {
+      setDashTab(dashTabs[0].key);
+    }
+  }, [dashTabs, dashTab]);
 
   const update = (path, value) => {
     setConfig((prev) => {
@@ -128,7 +162,8 @@ export default function MatchBuilder() {
         throw new Error(err.error || "Save failed");
       }
       setConfig(payload);
-      setSaveMsg({ ok: true, text: "Saved — the scouting page will use this immediately." });
+      setSaveMsg({ ok: true, text: "Saved — scouts will see this immediately." });
+      if (uiMode === "wizard") setUiMode("dashboard");
     } catch (err) {
       setSaveMsg({ ok: false, text: err.message });
     } finally {
@@ -137,335 +172,424 @@ export default function MatchBuilder() {
     }
   };
 
-  if (loading) {
-    return <div className="p-lg text-muted">Loading match config…</div>;
-  }
-  if (!config) {
-    return <div className="p-lg text-muted">Could not load match config from the server.</div>;
-  }
+  if (loading) return <div className="mb-page"><div className="mb-empty">Loading match config…</div></div>;
+  if (!config) return <div className="mb-page"><div className="mb-empty">Could not load match config from the server.</div></div>;
 
   const phase = config.phases[activePhase];
 
+  const renderStepBody = (key) => {
+    switch (key) {
+      case "mode":
+        return <ModeStep config={config} update={update} />;
+      case "timing":
+        return <TimingStep config={config} update={update} />;
+      case "phases":
+        return (
+          <PhasesStep
+            config={config}
+            update={update}
+            activePhase={activePhase}
+            setActivePhase={setActivePhase}
+            phase={phase}
+          />
+        );
+      case "formulas":
+        return <FormulasStep config={config} update={update} />;
+      case "fields":
+        return <FieldsStep config={config} update={update} />;
+      case "review":
+        return <ReviewStep config={config} />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="admin-regionals-panel" style={{ maxWidth: 980, margin: "0 auto", padding: 20 }}>
-      <div className="admin-regionals-panel-header" style={{ marginBottom: 16 }}>
-        <div>
-          <span className="scout-overline">Admin</span>
-          <h3 style={{ margin: 0 }}>Match Builder</h3>
-          <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>
-            Configure the match scouting form — no code required. Changes only
-            take effect once you hit Save.
-          </div>
+    <div className="mb-page">
+      <div className="mb-header">
+        <div className="mb-header-titles">
+          <h1>Match Builder</h1>
+          <p>Configure your team's match scouting form — no code required.</p>
         </div>
-        <button
-          className="scout-btn-primary"
-          onClick={handleSave}
-          disabled={saving}
-          style={{ display: "flex", alignItems: "center", gap: 8, width: "auto", padding: "10px 18px" }}
-        >
-          <FontAwesomeIcon icon={faFloppyDisk} />
-          {saving ? "Saving…" : "Save"}
-        </button>
+        <div className="mb-header-actions">
+          {uiMode === "dashboard" && (
+            <button
+              className="mb-btn mb-btn-ghost mb-btn-sm"
+              onClick={() => { setUiMode("wizard"); setStepIdx(0); }}
+            >
+              <FontAwesomeIcon icon={faWandMagicSparkles} /> Guided Setup
+            </button>
+          )}
+          <button className="mb-btn mb-btn-primary" onClick={handleSave} disabled={saving}>
+            <FontAwesomeIcon icon={faFloppyDisk} />
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
       </div>
 
       {saveMsg && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 14px",
-            borderRadius: 8,
-            marginBottom: 16,
-            background: saveMsg.ok ? "var(--scout-green-bg)" : "var(--scout-red-bg)",
-            color: saveMsg.ok ? "var(--scout-green-soft)" : "var(--scout-red-soft)",
-            fontSize: 13,
-            fontWeight: 600,
-          }}
-        >
+        <div className={`mb-toast ${saveMsg.ok ? "ok" : "err"}`}>
           <FontAwesomeIcon icon={saveMsg.ok ? faCircleCheck : faTriangleExclamation} />
           {saveMsg.text}
         </div>
       )}
 
-      {/* Tab bar */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-        {[
-          ["mode", "Mode"],
-          ["timing", "Timing"],
-          ["phases", "Buttons & Phases"],
-          ["formulas", "Formulas"],
-          ["form", "Form Fields"],
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={tab === key ? "scout-btn-primary" : "scout-btn-ghost"}
-            style={{ width: "auto", padding: "8px 16px", fontSize: 13 }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── MODE ─────────────────────────────────────────── */}
-      {tab === "mode" && (
-        <div>
-          <div className="scout-overline" style={{ marginBottom: 10 }}>
-            Scouting Mode
-          </div>
-          <div style={{ display: "flex", gap: 12 }}>
-            <ModeCard
-              active={config.mode === "live"}
-              title="Live Button Scouting"
-              desc="Real-time timer with tap-to-log buttons, phases, and shifts. What the app currently does."
-              onClick={() => update(["mode"], "live")}
-            />
-            <ModeCard
-              active={config.mode === "form"}
-              title="Plain Form Scouting"
-              desc="A simple field-based form (numbers, text, dropdowns, checkboxes) filled in anytime — no live timer."
-              onClick={() => update(["mode"], "form")}
-            />
-          </div>
-          <div className="text-muted" style={{ fontSize: 13, marginTop: 14 }}>
-            You can build both the buttons/phases and the form fields below
-            regardless of which mode is active — switching modes just changes
-            which one scouts see on the /match page.
-          </div>
-        </div>
-      )}
-
-      {/* ── TIMING ───────────────────────────────────────── */}
-      {tab === "timing" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 420 }}>
-          {[
-            ["matchTotal", "Total match length (seconds)"],
-            ["autoEnd", "Autonomous ends at (seconds remaining)"],
-            ["transitEnd", "Transition shift ends at (seconds remaining)"],
-            ["endgameStart", "Endgame starts at (seconds remaining)"],
-            ["shiftLen", "Length of each alternating shift (seconds)"],
-          ].map(([key, label]) => (
-            <div key={key}>
-              <div className="scout-overline" style={{ marginBottom: 4 }}>{label}</div>
-              <input
-                type="number"
-                className="scout-input"
-                value={config.timing[key]}
-                onChange={(e) => update(["timing", key], Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── PHASES / BUTTONS ─────────────────────────────── */}
-      {tab === "phases" && (
-        <div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-            {PHASE_KEYS.map((k) => (
-              <button
-                key={k}
-                onClick={() => setActivePhase(k)}
-                className={activePhase === k ? "scout-btn-primary" : "scout-btn-ghost"}
-                style={{ width: "auto", padding: "6px 14px", fontSize: 13 }}
-              >
-                {PHASE_TITLES[k]}
-              </button>
+      {uiMode === "wizard" ? (
+        <>
+          <div className="mb-stepper">
+            {steps.map((s, i) => (
+              <div className="mb-step" key={s.key}>
+                <div className={`mb-step ${i < clampedStep ? "done" : i === clampedStep ? "active" : ""}`}>
+                  <div className="mb-step-dot">{i < clampedStep ? "✓" : i + 1}</div>
+                  <div className="mb-step-label">{s.label}</div>
+                </div>
+                {i < steps.length - 1 && <div className={`mb-step-line ${i < clampedStep ? "done" : ""}`} />}
+              </div>
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
-            <div style={{ flex: 1 }}>
-              <div className="scout-overline" style={{ marginBottom: 4 }}>Phase label</div>
-              <input
-                className="scout-input"
-                value={phase.label}
-                onChange={(e) => update(["phases", activePhase, "label"], e.target.value)}
-                style={{ width: "100%" }}
-              />
-            </div>
-          </div>
+          {renderStepBody(steps[clampedStep].key)}
 
-          <SectionList
-            title="Sections"
-            sections={phase.sections}
-            onChange={(next) => update(["phases", activePhase, "sections"], next)}
-          />
-
-          {(activePhase === "ourShift" || activePhase === "offShift") && (
-            <>
-              <div style={{ height: 1, background: "var(--scout-border-subtle)", margin: "22px 0" }} />
-              <SectionList
-                title="Endgame Sections"
-                sections={phase.endgameSections || []}
-                onChange={(next) => update(["phases", activePhase, "endgameSections"], next)}
-              />
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ── FORMULAS ─────────────────────────────────────── */}
-      {tab === "formulas" && (
-        <div>
-          <div className="text-muted" style={{ fontSize: 13, marginBottom: 14 }}>
-            Formulas turn raw counters into 0–1 metrics used for the fit score.
-            They're plain JS expressions evaluated against the match's stats
-            (e.g. <code>fullScores</code>, <code>totalCycles</code>,
-            <code> defendedFails</code>). Weights don't need to sum to 1 —
-            they're normalized automatically.
-          </div>
-          {config.equations.map((eq, i) => (
-            <div
-              key={i}
-              style={{
-                border: "1px solid var(--scout-border-subtle)",
-                borderRadius: 10,
-                padding: 14,
-                marginBottom: 12,
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  className="scout-input"
-                  placeholder="Label"
-                  value={eq.label}
-                  onChange={(e) => {
-                    const next = [...config.equations];
-                    next[i] = { ...eq, label: e.target.value };
-                    update(["equations"], next);
-                  }}
-                  style={{ flex: 1 }}
-                />
-                <input
-                  className="scout-input"
-                  type="number"
-                  step="0.01"
-                  placeholder="Weight"
-                  value={eq.weight}
-                  onChange={(e) => {
-                    const next = [...config.equations];
-                    next[i] = { ...eq, weight: Number(e.target.value) };
-                    update(["equations"], next);
-                  }}
-                  style={{ width: 90 }}
-                />
-                <button
-                  className="admin-row-delete-btn"
-                  onClick={() => update(["equations"], config.equations.filter((_, idx) => idx !== i))}
-                >
-                  <FontAwesomeIcon icon={faTrash} />
+          <div className="mb-wizard-nav">
+            <div>
+              {clampedStep > 0 && (
+                <button className="mb-btn mb-btn-ghost" onClick={() => setStepIdx((i) => i - 1)}>
+                  <FontAwesomeIcon icon={faArrowLeft} /> Back
                 </button>
-              </div>
-              <input
-                className="scout-input"
-                placeholder="Formula, e.g. totalCycles > 0 ? fullScores / totalCycles : 0"
-                value={eq.formula}
-                onChange={(e) => {
-                  const next = [...config.equations];
-                  next[i] = { ...eq, formula: e.target.value };
-                  update(["equations"], next);
-                }}
-                style={{ fontFamily: "monospace", fontSize: 13 }}
-              />
-              <input
-                className="scout-input"
-                placeholder="Description (optional)"
-                value={eq.desc || ""}
-                onChange={(e) => {
-                  const next = [...config.equations];
-                  next[i] = { ...eq, desc: e.target.value };
-                  update(["equations"], next);
-                }}
-                style={{ fontSize: 13 }}
-              />
+              )}
             </div>
-          ))}
-          <button
-            className="scout-btn-ghost"
-            style={{ width: "auto", padding: "8px 16px" }}
-            onClick={() => update(["equations"], [...config.equations, emptyEquation()])}
-          >
-            <FontAwesomeIcon icon={faPlus} /> Add Formula
-          </button>
-        </div>
-      )}
-
-      {/* ── FORM FIELDS ──────────────────────────────────── */}
-      {tab === "form" && (
-        <div>
-          <div className="text-muted" style={{ fontSize: 13, marginBottom: 14 }}>
-            These fields are what scouts see when the mode is set to "Plain
-            Form Scouting" above.
+            <div className="mb-wizard-nav-right">
+              <button className="mb-link-btn" onClick={() => setUiMode("dashboard")}>
+                Skip to full editor
+              </button>
+              {clampedStep < steps.length - 1 ? (
+                <button className="mb-btn mb-btn-primary" onClick={() => setStepIdx((i) => i + 1)}>
+                  Next <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+              ) : (
+                <button className="mb-btn mb-btn-primary" onClick={handleSave} disabled={saving}>
+                  <FontAwesomeIcon icon={faFloppyDisk} /> {saving ? "Saving…" : "Finish & Save"}
+                </button>
+              )}
+            </div>
           </div>
-          {(config.formSchema.fields || []).map((f, i) => (
-            <FieldRow
-              key={f.id}
-              field={f}
-              onChange={(nf) => {
-                const next = [...config.formSchema.fields];
-                next[i] = nf;
-                update(["formSchema", "fields"], next);
-              }}
-              onRemove={() =>
-                update(
-                  ["formSchema", "fields"],
-                  config.formSchema.fields.filter((_, idx) => idx !== i),
-                )
-              }
-              onMove={(dir) => {
-                const next = [...config.formSchema.fields];
-                const j = i + dir;
-                if (j < 0 || j >= next.length) return;
-                [next[i], next[j]] = [next[j], next[i]];
-                update(["formSchema", "fields"], next);
-              }}
-            />
-          ))}
-          <button
-            className="scout-btn-ghost"
-            style={{ width: "auto", padding: "8px 16px" }}
-            onClick={() =>
-              update(["formSchema", "fields"], [...(config.formSchema.fields || []), emptyField()])
-            }
-          >
-            <FontAwesomeIcon icon={faPlus} /> Add Field
-          </button>
-        </div>
+        </>
+      ) : (
+        <>
+          <div className="mb-tabs">
+            {dashTabs.map((t) => (
+              <button
+                key={t.key}
+                className={`mb-tab ${dashTab === t.key ? "active" : ""}`}
+                onClick={() => setDashTab(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {renderStepBody(dashTab)}
+        </>
       )}
     </div>
   );
 }
 
 // ============================================================
-//  Sub-components
+//  Step / panel components — shared between wizard & dashboard
 // ============================================================
 
-function ModeCard({ active, title, desc, onClick }) {
+function ModeStep({ config, update }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        textAlign: "left",
-        padding: 16,
-        borderRadius: 12,
-        cursor: "pointer",
-        border: active ? "2px solid var(--scout-indigo)" : "1px solid var(--scout-border-subtle)",
-        background: active ? "var(--scout-indigo-bg-alt)" : "var(--scout-bg-card-alt)",
-        color: "var(--scout-text-primary)",
-      }}
-    >
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>{title}</div>
-      <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)" }}>{desc}</div>
-    </button>
+    <div>
+      <div className="mb-panel-title">How should scouts fill this out?</div>
+      <p className="mb-panel-desc">
+        Pick one — you can change this any time, and the editor below will
+        switch to match whichever mode is selected.
+      </p>
+      <div className="mb-mode-grid">
+        <button
+          className={`mb-mode-card ${config.mode === "live" ? "active" : ""}`}
+          onClick={() => update(["mode"], "live")}
+        >
+          <div className="mb-mode-card-icon"><FontAwesomeIcon icon={faGamepad} /></div>
+          <div className="mb-mode-card-title">Live Button Scouting</div>
+          <div className="mb-mode-card-desc">
+            Real-time timer with tap-to-log buttons, auto/shift phases, and a
+            live cycle tracker. What most competitive teams use courtside.
+          </div>
+        </button>
+        <button
+          className={`mb-mode-card ${config.mode === "form" ? "active" : ""}`}
+          onClick={() => update(["mode"], "form")}
+        >
+          <div className="mb-mode-card-icon"><FontAwesomeIcon icon={faListCheck} /></div>
+          <div className="mb-mode-card-title">Plain Form Scouting</div>
+          <div className="mb-mode-card-desc">
+            A simple form — numbers, text, dropdowns, checkboxes — filled in
+            anytime after the match. No live timer required.
+          </div>
+        </button>
+      </div>
+    </div>
   );
 }
+
+function TimingStep({ config, update }) {
+  const rows = [
+    ["matchTotal", "Total match length", "seconds"],
+    ["autoEnd", "Autonomous ends when", "sec. remaining"],
+    ["transitEnd", "Transition shift ends when", "sec. remaining"],
+    ["endgameStart", "Endgame starts when", "sec. remaining"],
+    ["shiftLen", "Length of each alternating shift", "seconds"],
+  ];
+  return (
+    <div>
+      <div className="mb-panel-title">Match Timing</div>
+      <p className="mb-panel-desc">
+        These drive the live countdown, phase transitions, and the alternating
+        our-shift / their-shift cycle.
+      </p>
+      <div className="mb-grid-2">
+        {rows.map(([key, label, unit]) => (
+          <div className="mb-timing-card" key={key}>
+            <div className="mb-field">
+              <div className="mb-field-label">{label}</div>
+              <input
+                type="number"
+                className="mb-input"
+                value={config.timing[key]}
+                onChange={(e) => update(["timing", key], Number(e.target.value))}
+              />
+              <div className="mb-timing-hint">{unit}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PhasesStep({ config, update, activePhase, setActivePhase, phase }) {
+  return (
+    <div>
+      <div className="mb-panel-title">Buttons & Phases</div>
+      <p className="mb-panel-desc">
+        Each game stage gets its own set of sections and buttons. Add a
+        button, pick an icon/color, and choose what it does — including
+        brand-new score or action counters.
+      </p>
+      <div className="mb-phase-pills">
+        {PHASE_KEYS.map((k) => (
+          <button
+            key={k}
+            onClick={() => setActivePhase(k)}
+            className="mb-phase-pill"
+            style={
+              activePhase === k
+                ? { background: PHASE_COLORS[k], color: "#fff" }
+                : {}
+            }
+          >
+            {PHASE_TITLES[k]}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-field" style={{ marginBottom: 18, maxWidth: 360 }}>
+        <div className="mb-field-label">Phase label</div>
+        <input
+          className="mb-input"
+          value={phase.label}
+          onChange={(e) => update(["phases", activePhase, "label"], e.target.value)}
+        />
+      </div>
+
+      <SectionList
+        title="Sections"
+        sections={phase.sections}
+        onChange={(next) => update(["phases", activePhase, "sections"], next)}
+      />
+
+      {(activePhase === "ourShift" || activePhase === "offShift") && (
+        <>
+          <div style={{ height: 1, background: "var(--mb-border)", margin: "24px 0" }} />
+          <SectionList
+            title="Endgame Sections"
+            sections={phase.endgameSections || []}
+            onChange={(next) => update(["phases", activePhase, "endgameSections"], next)}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function FormulasStep({ config, update }) {
+  return (
+    <div>
+      <div className="mb-panel-title">Formulas</div>
+      <p className="mb-panel-desc">
+        Turn raw counters into 0–1 metrics for the fit score. Formulas are
+        plain JS expressions evaluated against the match's stats (e.g.{" "}
+        <code>fullScores</code>, <code>totalCycles</code>,{" "}
+        <code>defendedFails</code>). Weights don't need to sum to 1.
+      </p>
+      {config.equations.map((eq, i) => (
+        <div className="mb-section-card" key={i}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <input
+              className="mb-input"
+              placeholder="Label"
+              value={eq.label}
+              onChange={(e) => {
+                const next = [...config.equations];
+                next[i] = { ...eq, label: e.target.value };
+                update(["equations"], next);
+              }}
+            />
+            <input
+              className="mb-input"
+              type="number"
+              step="0.01"
+              placeholder="Weight"
+              value={eq.weight}
+              onChange={(e) => {
+                const next = [...config.equations];
+                next[i] = { ...eq, weight: Number(e.target.value) };
+                update(["equations"], next);
+              }}
+              style={{ width: 90, flexShrink: 0 }}
+            />
+            <button
+              className="mb-icon-btn danger"
+              onClick={() => update(["equations"], config.equations.filter((_, idx) => idx !== i))}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+            </button>
+          </div>
+          <input
+            className="mb-input mb-input-mono"
+            placeholder="Formula, e.g. totalCycles > 0 ? fullScores / totalCycles : 0"
+            value={eq.formula}
+            onChange={(e) => {
+              const next = [...config.equations];
+              next[i] = { ...eq, formula: e.target.value };
+              update(["equations"], next);
+            }}
+            style={{ marginBottom: 8 }}
+          />
+          <input
+            className="mb-input"
+            placeholder="Description (optional)"
+            value={eq.desc || ""}
+            onChange={(e) => {
+              const next = [...config.equations];
+              next[i] = { ...eq, desc: e.target.value };
+              update(["equations"], next);
+            }}
+          />
+        </div>
+      ))}
+      <button className="mb-btn mb-btn-ghost" onClick={() => update(["equations"], [...config.equations, emptyEquation()])}>
+        <FontAwesomeIcon icon={faPlus} /> Add Formula
+      </button>
+    </div>
+  );
+}
+
+function FieldsStep({ config, update }) {
+  const fields = config.formSchema.fields || [];
+  return (
+    <div>
+      <div className="mb-panel-title">Form Fields</div>
+      <p className="mb-panel-desc">
+        What scouts see when Plain Form Scouting is active. Add, reorder, and
+        set required fields.
+      </p>
+      {fields.length === 0 && (
+        <div className="mb-empty" style={{ marginBottom: 14 }}>
+          No fields yet — add your first one below.
+        </div>
+      )}
+      {fields.map((f, i) => (
+        <FieldRow
+          key={f.id}
+          field={f}
+          onChange={(nf) => {
+            const next = [...fields];
+            next[i] = nf;
+            update(["formSchema", "fields"], next);
+          }}
+          onRemove={() => update(["formSchema", "fields"], fields.filter((_, idx) => idx !== i))}
+          onMove={(dir) => {
+            const next = [...fields];
+            const j = i + dir;
+            if (j < 0 || j >= next.length) return;
+            [next[i], next[j]] = [next[j], next[i]];
+            update(["formSchema", "fields"], next);
+          }}
+        />
+      ))}
+      <button className="mb-btn mb-btn-ghost" onClick={() => update(["formSchema", "fields"], [...fields, emptyField()])}>
+        <FontAwesomeIcon icon={faPlus} /> Add Field
+      </button>
+    </div>
+  );
+}
+
+function ReviewStep({ config }) {
+  const phaseCount = Object.values(config.phases).reduce(
+    (acc, p) => acc + (p.sections?.length || 0) + (p.endgameSections?.length || 0),
+    0,
+  );
+  const buttonCount = Object.values(config.phases).reduce(
+    (acc, p) =>
+      acc +
+      [...(p.sections || []), ...(p.endgameSections || [])].reduce((a, s) => a + s.buttons.length, 0),
+    0,
+  );
+  return (
+    <div>
+      <div className="mb-panel-title">Review</div>
+      <p className="mb-panel-desc">Double-check, then hit Finish & Save.</p>
+      <div className="mb-section-card">
+        <div className="mb-review-row">
+          <span className="mb-review-label">Mode</span>
+          <span className="mb-review-value">{config.mode === "form" ? "Plain Form Scouting" : "Live Button Scouting"}</span>
+        </div>
+        {config.mode === "live" ? (
+          <>
+            <div className="mb-review-row">
+              <span className="mb-review-label">Match length</span>
+              <span className="mb-review-value">{config.timing.matchTotal}s</span>
+            </div>
+            <div className="mb-review-row">
+              <span className="mb-review-label">Sections configured</span>
+              <span className="mb-review-value">{phaseCount}</span>
+            </div>
+            <div className="mb-review-row">
+              <span className="mb-review-label">Buttons configured</span>
+              <span className="mb-review-value">{buttonCount}</span>
+            </div>
+            <div className="mb-review-row">
+              <span className="mb-review-label">Formulas</span>
+              <span className="mb-review-value">{config.equations.length}</span>
+            </div>
+          </>
+        ) : (
+          <div className="mb-review-row">
+            <span className="mb-review-label">Form fields</span>
+            <span className="mb-review-value">{(config.formSchema.fields || []).length}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+//  Reusable editors
+// ============================================================
 
 function SectionList({ title, sections, onChange }) {
   const updateSection = (i, next) => {
@@ -484,56 +608,33 @@ function SectionList({ title, sections, onChange }) {
 
   return (
     <div>
-      <div className="scout-overline" style={{ marginBottom: 8 }}>{title}</div>
+      <div className="mb-field-label" style={{ marginBottom: 10 }}>{title}</div>
+      {sections.length === 0 && <div className="mb-empty" style={{ marginBottom: 14 }}>No sections yet.</div>}
       {sections.map((sec, i) => (
-        <div
-          key={i}
-          style={{
-            border: "1px solid var(--scout-border-subtle)",
-            borderRadius: 10,
-            padding: 14,
-            marginBottom: 12,
-          }}
-        >
-          <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+        <div className="mb-section-card" key={i}>
+          <div className="mb-section-toolbar">
             <input
-              className="scout-input"
+              className="mb-input"
               value={sec.sectionLabel}
               onChange={(e) => updateSection(i, { ...sec, sectionLabel: e.target.value })}
-              style={{ flex: 1 }}
             />
             <input
               type="number"
               min={1}
               max={4}
-              className="scout-input"
+              className="mb-input mb-cols-input"
               title="Columns"
               value={sec.cols}
               onChange={(e) => updateSection(i, { ...sec, cols: Number(e.target.value) })}
-              style={{ width: 60 }}
             />
-            <button className="admin-row-delete-btn" onClick={() => moveSection(i, -1)}>
-              <FontAwesomeIcon icon={faArrowUp} />
-            </button>
-            <button className="admin-row-delete-btn" onClick={() => moveSection(i, 1)}>
-              <FontAwesomeIcon icon={faArrowDown} />
-            </button>
-            <button className="admin-row-delete-btn" onClick={() => removeSection(i)}>
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
+            <button className="mb-icon-btn" onClick={() => moveSection(i, -1)}><FontAwesomeIcon icon={faArrowUp} /></button>
+            <button className="mb-icon-btn" onClick={() => moveSection(i, 1)}><FontAwesomeIcon icon={faArrowDown} /></button>
+            <button className="mb-icon-btn danger" onClick={() => removeSection(i)}><FontAwesomeIcon icon={faTrash} /></button>
           </div>
-
-          <ButtonList
-            buttons={sec.buttons}
-            onChange={(next) => updateSection(i, { ...sec, buttons: next })}
-          />
+          <ButtonList buttons={sec.buttons} onChange={(next) => updateSection(i, { ...sec, buttons: next })} />
         </div>
       ))}
-      <button
-        className="scout-btn-ghost"
-        style={{ width: "auto", padding: "8px 16px" }}
-        onClick={() => onChange([...sections, emptySection()])}
-      >
+      <button className="mb-btn mb-btn-ghost mb-btn-sm" onClick={() => onChange([...sections, emptySection()])}>
         <FontAwesomeIcon icon={faPlus} /> Add Section
       </button>
     </div>
@@ -556,111 +657,56 @@ function ButtonList({ buttons, onChange }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div>
       {buttons.map((btn, i) => {
         const needsStatKey = btn.action === "offStat" || btn.action === "transitStat";
         const color = COLOR_OPTIONS.find((c) => c.key === btn.color) || COLOR_OPTIONS[0];
         return (
-          <div
-            key={i}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "36px 1fr 140px 170px auto auto auto",
-              gap: 8,
-              alignItems: "center",
-              background: "var(--scout-bg-card-alt)",
-              borderRadius: 8,
-              padding: 8,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: color.var,
-                color: "#fff",
-              }}
-            >
+          <div className="mb-button-edit" key={i}>
+            <div className="mb-icon-preview" style={{ background: color.var }}>
               {resolveIcon(btn.icon)}
             </div>
-
             <input
-              className="scout-input"
+              className="mb-input"
               value={btn.label}
               onChange={(e) => updateButton(i, { ...btn, label: e.target.value })}
               placeholder="Label"
             />
-
-            <select
-              className="scout-input"
-              value={btn.icon}
-              onChange={(e) => updateButton(i, { ...btn, icon: e.target.value })}
-            >
-              {ICON_OPTIONS.map((opt) => (
-                <option key={opt.key} value={opt.key}>{opt.label}</option>
-              ))}
+            <select className="mb-select" value={btn.icon} onChange={(e) => updateButton(i, { ...btn, icon: e.target.value })}>
+              {ICON_OPTIONS.map((opt) => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
             </select>
-
             <select
-              className="scout-input"
+              className="mb-select"
               value={btn.action}
               onChange={(e) => {
                 const action = e.target.value;
                 const patch = { ...btn, action };
-                if (action === "offStat" || action === "transitStat") {
-                  patch.statKey = btn.statKey || "customStat";
-                } else {
-                  delete patch.statKey;
-                }
+                if (action === "offStat" || action === "transitStat") patch.statKey = btn.statKey || "customStat";
+                else delete patch.statKey;
                 updateButton(i, patch);
               }}
             >
-              {ACTION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
+              {ACTION_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
-
-            <select
-              className="scout-input"
-              value={btn.color}
-              onChange={(e) => updateButton(i, { ...btn, color: e.target.value })}
-            >
-              {COLOR_OPTIONS.map((opt) => (
-                <option key={opt.key} value={opt.key}>{opt.label}</option>
-              ))}
+            <select className="mb-select" value={btn.color} onChange={(e) => updateButton(i, { ...btn, color: e.target.value })}>
+              {COLOR_OPTIONS.map((opt) => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
             </select>
-
-            <button className="admin-row-delete-btn" onClick={() => moveButton(i, -1)}>
-              <FontAwesomeIcon icon={faArrowUp} />
-            </button>
-            <button className="admin-row-delete-btn" onClick={() => removeButton(i)}>
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
+            <div className="mb-btn-edit-actions">
+              <button className="mb-icon-btn" onClick={() => moveButton(i, -1)}><FontAwesomeIcon icon={faArrowUp} /></button>
+              <button className="mb-icon-btn danger" onClick={() => removeButton(i)}><FontAwesomeIcon icon={faTrash} /></button>
+            </div>
 
             {needsStatKey && (
-              <input
-                className="scout-input"
-                value={btn.statKey || ""}
-                onChange={(e) => updateButton(i, { ...btn, statKey: e.target.value })}
-                placeholder="Counter key, e.g. algaeCollected"
-                style={{ gridColumn: "2 / 5", fontFamily: "monospace", fontSize: 12 }}
-              />
+              <div className="mb-button-edit-extra">
+                <input
+                  className="mb-input mb-input-mono"
+                  value={btn.statKey || ""}
+                  onChange={(e) => updateButton(i, { ...btn, statKey: e.target.value })}
+                  placeholder="Counter key, e.g. algaeCollected"
+                />
+              </div>
             )}
-
-            <label
-              style={{
-                gridColumn: needsStatKey ? "5 / 8" : "2 / 8",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 12,
-                color: "var(--scout-neutral-fg)",
-              }}
-            >
+            <label className="mb-checkbox-row mb-button-edit-extra">
               <input
                 type="checkbox"
                 checked={!!btn.requiresCycle}
@@ -671,11 +717,7 @@ function ButtonList({ buttons, onChange }) {
           </div>
         );
       })}
-      <button
-        className="scout-btn-ghost"
-        style={{ width: "auto", padding: "6px 14px", fontSize: 13, alignSelf: "flex-start" }}
-        onClick={() => onChange([...buttons, emptyButton()])}
-      >
+      <button className="mb-btn mb-btn-ghost mb-btn-sm" onClick={() => onChange([...buttons, emptyButton()])}>
         <FontAwesomeIcon icon={faPlus} /> Add Button
       </button>
     </div>
@@ -684,72 +726,44 @@ function ButtonList({ buttons, onChange }) {
 
 function FieldRow({ field, onChange, onRemove, onMove }) {
   return (
-    <div
-      style={{
-        border: "1px solid var(--scout-border-subtle)",
-        borderRadius: 10,
-        padding: 12,
-        marginBottom: 10,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
-    >
-      <div style={{ display: "flex", gap: 8 }}>
+    <div className="mb-section-card">
+      <div style={{ display: "flex", gap: 8, marginBottom: field.type === "select" || field.type !== "checkbox" ? 8 : 0 }}>
         <input
-          className="scout-input"
+          className="mb-input"
           placeholder="Field label"
           value={field.label}
           onChange={(e) => onChange({ ...field, label: e.target.value })}
           style={{ flex: 1 }}
         />
-        <select
-          className="scout-input"
-          value={field.type}
-          onChange={(e) => onChange({ ...field, type: e.target.value })}
-          style={{ width: 130 }}
-        >
-          {FIELD_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
+        <select className="mb-select" value={field.type} onChange={(e) => onChange({ ...field, type: e.target.value })} style={{ width: 130, flexShrink: 0 }}>
+          {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <button className="admin-row-delete-btn" onClick={() => onMove(-1)}>
-          <FontAwesomeIcon icon={faArrowUp} />
-        </button>
-        <button className="admin-row-delete-btn" onClick={() => onMove(1)}>
-          <FontAwesomeIcon icon={faArrowDown} />
-        </button>
-        <button className="admin-row-delete-btn" onClick={onRemove}>
-          <FontAwesomeIcon icon={faTrash} />
-        </button>
+        <button className="mb-icon-btn" onClick={() => onMove(-1)}><FontAwesomeIcon icon={faArrowUp} /></button>
+        <button className="mb-icon-btn" onClick={() => onMove(1)}><FontAwesomeIcon icon={faArrowDown} /></button>
+        <button className="mb-icon-btn danger" onClick={onRemove}><FontAwesomeIcon icon={faTrash} /></button>
       </div>
 
       {field.type === "select" && (
         <input
-          className="scout-input"
+          className="mb-input"
           placeholder="Comma-separated options, e.g. Red,Blue,Yellow"
           value={(field.options || []).join(",")}
-          onChange={(e) =>
-            onChange({ ...field, options: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })
-          }
+          onChange={(e) => onChange({ ...field, options: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+          style={{ marginBottom: 8 }}
         />
       )}
-
       {(field.type === "text" || field.type === "number" || field.type === "textarea") && (
         <input
-          className="scout-input"
+          className="mb-input"
           placeholder="Placeholder text (optional)"
           value={field.placeholder || ""}
           onChange={(e) => onChange({ ...field, placeholder: e.target.value })}
+          style={{ marginBottom: 8 }}
         />
       )}
 
-      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--scout-neutral-fg)" }}>
-        <input
-          type="checkbox"
-          checked={!!field.required}
-          onChange={(e) => onChange({ ...field, required: e.target.checked })}
-        />
+      <label className="mb-checkbox-row">
+        <input type="checkbox" checked={!!field.required} onChange={(e) => onChange({ ...field, required: e.target.checked })} />
         Required
       </label>
     </div>

@@ -1,4 +1,6 @@
-export const USE_LOCAL_BACKEND = true;
+export const USE_LOCAL_BACKEND = false;
+
+import { getToken } from "./auth";
 
 export const CONNECTION_MODE_KEY = "useLocalApi";
 
@@ -54,8 +56,10 @@ export function setConnectionMode(mode) {
 }
 
 export function getDefaultHeaders(extraHeaders = {}) {
+  const token = getToken();
   return {
     "ngrok-skip-browser-warning": "69420",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extraHeaders,
   };
 }
@@ -96,6 +100,14 @@ export function installApiFetchDefaults() {
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
     headers.set("ngrok-skip-browser-warning", "69420");
+
+    // Attach the signed token to every backend call so protected endpoints
+    // (which now check req.user from the JWT, not ?actor= params) work
+    // without every page needing to be updated individually.
+    if (!headers.has("Authorization")) {
+      const token = getToken();
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+    }
 
     return originalFetch(input, { ...init, headers });
   };

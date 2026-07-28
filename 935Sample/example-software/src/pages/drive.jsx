@@ -193,7 +193,7 @@ function OnboardingScreen({ onComplete }) {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    //e.preventDefault();
     setError("");
     const teamTrimmed = team.trim();
     const keyTrimmed = key.trim();
@@ -835,7 +835,7 @@ function StrategyBoard({
 
   const draw = (e) => {
     if (!isDrawingRef.current || shapeLockedRef.current) return;
-    if (e.cancelable && e.type === "touchmove") e.preventDefault();
+    //if (e.cancelable && e.type === "touchmove") e.preventDefault();
     const { x, y } = getCoordinates(e);
     pointsRef.current.push({ x, y });
     const canvas = canvasRef.current;

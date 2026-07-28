@@ -1,0 +1,53 @@
+[
+  {
+    "username": "Student",
+    "firstName": "Austin",
+    "lastName": "Rich",
+    "passwordHash": "$2b$10$mL.bTqDhjKAXQtnPUoO/5.AW4r5UwhoZ3GG8UWff9PiN3OKNtBGFS",
+    "role": "students",
+    "subgroup": "Manufacturing",
+    "competitionRole": "Drive"
+  },
+  {
+    "username": "coach",
+    "passwordHash": "$2b$10$72rjipxCP.B7cyqLxkUsFe5N0Bf52xqekrpbre5ZuqUNnDtkTQKp6",
+    "role": "coach",
+    "subgroup": "none"
+  },
+  {
+    "username": "Family",
+    "passwordHash": "$2b$10$ANwvMmeVCK3HDLx3yS0Va.qJuOrJTqG.oyjfvP6C2ZsYAYUggz.Ze",
+    "role": "family",
+    "subgroup": "none"
+  },
+  {
+    "username": "Helper",
+    "passwordHash": "$2b$10$B5o9jXmqudvr4NBsoxBBw.gILHcougYEly.dS5FAMVwmrlG9pw9ZG",
+    "role": "helper",
+    "subgroup": "none"
+  },
+  {
+    "username": "Mentor",
+    "passwordHash": "$2b$10$Sz6HbSft8pFhCVPpGz5jhumsCnlAE4F.C3MvnnpgwC6JT3tGeVCjy",
+    "role": "Mentor",
+    "subgroup": "none"
+  },
+  {
+    "username": "Admin",
+    "passwordHash": "$2b$10$Sz6HbSft8pFhCVPpGz5jhumsCnlAE4F.C3MvnnpgwC6JT3tGeVCjy",
+    "role": "admin",
+    "subgroup": "none"
+  },
+  {
+    "username": "austin",
+    "passwordHash": "$2b$10$NacYiAIhfCI/Px/6YcfjkuKJQ.RQLBNPkdZQyDqEVDbWt.OBJDbUm",
+    "role": "students",
+    "subgroup": "Manufacturing"
+  },
+  {
+    "username": "admin",
+    "passwordHash": "$2b$10$wLnWwnqXjb65W3LXB7Ps/O0r/ENCckAYw.SfeNrSno1OjQMdC5rV6",
+    "role": "admin",
+    "subgroup": "none"
+  }
+]
