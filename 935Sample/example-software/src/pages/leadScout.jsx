@@ -53,8 +53,7 @@ export default function LeadScoutPage() {
 
   const addWidget = () => {
     const newId = `widget-${Date.now()}`;
-
-    const configID = prompt("config type")
+    const configID = prompt("config type");
 
     setLayout((prev) => [
       ...prev,
@@ -67,14 +66,12 @@ export default function LeadScoutPage() {
         minW: 2,
         minH: 2,
         maxH: 8,
-        config: configIDf,
+        config: configID, // Fixed typo: configIDf -> configID
       },
     ]);
   };
 
   const removeWidget = (id) => {
-    console.log("Removing:", id);
-
     setLayout((prev) => prev.filter((item) => item.i !== id));
   };
 
@@ -119,18 +116,23 @@ export default function LeadScoutPage() {
           margin={[20, 20]}
           maxRows={10}
           useCSSTransforms
+          /* 1. ONLY allow dragging when grabbing the .drag-handle element 
+             2. CANCEL dragging on content areas, buttons, or elements marked with .no-drag
+          */
           draggableHandle=".drag-handle"
-          draggableCancel=".btn-delete-widget"
+          draggableCancel=".widget-content-area, .btn-delete-widget, .no-drag"
           onLayoutChange={handleLayoutChange}
         >
           {layout.map((item) => (
             <div key={item.i} className="widget-card">
+              {/* Drag Handle: Dragging ONLY works when grabbing this top bar */}
               <div
                 className="drag-handle"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  cursor: "grab", // Indicates drag zone to user
                 }}
               >
                 <div
@@ -147,19 +149,18 @@ export default function LeadScoutPage() {
                 <button
                   type="button"
                   className="btn-delete-widget"
-                  onClick={() => removeWidget(item.i)}
+                  onClick={() => removeWidget(id => removeWidget(item.i))}
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="widget-content-area">
+              {/* Content Area: Dragging is disabled here so scrolling works normally */}
+              <div className="widget-content-area no-drag">
                 {item.config ? (
                   <DataWidget config={item.config} />
                 ) : (
-                  <div style={{ padding: 20 }}>
-                    Configure this widget.
-                  </div>
+                  <div style={{ padding: 20 }}>Configure this widget.</div>
                 )}
               </div>
             </div>

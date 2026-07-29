@@ -1,4 +1,4 @@
-@import url("https://googleapis.com");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* Stop the browser from changing the background color on autofill */
 input:-webkit-autofill,
@@ -171,7 +171,6 @@ body {
   height: auto;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
   background: var(--bg-app);
@@ -7733,6 +7732,16 @@ input[type="file"] {
   opacity: 0.15 !important; /* Soft, transparent look */
   border-radius: 38px !important; /* Matches your widget border radius */
   transition-duration: 100ms;
+}
+
+/* Allow vertical scrolling on react-grid-layout items */
+.react-grid-item {
+  touch-action: pan-y !important;
+}
+
+/* If you have a specific drag handle (like a card header), restrict touch-action: none to JUST that handle */
+.react-grid-item .drag-handle {
+  touch-action: none !important;
 }
 
 .btn-delete-widget {

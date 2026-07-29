@@ -172,13 +172,6 @@ export default function AdminDashboard() {
       setMatches(dataJson.matches || []);
       setPits(dataJson.pits || []);
 
-      const usersRes = await fetch(`${apiBaseUrl}/users`, {
-        headers: headersConfig,
-      });
-      if (usersRes.ok) {
-        const usersJson = await usersRes.json();
-        setUsers(usersJson);
-      }
     } catch (err) {
       setError(err.message);
     } finally {
