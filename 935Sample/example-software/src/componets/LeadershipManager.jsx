@@ -108,6 +108,36 @@ export default function LeadershipManager() {
     }
   };
 
+  async function deleteUser(username) {
+    if (!window.confirm(`Remove user "${username}"? This cannot be undone.`))
+      return;
+
+    try {
+      // This should be your secure token (e.g., JWT), NOT a raw user object
+      const token = localStorage.getItem("authToken") || "";
+
+      const response = await fetch(
+        `${apiUrl}/users/${username}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        alert("Deleted succesfully, refresh to view the change.")
+      } else {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete user.");
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
   const assignMemberSubgroup = async (user, subgroup) => {
     try {
       const res = await fetch(
@@ -193,6 +223,7 @@ export default function LeadershipManager() {
           <div className="leadership-row" key={user.username}>
             <div>
               <strong>{user.username}</strong>
+              <span>{user.firstName}, {user.lastName}</span>
               <span>{user.role}</span>
               <select
                 className="member-subgroup-select"
@@ -207,19 +238,24 @@ export default function LeadershipManager() {
                 ))}
               </select>
               {isAdmin && (
-                <select
-                  className="member-role-select"
-                  value={user.role || "students"}
-                  disabled={Boolean(saving)}
-                  onChange={(event) => changeRole(user, event.target.value)}
-                  aria-label={`Change ${user.username}'s role`}
-                >
-                  {roleOptions.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    className="member-role-select"
+                    value={user.role || "students"}
+                    disabled={Boolean(saving)}
+                    onChange={(event) => changeRole(user, event.target.value)}
+                    aria-label={`Change ${user.username}'s role`}
+                  >
+                    {roleOptions.map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <button onClick={() => deleteUser(user.username)}>
+                    Delete
+                  </button>
+                </>
               )}
             </div>
             <div className="leadership-toggles">

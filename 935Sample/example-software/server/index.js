@@ -1657,12 +1657,16 @@ app.delete("/users/:username", (req, res) => {
       .json({ error: "Only admins and coaches can delete users." });
   }
   try {
-    const users = getUsers();
-    const updated = users.filter((u) => u.username !== req.params.username);
-    if (users.length === updated.length) {
+    // Tell SQLite to directly delete the row matching the username
+    const result = db
+      .prepare("DELETE FROM users WHERE username = ?")
+      .run(req.params.username);
+
+    // SQLite's .run() returns a 'changes' property showing how many rows were affected
+    if (result.changes === 0) {
       return res.status(404).json({ error: "User not found." });
     }
-    saveUsers(updated);
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

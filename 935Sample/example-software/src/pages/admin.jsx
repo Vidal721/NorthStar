@@ -355,22 +355,13 @@ export default function AdminDashboard() {
           <FontAwesomeIcon icon={faDatabase} /> Pit Data ({pits.length})
         </button>
         <button
-          className={`admin-tab-btn-mobile ${activeTab === "users" ? "active" : ""}`}
-          onClick={() => {
-            setActiveTab("users");
-            toggleMobileSidebar();
-          }}
-        >
-          <FontAwesomeIcon icon={faUser} /> Users ({users.length})
-        </button>
-        <button
           className={`admin-tab-btn-mobile ${activeTab === "leaders" ? "active" : ""}`}
           onClick={() => {
             setActiveTab("leaders");
             toggleMobileSidebar();
           }}
         >
-          <FontAwesomeIcon icon={faUsers} /> Subgroup Leaders
+          <FontAwesomeIcon icon={faUsers} /> Users
         </button>
         <button
           className={`admin-tab-btn-mobile ${activeTab === "drive" ? "active" : ""}`}
@@ -457,16 +448,10 @@ export default function AdminDashboard() {
           Pit Data ({pits.length})
         </button>
         <button
-          className={`admin-tab-btn ${activeTab === "users" ? "active" : ""}`}
-          onClick={() => setActiveTab("users")}
-        >
-          Users ({users.length})
-        </button>
-        <button
           className={`admin-tab-btn ${activeTab === "leaders" ? "active" : ""}`}
           onClick={() => setActiveTab("leaders")}
         >
-          Subgroup Leaders
+          Users
         </button>
         <button
           className={`admin-tab-btn ${activeTab === "drive" ? "active" : ""}`}
