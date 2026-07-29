@@ -140,7 +140,11 @@ export default function TasksPanel() {
               </p>
             )}
             {!assignee && assigneeQuery && (
-              <div className="task-person-results" role="listbox" aria-label="People">
+              <div
+                className="task-person-results"
+                role="listbox"
+                aria-label="People"
+              >
                 {matchingUsers.length ? (
                   matchingUsers.map((user) => (
                     <button
@@ -162,7 +166,9 @@ export default function TasksPanel() {
               </div>
             )}
           </div>
-          <button type="submit" disabled={!assignee}>Create task</button>
+          <button type="submit" disabled={!assignee}>
+            Create task
+          </button>
         </form>
       )}
       <div className="tasks-list">
@@ -179,7 +185,8 @@ export default function TasksPanel() {
                 <strong>{task.title}</strong>
                 {task.description && <p>{task.description}</p>}
                 <span>
-                  {task.assignee || task.subgroup} · assigned by {task.assigned_by}
+                  {task.assignee || task.subgroup} · assigned by{" "}
+                  {task.assigned_by}
                 </span>
               </div>
             </div>

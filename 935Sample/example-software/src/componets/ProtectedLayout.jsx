@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from "react-router-dom";
 import PushNotifications from "./PushNotifications";
 import { getSession, clearToken } from "../auth";
 

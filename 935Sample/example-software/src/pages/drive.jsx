@@ -193,7 +193,7 @@ function OnboardingScreen({ onComplete }) {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    //e.preventDefault();
+    e.preventDefault();
     setError("");
     const teamTrimmed = team.trim();
     const keyTrimmed = key.trim();

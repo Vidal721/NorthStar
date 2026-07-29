@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { resolveIcon } from "../matchIcons.jsx";
 import { getApiBaseUrl, getDefaultHeaders } from "../apiConfig";
-import { useURL } from "../urlConfig.js"
+import { useURL } from "../urlConfig.js";
 
 const C = {
   action: {
@@ -54,24 +54,64 @@ const DEFAULT_PHASES = {
         sectionLabel: "Start Cycle",
         cols: 1,
         buttons: [
-          { id: "gain", label: "Gain Possession", icon: "handFist", color: "action", action: "startCycle" },
+          {
+            id: "gain",
+            label: "Gain Possession",
+            icon: "handFist",
+            color: "action",
+            action: "startCycle",
+          },
         ],
       },
       {
         sectionLabel: "Shooting",
         cols: 1,
         buttons: [
-          { id: "shoot", label: "Start Shooting", icon: "crosshairs", color: "neutral", action: "startShooting", requiresCycle: true },
+          {
+            id: "shoot",
+            label: "Start Shooting",
+            icon: "crosshairs",
+            color: "neutral",
+            action: "startShooting",
+            requiresCycle: true,
+          },
         ],
       },
       {
         sectionLabel: "Finish Cycle",
         cols: 2,
         buttons: [
-          { id: "full", label: "Full Score", icon: "circleCheck", color: "success", action: "finishFull", requiresCycle: true },
-          { id: "partial", label: "Partial", icon: "bolt", color: "warn", action: "finishPartial", requiresCycle: true },
-          { id: "fail", label: "Failed", icon: "xmark", color: "danger", action: "finishFail", requiresCycle: true },
-          { id: "break", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
+          {
+            id: "full",
+            label: "Full Score",
+            icon: "circleCheck",
+            color: "success",
+            action: "finishFull",
+            requiresCycle: true,
+          },
+          {
+            id: "partial",
+            label: "Partial",
+            icon: "bolt",
+            color: "warn",
+            action: "finishPartial",
+            requiresCycle: true,
+          },
+          {
+            id: "fail",
+            label: "Failed",
+            icon: "xmark",
+            color: "danger",
+            action: "finishFail",
+            requiresCycle: true,
+          },
+          {
+            id: "break",
+            label: "Breakdown",
+            icon: "triangleExclamation",
+            color: "danger",
+            action: "breakdown",
+          },
         ],
       },
     ],
@@ -84,25 +124,73 @@ const DEFAULT_PHASES = {
         sectionLabel: "Did They Score?",
         cols: 2,
         buttons: [
-          { id: "txScore", label: "Scored", icon: "circleCheck", color: "success", action: "transitStat", statKey: "transitScore" },
-          { id: "txFail", label: "Missed", icon: "xmark", color: "danger", action: "transitStat", statKey: "transitMiss" },
+          {
+            id: "txScore",
+            label: "Scored",
+            icon: "circleCheck",
+            color: "success",
+            action: "transitStat",
+            statKey: "transitScore",
+          },
+          {
+            id: "txFail",
+            label: "Missed",
+            icon: "xmark",
+            color: "danger",
+            action: "transitStat",
+            statKey: "transitMiss",
+          },
         ],
       },
       {
         sectionLabel: "What Did We Do?",
         cols: 3,
         buttons: [
-          { id: "txCollect", label: "Collect", icon: "circle", color: "action", action: "transitStat", statKey: "transitCollect" },
-          { id: "txDefend", label: "Defend", icon: "shield", color: "defend", action: "transitStat", statKey: "transitDefend" },
-          { id: "txScore2", label: "We Scored", icon: "crosshairs", color: "success", action: "transitStat", statKey: "transitWeScore" },
+          {
+            id: "txCollect",
+            label: "Collect",
+            icon: "circle",
+            color: "action",
+            action: "transitStat",
+            statKey: "transitCollect",
+          },
+          {
+            id: "txDefend",
+            label: "Defend",
+            icon: "shield",
+            color: "defend",
+            action: "transitStat",
+            statKey: "transitDefend",
+          },
+          {
+            id: "txScore2",
+            label: "We Scored",
+            icon: "crosshairs",
+            color: "success",
+            action: "transitStat",
+            statKey: "transitWeScore",
+          },
         ],
       },
       {
         sectionLabel: "Other",
         cols: 2,
         buttons: [
-          { id: "txBreak", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
-          { id: "txNone", label: "Nothing", icon: "minus", color: "neutral", action: "transitStat", statKey: "transitNothing" },
+          {
+            id: "txBreak",
+            label: "Breakdown",
+            icon: "triangleExclamation",
+            color: "danger",
+            action: "breakdown",
+          },
+          {
+            id: "txNone",
+            label: "Nothing",
+            icon: "minus",
+            color: "neutral",
+            action: "transitStat",
+            statKey: "transitNothing",
+          },
         ],
       },
     ],
@@ -115,31 +203,78 @@ const DEFAULT_PHASES = {
         sectionLabel: "Start Cycle",
         cols: 1,
         buttons: [
-          { id: "gain", label: "Gain Possession", icon: "handFist", color: "action", action: "startCycle" },
+          {
+            id: "gain",
+            label: "Gain Possession",
+            icon: "handFist",
+            color: "action",
+            action: "startCycle",
+          },
         ],
       },
       {
         sectionLabel: "Shooting",
         cols: 1,
         buttons: [
-          { id: "shoot", label: "Start Shooting", icon: "crosshairs", color: "neutral", action: "startShooting", requiresCycle: true },
+          {
+            id: "shoot",
+            label: "Start Shooting",
+            icon: "crosshairs",
+            color: "neutral",
+            action: "startShooting",
+            requiresCycle: true,
+          },
         ],
       },
       {
         sectionLabel: "Actions",
         cols: 2,
         buttons: [
-          { id: "defend", label: "Defended", icon: "shield", color: "defend", action: "defend", requiresCycle: true },
-          { id: "break", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
+          {
+            id: "defend",
+            label: "Defended",
+            icon: "shield",
+            color: "defend",
+            action: "defend",
+            requiresCycle: true,
+          },
+          {
+            id: "break",
+            label: "Breakdown",
+            icon: "triangleExclamation",
+            color: "danger",
+            action: "breakdown",
+          },
         ],
       },
       {
         sectionLabel: "Finish Cycle",
         cols: 2,
         buttons: [
-          { id: "full", label: "Full Score", icon: "circleCheck", color: "success", action: "finishFull", requiresCycle: true },
-          { id: "partial", label: "Partial", icon: "bolt", color: "warn", action: "finishPartial", requiresCycle: true },
-          { id: "fail", label: "Failed", icon: "xmark", color: "danger", action: "finishFail", requiresCycle: true },
+          {
+            id: "full",
+            label: "Full Score",
+            icon: "circleCheck",
+            color: "success",
+            action: "finishFull",
+            requiresCycle: true,
+          },
+          {
+            id: "partial",
+            label: "Partial",
+            icon: "bolt",
+            color: "warn",
+            action: "finishPartial",
+            requiresCycle: true,
+          },
+          {
+            id: "fail",
+            label: "Failed",
+            icon: "xmark",
+            color: "danger",
+            action: "finishFail",
+            requiresCycle: true,
+          },
         ],
       },
     ],
@@ -148,8 +283,20 @@ const DEFAULT_PHASES = {
         sectionLabel: "Endgame — Climb",
         cols: 2,
         buttons: [
-          { id: "climbOk", label: "Climb OK", icon: "rocket", color: "success", action: "climbOk" },
-          { id: "climbFail", label: "Climb Fail", icon: "bomb", color: "danger", action: "climbFail" },
+          {
+            id: "climbOk",
+            label: "Climb OK",
+            icon: "rocket",
+            color: "success",
+            action: "climbOk",
+          },
+          {
+            id: "climbFail",
+            label: "Climb Fail",
+            icon: "bomb",
+            color: "danger",
+            action: "climbFail",
+          },
         ],
       },
     ],
@@ -162,18 +309,60 @@ const DEFAULT_PHASES = {
         sectionLabel: "Ball Interactions",
         cols: 3,
         buttons: [
-          { id: "collect", label: "Collect", icon: "circle", color: "action", action: "offStat", statKey: "offCollect" },
-          { id: "push", label: "Push", icon: "handPointRight", color: "action", action: "offStat", statKey: "offPush" },
-          { id: "shoot", label: "Shoot", icon: "crosshairs", color: "action", action: "offStat", statKey: "offShoot" },
+          {
+            id: "collect",
+            label: "Collect",
+            icon: "circle",
+            color: "action",
+            action: "offStat",
+            statKey: "offCollect",
+          },
+          {
+            id: "push",
+            label: "Push",
+            icon: "handPointRight",
+            color: "action",
+            action: "offStat",
+            statKey: "offPush",
+          },
+          {
+            id: "shoot",
+            label: "Shoot",
+            icon: "crosshairs",
+            color: "action",
+            action: "offStat",
+            statKey: "offShoot",
+          },
         ],
       },
       {
         sectionLabel: "Other",
         cols: 3,
         buttons: [
-          { id: "dispense", label: "Dispense", sub: "to their side", icon: "arrowTurnUp", color: "neutral", action: "offStat", statKey: "offDispense" },
-          { id: "offdefend", label: "Defend", icon: "shield", color: "defend", action: "offStat", statKey: "offDefend" },
-          { id: "break", label: "Breakdown", icon: "triangleExclamation", color: "danger", action: "breakdown" },
+          {
+            id: "dispense",
+            label: "Dispense",
+            sub: "to their side",
+            icon: "arrowTurnUp",
+            color: "neutral",
+            action: "offStat",
+            statKey: "offDispense",
+          },
+          {
+            id: "offdefend",
+            label: "Defend",
+            icon: "shield",
+            color: "defend",
+            action: "offStat",
+            statKey: "offDefend",
+          },
+          {
+            id: "break",
+            label: "Breakdown",
+            icon: "triangleExclamation",
+            color: "danger",
+            action: "breakdown",
+          },
         ],
       },
     ],
@@ -182,8 +371,20 @@ const DEFAULT_PHASES = {
         sectionLabel: "Endgame — Climb",
         cols: 2,
         buttons: [
-          { id: "climbOk", label: "Climb OK", icon: "rocket", color: "success", action: "climbOk" },
-          { id: "climbFail", label: "Climb Fail", icon: "bomb", color: "danger", action: "climbFail" },
+          {
+            id: "climbOk",
+            label: "Climb OK",
+            icon: "rocket",
+            color: "success",
+            action: "climbOk",
+          },
+          {
+            id: "climbFail",
+            label: "Climb Fail",
+            icon: "bomb",
+            color: "danger",
+            action: "climbFail",
+          },
         ],
       },
     ],
@@ -431,14 +632,8 @@ function ActionButton({ btn, disabled, onClick, isActive }) {
       }}
     >
       <span id="action-btn-icon">{resolveIcon(btn.icon)}</span>
-      <span id="action-btn-label">
-        {btn.label}
-      </span>
-      {btn.sub && (
-        <span id="action-btn-sub">
-          {btn.sub}
-        </span>
-      )}
+      <span id="action-btn-label">{btn.label}</span>
+      {btn.sub && <span id="action-btn-sub">{btn.sub}</span>}
     </button>
   );
 }
@@ -446,10 +641,7 @@ function ActionButton({ btn, disabled, onClick, isActive }) {
 function ButtonSection({ section, activeCycle, isShooting, onAction }) {
   return (
     <div>
-      <div
-        id="btn-section-header"
-        className="scout-overline"
-      >
+      <div id="btn-section-header" className="scout-overline">
         <span className="scout-section-divider scout-section-divider--left" />
         {section.sectionLabel}
         <span className="scout-section-divider scout-section-divider--right" />
@@ -705,9 +897,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
       {/* Header */}
       <div className="scout-editor__header">
         <div>
-          <div id="editor-header-title">
-            Scoring Equations
-          </div>
+          <div id="editor-header-title">Scoring Equations</div>
         </div>
         <div id="editor-header-actions">
           <button
@@ -972,12 +1162,8 @@ function FormulaEditor({ equations, onSave, onClose }) {
                           className={`scout-autocomplete__item ${i === acSelected ? "scout-autocomplete__item--selected" : ""}`}
                         >
                           <div>
-                            <span id="autocomplete-var-name">
-                              {v.name}
-                            </span>
-                            <span id="autocomplete-var-desc">
-                              {v.desc}
-                            </span>
+                            <span id="autocomplete-var-name">{v.name}</span>
+                            <span id="autocomplete-var-desc">{v.desc}</span>
                           </div>
                           <span className="scout-category-badge">
                             {v.category}
@@ -1028,9 +1214,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
                   );
                   return (
                     <div key={cat} style={{ marginBottom: 10 }}>
-                      <div id="var-category-header">
-                        {cat}
-                      </div>
+                      <div id="var-category-header">{cat}</div>
                       <div id="var-category-chips">
                         {vars.map((v) => (
                           <button
@@ -1056,9 +1240,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
       {showOpsHelp && (
         <div id="help-overlay">
           <div id="help-overlay-header">
-            <div id="help-overlay-title">
-              Formula Reference
-            </div>
+            <div id="help-overlay-title">Formula Reference</div>
             <button
               id="help-overlay-close"
               className="scout-btn-danger"
@@ -1074,25 +1256,16 @@ function FormulaEditor({ equations, onSave, onClose }) {
                 id="help-op-card"
                 className="scout-card scout-card--alt"
               >
-                <span id="help-op-label">
-                  {op.label}
-                </span>
-                <span id="help-op-desc">
-                  {op.desc}
-                </span>
+                <span id="help-op-label">{op.label}</span>
+                <span id="help-op-desc">{op.desc}</span>
                 <div id="help-op-insert">
-                  inserts:{" "}
-                  <span id="help-op-insert-val">
-                    {op.insert}
-                  </span>
+                  inserts: <span id="help-op-insert-val">{op.insert}</span>
                 </div>
               </div>
             ))}
           </div>
           <div id="help-rules-card" className="scout-card scout-card--alt">
-            <div id="help-rules-title">
-              Formula Rules
-            </div>
+            <div id="help-rules-title">Formula Rules</div>
             <div id="help-rules-body">
               • Result is automatically clamped to [0, 1]
               <br />
@@ -1106,9 +1279,7 @@ function FormulaEditor({ equations, onSave, onClose }) {
             </div>
           </div>
           <div id="help-examples-card" className="scout-card scout-card--alt">
-            <div id="help-examples-title">
-              Example Formulas
-            </div>
+            <div id="help-examples-title">Example Formulas</div>
             {[
               ["Full score rate", "fullScores / Math.max(totalCycles, 1)"],
               [
@@ -1129,12 +1300,8 @@ function FormulaEditor({ equations, onSave, onClose }) {
               ],
             ].map(([name, formula]) => (
               <div key={name} id="help-example-item">
-                <div id="help-example-name">
-                  {name}
-                </div>
-                <div id="help-example-formula">
-                  {formula}
-                </div>
+                <div id="help-example-name">{name}</div>
+                <div id="help-example-formula">{formula}</div>
               </div>
             ))}
           </div>
@@ -1330,7 +1497,6 @@ function ScoutApp({ matchConfig, eventName }) {
     setScreen("scout");
     intervalRef.current = setInterval(tick, 1000);
   };
-
 
   const HOLD_DURATION = 3000;
 
@@ -1930,10 +2096,7 @@ function ScoutApp({ matchConfig, eventName }) {
   }
 
   return (
-    <div
-      id="scout-root"
-      className="scout-root"
-    >
+    <div id="scout-root" className="scout-root">
       {/* ── START ─────────────────────────────────────────────── */}
       <div
         id="screen-start"
@@ -1951,17 +2114,13 @@ function ScoutApp({ matchConfig, eventName }) {
         <div id="start-ring-lg" />
 
         <div id="start-content">
-          <div id="start-eyebrow">
-            FRC Scouting · Team 935
-          </div>
+          <div id="start-eyebrow">FRC Scouting · Team 935</div>
           <div id="start-title">
             Match
             <br />
             <span id="start-title-accent">Scout</span>
           </div>
-          <div id="start-subtitle">
-            REBUILT · Real-time match tracker
-          </div>
+          <div id="start-subtitle">REBUILT · Real-time match tracker</div>
           {/* Match metadata */}
           <div id="start-meta-fields">
             <div>
@@ -2013,17 +2172,10 @@ function ScoutApp({ matchConfig, eventName }) {
           {sampleProgress && (
             <div id="sample-progress-card">
               <div id="sample-progress-header">
-                <span id="sample-progress-label">
-                  GENERATING SAMPLE DATA
-                </span>
-                <span id="sample-progress-pct">
-                  {sampleProgress.pct}%
-                </span>
+                <span id="sample-progress-label">GENERATING SAMPLE DATA</span>
+                <span id="sample-progress-pct">{sampleProgress.pct}%</span>
               </div>
-              <div
-                id="sample-progress-track"
-                className="scout-progress-track"
-              >
+              <div id="sample-progress-track" className="scout-progress-track">
                 <div
                   style={{
                     height: "100%",
@@ -2035,26 +2187,21 @@ function ScoutApp({ matchConfig, eventName }) {
                   }}
                 />
               </div>
-              <div id="sample-progress-msg">
-                {sampleProgress.label}
-              </div>
+              <div id="sample-progress-msg">{sampleProgress.label}</div>
             </div>
           )}
-          <button
-            id="btn-start-match"
-            onClick={startMatch}
-          >
+          <button id="btn-start-match" onClick={startMatch}>
             START SCOUTING
           </button>
-            <button
-              id="sampleDataSubmit"
-              onClick={handleSampleData}
-              disabled={!!sampleProgress}
-              className="scout-btn-ghost"
-              style={{ opacity: sampleProgress ? 0.5 : 1 }}
-            >
-              ⚡ SAMPLE DATA SUBMIT
-            </button>
+          <button
+            id="sampleDataSubmit"
+            onClick={handleSampleData}
+            disabled={!!sampleProgress}
+            className="scout-btn-ghost"
+            style={{ opacity: sampleProgress ? 0.5 : 1 }}
+          >
+            ⚡ SAMPLE DATA SUBMIT
+          </button>
         </div>
       </div>
 
@@ -2086,266 +2233,329 @@ function ScoutApp({ matchConfig, eventName }) {
             height: "100%",
           }}
         >
-        {/* Scout header */}
-        <div className="scout-header" style={{ paddingBottom: 10 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 8,
-            }}
-          >
+          {/* Scout header */}
+          <div className="scout-header" style={{ paddingBottom: 10 }}>
             <div
-              id="phase-badge"
-              style={{
-                background: phaseInfo.bg,
-                color: phaseInfo.accent,
-                border: `1px solid ${phaseInfo.accent}33`,
-              }}
-            >
-              {phaseInfo.label}
-            </div>
-            <div id="match-id-label">
-              MATCH {matchMeta.matchNumber} / TEAM {matchMeta.teamNumber}
-            </div>
-            <div
-              id="match-timer"
-              style={{
-                color:
-                  matchTime <= endgameStart
-                    ? "#fb923c"
-                    : phase === "auto"
-                      ? "var(--scout-indigo-soft)"
-                      : phase === "transit"
-                        ? "var(--scout-yellow-soft)"
-                        : "var(--scout-text-primary)",
-                textShadow:
-                  matchTime <= 10 ? "0 0 20px rgba(248,113,113,.67)" : "none",
-              }}
-            >
-              {fmtTime(matchTime)}
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div
-            className="scout-progress-track scout-progress-track--thick"
-            style={{ marginBottom: shiftAccent ? 8 : 0 }}
-          >
-            <div
-              style={{
-                height: "100%",
-                borderRadius: 999,
-                width: `${timeProgress}%`,
-                background: `linear-gradient(90deg, var(--scout-indigo), ${phaseInfo.accent})`,
-                transition: "width 1s linear",
-              }}
-            />
-          </div>
-
-          {shiftAccent && (
-            <div
-              id="shift-accent-bar"
-              style={{
-                background: `${shiftAccent.color}15`,
-                border: `1px solid ${shiftAccent.color}30`,
-              }}
-            >
-              <div id="shift-accent-inner">
-                <div
-                  id="shift-accent-dot"
-                  style={{
-                    background: shiftAccent.color,
-                    boxShadow: `0 0 6px ${shiftAccent.color}`,
-                  }}
-                />
-                <span id="shift-accent-label" style={{ color: shiftAccent.color }}>
-                  {shiftAccent.label}
-                </span>
-              </div>
-              <span id="shift-accent-time" style={{ color: shiftAccent.color }}>
-                {shiftAccent.time}s
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Scout body */}
-        <div className="scout-body">
-          {phase !== "transit" && (
-            <div
-              id="cycle-status-card"
-              style={{
-                background:
-                  activeGroupKey === "offShift"
-                    ? "#1a0a0a"
-                    : "var(--scout-bg-card-alt)",
-                border: `1px solid ${activeCycle ? "rgba(34,197,94,.13)" : activeGroupKey === "offShift" ? "rgba(127,29,29,.13)" : "var(--scout-border-subtle)"}`,
-              }}
-            >
-              <div
-                id="cycle-status-dot"
-                style={{
-                  background: activeCycle
-                    ? "var(--scout-green)"
-                    : activeGroupKey === "offShift"
-                      ? "#ef4444"
-                      : "var(--scout-neutral-glow)",
-                  boxShadow: activeCycle
-                    ? "0 0 0 3px rgba(34,197,94,.2)"
-                    : "none",
-                }}
-              />
-              <div id="cycle-status-text">
-                {activeGroupKey === "offShift" ? (
-                  <>
-                    <span id="cycle-status-offshift-label">Their shift</span>{" "}
-                    — log off-shift activity
-                  </>
-                ) : activeCycle && isShooting ? (
-                  <>
-                    <span id="cycle-status-aiming-label">🎯 Aiming</span>{" "}
-                    — tap Full Score or Partial to stop timer
-                  </>
-                ) : activeCycle ? (
-                  <>
-                    <span id="cycle-status-active-label">Cycle active</span>{" "}
-                    — finish the cycle
-                    {cycleDefendedRef.current ? (
-                      <span id="cycle-status-defended-badge">🛡 defended</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <span id="cycle-status-idle-label">{phase === "auto" ? "Autonomous" : "Waiting"}</span>{" "}
-                    — tap Gain Possession
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {phase === "transit" && (
-            <div id="transit-notice">
-              <div id="transit-notice-dot" />
-              <div id="transit-notice-text">
-                <span id="transit-notice-accent">Both hubs open</span>{" "}
-                — log what's happening
-              </div>
-            </div>
-          )}
-
-          {carryover && (
-            <div
-              id="carryover-banner"
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                padding: "8px 12px",
-                borderRadius: 8,
-                background: carryover === "shooting"
-                  ? "var(--scout-yellow-bg)"
-                  : "var(--scout-indigo-bg-alt)",
-                border: `1px solid ${carryover === "shooting" ? "var(--scout-yellow)" : "var(--scout-indigo)"}`,
-                marginBottom: 4,
+                justifyContent: "space-between",
+                marginBottom: 8,
               }}
             >
-              <span style={{ fontSize: 18 }}>
-                {carryover === "shooting" ? "🎯" : "⚡"}
-              </span>
-              <div style={{ flex: 1, fontSize: 12, color: carryover === "shooting" ? "var(--scout-yellow-soft)" : "var(--scout-indigo-soft)" }}>
-                <strong>Carryover from last shift</strong>
-                {" — "}
-                {carryover === "shooting"
-                  ? "robot was mid-shot at shift end, cycle is active"
-                  : "robot had possession at shift end, cycle is active"}
+              <div
+                id="phase-badge"
+                style={{
+                  background: phaseInfo.bg,
+                  color: phaseInfo.accent,
+                  border: `1px solid ${phaseInfo.accent}33`,
+                }}
+              >
+                {phaseInfo.label}
               </div>
-              <button
-                onClick={() => { setCarryover(null); setActiveCycle(false); activeCycleRef.current = false; }}
-                style={{ background: "none", border: "none", color: "var(--scout-neutral-fg)", cursor: "pointer", fontSize: 16, padding: 2 }}
-              >✕</button>
+              <div id="match-id-label">
+                MATCH {matchMeta.matchNumber} / TEAM {matchMeta.teamNumber}
+              </div>
+              <div
+                id="match-timer"
+                style={{
+                  color:
+                    matchTime <= endgameStart
+                      ? "#fb923c"
+                      : phase === "auto"
+                        ? "var(--scout-indigo-soft)"
+                        : phase === "transit"
+                          ? "var(--scout-yellow-soft)"
+                          : "var(--scout-text-primary)",
+                  textShadow:
+                    matchTime <= 10 ? "0 0 20px rgba(248,113,113,.67)" : "none",
+                }}
+              >
+                {fmtTime(matchTime)}
+              </div>
             </div>
-          )}
 
-          {activeGroup.sections.map((sec, i) => (
-            <ButtonSection
-              key={i}
-              section={sec}
-              activeCycle={activeCycle}
-              isShooting={isShooting}
-              onAction={handleAction}
-            />
-          ))}
-          {showEndgame &&
-            activeGroup.endgameSections?.map((sec, i) => (
+            {/* Progress bar */}
+            <div
+              className="scout-progress-track scout-progress-track--thick"
+              style={{ marginBottom: shiftAccent ? 8 : 0 }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  borderRadius: 999,
+                  width: `${timeProgress}%`,
+                  background: `linear-gradient(90deg, var(--scout-indigo), ${phaseInfo.accent})`,
+                  transition: "width 1s linear",
+                }}
+              />
+            </div>
+
+            {shiftAccent && (
+              <div
+                id="shift-accent-bar"
+                style={{
+                  background: `${shiftAccent.color}15`,
+                  border: `1px solid ${shiftAccent.color}30`,
+                }}
+              >
+                <div id="shift-accent-inner">
+                  <div
+                    id="shift-accent-dot"
+                    style={{
+                      background: shiftAccent.color,
+                      boxShadow: `0 0 6px ${shiftAccent.color}`,
+                    }}
+                  />
+                  <span
+                    id="shift-accent-label"
+                    style={{ color: shiftAccent.color }}
+                  >
+                    {shiftAccent.label}
+                  </span>
+                </div>
+                <span
+                  id="shift-accent-time"
+                  style={{ color: shiftAccent.color }}
+                >
+                  {shiftAccent.time}s
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Scout body */}
+          <div className="scout-body">
+            {phase !== "transit" && (
+              <div
+                id="cycle-status-card"
+                style={{
+                  background:
+                    activeGroupKey === "offShift"
+                      ? "#1a0a0a"
+                      : "var(--scout-bg-card-alt)",
+                  border: `1px solid ${activeCycle ? "rgba(34,197,94,.13)" : activeGroupKey === "offShift" ? "rgba(127,29,29,.13)" : "var(--scout-border-subtle)"}`,
+                }}
+              >
+                <div
+                  id="cycle-status-dot"
+                  style={{
+                    background: activeCycle
+                      ? "var(--scout-green)"
+                      : activeGroupKey === "offShift"
+                        ? "#ef4444"
+                        : "var(--scout-neutral-glow)",
+                    boxShadow: activeCycle
+                      ? "0 0 0 3px rgba(34,197,94,.2)"
+                      : "none",
+                  }}
+                />
+                <div id="cycle-status-text">
+                  {activeGroupKey === "offShift" ? (
+                    <>
+                      <span id="cycle-status-offshift-label">Their shift</span>{" "}
+                      — log off-shift activity
+                    </>
+                  ) : activeCycle && isShooting ? (
+                    <>
+                      <span id="cycle-status-aiming-label">🎯 Aiming</span> —
+                      tap Full Score or Partial to stop timer
+                    </>
+                  ) : activeCycle ? (
+                    <>
+                      <span id="cycle-status-active-label">Cycle active</span> —
+                      finish the cycle
+                      {cycleDefendedRef.current ? (
+                        <span id="cycle-status-defended-badge">
+                          🛡 defended
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span id="cycle-status-idle-label">
+                        {phase === "auto" ? "Autonomous" : "Waiting"}
+                      </span>{" "}
+                      — tap Gain Possession
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {phase === "transit" && (
+              <div id="transit-notice">
+                <div id="transit-notice-dot" />
+                <div id="transit-notice-text">
+                  <span id="transit-notice-accent">Both hubs open</span> — log
+                  what's happening
+                </div>
+              </div>
+            )}
+
+            {carryover && (
+              <div
+                id="carryover-banner"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  background:
+                    carryover === "shooting"
+                      ? "var(--scout-yellow-bg)"
+                      : "var(--scout-indigo-bg-alt)",
+                  border: `1px solid ${carryover === "shooting" ? "var(--scout-yellow)" : "var(--scout-indigo)"}`,
+                  marginBottom: 4,
+                }}
+              >
+                <span style={{ fontSize: 18 }}>
+                  {carryover === "shooting" ? "🎯" : "⚡"}
+                </span>
+                <div
+                  style={{
+                    flex: 1,
+                    fontSize: 12,
+                    color:
+                      carryover === "shooting"
+                        ? "var(--scout-yellow-soft)"
+                        : "var(--scout-indigo-soft)",
+                  }}
+                >
+                  <strong>Carryover from last shift</strong>
+                  {" — "}
+                  {carryover === "shooting"
+                    ? "robot was mid-shot at shift end, cycle is active"
+                    : "robot had possession at shift end, cycle is active"}
+                </div>
+                <button
+                  onClick={() => {
+                    setCarryover(null);
+                    setActiveCycle(false);
+                    activeCycleRef.current = false;
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--scout-neutral-fg)",
+                    cursor: "pointer",
+                    fontSize: 16,
+                    padding: 2,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {activeGroup.sections.map((sec, i) => (
               <ButtonSection
-                key={"eg" + i}
+                key={i}
                 section={sec}
                 activeCycle={activeCycle}
                 isShooting={isShooting}
                 onAction={handleAction}
               />
             ))}
-        </div>
+            {showEndgame &&
+              activeGroup.endgameSections?.map((sec, i) => (
+                <ButtonSection
+                  key={"eg" + i}
+                  section={sec}
+                  activeCycle={activeCycle}
+                  isShooting={isShooting}
+                  onAction={handleAction}
+                />
+              ))}
+          </div>
 
-        {/* Hold-to-end bar — always visible during scouting */}
-        {!matchOver && (
-          <div id="match-over-bar" style={{ padding: "10px 16px" }}>
-            <button
-              id="btn-hold-end"
-              className="scout-btn-danger"
-              onPointerDown={startHold}
-              onPointerUp={cancelHold}
-              onPointerLeave={cancelHold}
-              style={{ position: "relative", overflow: "hidden", userSelect: "none", width: "100%" }}
-            >
-              {holdProgress > 0 && (
-                <div style={{
-                  position: "absolute", left: 0, top: 0, bottom: 0,
-                  width: `${holdProgress}%`,
-                  background: "rgba(255,255,255,0.18)",
-                  transition: "none",
-                  pointerEvents: "none",
-                }} />
-              )}
-              {holdProgress > 0 ? `ENDING MATCH… ${Math.round(holdProgress)}%` : "HOLD 3s TO END MATCH EARLY"}
-            </button>
-          </div>
-        )}
-        {matchOver && (
-          <div id="match-over-bar">
-            <button
-              onClick={goToResults}
-              id="btn-view-results"
-              className="scout-btn-primary"
-            >
-              VIEW RESULTS →
-            </button>
-          </div>
-        )}
-        </div>{/* end scout-content */}
+          {/* Hold-to-end bar — always visible during scouting */}
+          {!matchOver && (
+            <div id="match-over-bar" style={{ padding: "10px 16px" }}>
+              <button
+                id="btn-hold-end"
+                className="scout-btn-danger"
+                onPointerDown={startHold}
+                onPointerUp={cancelHold}
+                onPointerLeave={cancelHold}
+                style={{
+                  position: "relative",
+                  overflow: "hidden",
+                  userSelect: "none",
+                  width: "100%",
+                }}
+              >
+                {holdProgress > 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: `${holdProgress}%`,
+                      background: "rgba(255,255,255,0.18)",
+                      transition: "none",
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
+                {holdProgress > 0
+                  ? `ENDING MATCH… ${Math.round(holdProgress)}%`
+                  : "HOLD 3s TO END MATCH EARLY"}
+              </button>
+            </div>
+          )}
+          {matchOver && (
+            <div id="match-over-bar">
+              <button
+                onClick={goToResults}
+                id="btn-view-results"
+                className="scout-btn-primary"
+              >
+                VIEW RESULTS →
+              </button>
+            </div>
+          )}
+        </div>
+        {/* end scout-content */}
 
         {showEarlyEndOverlay && (
           <div
             style={{
-              position: "absolute", inset: 0,
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              gap: 16, zIndex: 50,
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 16,
+              zIndex: 50,
               background: "rgba(0,0,0,0.72)",
               backdropFilter: "blur(3px)",
               padding: 24,
             }}
           >
             <div style={{ fontSize: 36 }}>⚠️</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "var(--scout-red-soft)", textAlign: "center" }}>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: "var(--scout-red-soft)",
+                textAlign: "center",
+              }}
+            >
               Match Ended Early
             </div>
-            <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)", textAlign: "center" }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "var(--scout-neutral-fg)",
+                textAlign: "center",
+              }}
+            >
               Briefly describe what happened (lost connection, breakdown, etc.)
             </div>
             <textarea
@@ -2353,9 +2563,16 @@ function ScoutApp({ matchConfig, eventName }) {
               rows={3}
               placeholder="e.g. Robot lost connection at 45s remaining"
               defaultValue=""
-              onChange={(e) => { earlyEndReasonDraftRef.current = e.target.value; }}
+              onChange={(e) => {
+                earlyEndReasonDraftRef.current = e.target.value;
+              }}
               className="scout-input"
-              style={{ width: "100%", maxWidth: 380, resize: "vertical", fontSize: 14 }}
+              style={{
+                width: "100%",
+                maxWidth: 380,
+                resize: "vertical",
+                fontSize: 14,
+              }}
             />
             <button
               onClick={confirmEarlyEnd}
@@ -2385,26 +2602,14 @@ function ScoutApp({ matchConfig, eventName }) {
           >
             <div id="auto-overlay-icon">🏁</div>
             <div>
-              <div id="auto-overlay-title">
-                Auto Phase Over
-              </div>
-              <div id="auto-overlay-subtitle">
-                Who won autonomous?
-              </div>
+              <div id="auto-overlay-title">Auto Phase Over</div>
+              <div id="auto-overlay-subtitle">Who won autonomous?</div>
             </div>
-            <div
-              id="auto-overlay-choices"
-            >
-              <button
-                id="btn-we-won"
-                onClick={() => setAutoWinner(true)}
-              >
+            <div id="auto-overlay-choices">
+              <button id="btn-we-won" onClick={() => setAutoWinner(true)}>
                 WE WON
               </button>
-              <button
-                id="btn-they-won"
-                onClick={() => setAutoWinner(false)}
-              >
+              <button id="btn-they-won" onClick={() => setAutoWinner(false)}>
                 THEY WON
               </button>
             </div>
@@ -2424,19 +2629,11 @@ function ScoutApp({ matchConfig, eventName }) {
         }}
       >
         {/* Results header */}
-        <div
-          id="results-header"
-        >
+        <div id="results-header">
           <div>
-            <div id="results-eyebrow">
-              MATCH COMPLETE
-            </div>
-            <div id="results-title">
-              Match Summary
-            </div>
-            <div
-              id="results-meta"
-            >
+            <div id="results-eyebrow">MATCH COMPLETE</div>
+            <div id="results-title">Match Summary</div>
+            <div id="results-meta">
               {eventName ? eventName : "Match Scouting"}
             </div>
           </div>
@@ -2451,26 +2648,56 @@ function ScoutApp({ matchConfig, eventName }) {
 
         {/* Early end notice */}
         {earlyEndReason && (
-          <div style={{
-            margin: "12px 16px 0",
-            padding: "10px 14px",
-            borderRadius: 8,
-            background: "var(--scout-red-bg)",
-            border: "1px solid var(--scout-red)",
-            display: "flex", gap: 10, alignItems: "flex-start",
-          }}>
+          <div
+            style={{
+              margin: "12px 16px 0",
+              padding: "10px 14px",
+              borderRadius: 8,
+              background: "var(--scout-red-bg)",
+              border: "1px solid var(--scout-red)",
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+            }}
+          >
             <span style={{ fontSize: 18 }}>⚠️</span>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--scout-red-soft)", marginBottom: 2 }}>MATCH ENDED EARLY</div>
-              <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)" }}>{earlyEndReason}</div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "var(--scout-red-soft)",
+                  marginBottom: 2,
+                }}
+              >
+                MATCH ENDED EARLY
+              </div>
+              <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)" }}>
+                {earlyEndReason}
+              </div>
             </div>
           </div>
         )}
 
         {/* Scouter notes */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "16px 16px 8px" }}>
-          <div className="scout-overline" style={{ marginBottom: 8 }}>Match Notes</div>
-          <div style={{ fontSize: 13, color: "var(--scout-neutral-fg)", marginBottom: 10 }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            padding: "16px 16px 8px",
+          }}
+        >
+          <div className="scout-overline" style={{ marginBottom: 8 }}>
+            Match Notes
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              color: "var(--scout-neutral-fg)",
+              marginBottom: 10,
+            }}
+          >
             Anything worth noting — strategy, fouls, unusual behavior, etc.
           </div>
           <textarea
@@ -2479,13 +2706,16 @@ function ScoutApp({ matchConfig, eventName }) {
             value={matchNotes}
             onChange={(e) => setMatchNotes(e.target.value)}
             className="scout-input"
-            style={{ flex: 1, resize: "vertical", fontSize: 14, minHeight: 120 }}
+            style={{
+              flex: 1,
+              resize: "vertical",
+              fontSize: 14,
+              minHeight: 120,
+            }}
           />
         </div>
 
-        <div
-          id="results-submit-bar"
-        >
+        <div id="results-submit-bar">
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
@@ -2531,10 +2761,7 @@ function MatchFormMode({ config, eventName }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(
-        "scoutMeta",
-        JSON.stringify({ ...matchMeta }),
-      );
+      localStorage.setItem("scoutMeta", JSON.stringify({ ...matchMeta }));
     } catch {}
   }, [matchMeta]);
 
@@ -2564,9 +2791,7 @@ function MatchFormMode({ config, eventName }) {
         console.error("[form-submit] server error:", err);
       }
     } catch (err) {
-      console.warn(
-        "[form-submit] backend unreachable, data logged below.",
-      );
+      console.warn("[form-submit] backend unreachable, data logged below.");
       console.log("Unsaved match data:", JSON.stringify(matchData, null, 2));
     } finally {
       setIsSubmitting(false);
@@ -2630,7 +2855,12 @@ function MatchFormMode({ config, eventName }) {
         return (
           <label
             {...common}
-            style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              cursor: "pointer",
+            }}
           >
             <input
               type="checkbox"
@@ -2822,7 +3052,11 @@ export default function App() {
       <div
         id="scout-root"
         className="scout-root"
-        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <div style={{ color: "var(--scout-neutral-fg)", fontSize: 14 }}>
           Loading scouting config…

@@ -72,8 +72,17 @@ const emptyButton = () => ({
   action: "offStat",
   statKey: "customStat",
 });
-const emptySection = () => ({ sectionLabel: "New Section", cols: 2, buttons: [emptyButton()] });
-const emptyField = () => ({ id: `field_${Math.random().toString(36).slice(2, 8)}`, label: "New Field", type: "text", required: false });
+const emptySection = () => ({
+  sectionLabel: "New Section",
+  cols: 2,
+  buttons: [emptyButton()],
+});
+const emptyField = () => ({
+  id: `field_${Math.random().toString(36).slice(2, 8)}`,
+  label: "New Field",
+  type: "text",
+  required: false,
+});
 const emptyEquation = () => ({
   key: `metric_${Math.random().toString(36).slice(2, 6)}`,
   label: "New Metric",
@@ -122,7 +131,10 @@ export default function MatchBuilder() {
   const dashTabs = useMemo(() => {
     if (!config) return [];
     return config.mode === "form"
-      ? [{ key: "mode", label: "Mode" }, { key: "fields", label: "Form Fields" }]
+      ? [
+          { key: "mode", label: "Mode" },
+          { key: "fields", label: "Form Fields" },
+        ]
       : [
           { key: "mode", label: "Mode" },
           { key: "timing", label: "Timing" },
@@ -162,7 +174,10 @@ export default function MatchBuilder() {
         throw new Error(err.error || "Save failed");
       }
       setConfig(payload);
-      setSaveMsg({ ok: true, text: "Saved — scouts will see this immediately." });
+      setSaveMsg({
+        ok: true,
+        text: "Saved — scouts will see this immediately.",
+      });
       if (uiMode === "wizard") setUiMode("dashboard");
     } catch (err) {
       setSaveMsg({ ok: false, text: err.message });
@@ -172,8 +187,20 @@ export default function MatchBuilder() {
     }
   };
 
-  if (loading) return <div className="mb-page"><div className="mb-empty">Loading match config…</div></div>;
-  if (!config) return <div className="mb-page"><div className="mb-empty">Could not load match config from the server.</div></div>;
+  if (loading)
+    return (
+      <div className="mb-page">
+        <div className="mb-empty">Loading match config…</div>
+      </div>
+    );
+  if (!config)
+    return (
+      <div className="mb-page">
+        <div className="mb-empty">
+          Could not load match config from the server.
+        </div>
+      </div>
+    );
 
   const phase = config.phases[activePhase];
 
@@ -215,12 +242,19 @@ export default function MatchBuilder() {
           {uiMode === "dashboard" && (
             <button
               className="mb-btn mb-btn-ghost mb-btn-sm"
-              onClick={() => { setUiMode("wizard"); setStepIdx(0); }}
+              onClick={() => {
+                setUiMode("wizard");
+                setStepIdx(0);
+              }}
             >
               <FontAwesomeIcon icon={faWandMagicSparkles} /> Guided Setup
             </button>
           )}
-          <button className="mb-btn mb-btn-primary" onClick={handleSave} disabled={saving}>
+          <button
+            className="mb-btn mb-btn-primary"
+            onClick={handleSave}
+            disabled={saving}
+          >
             <FontAwesomeIcon icon={faFloppyDisk} />
             {saving ? "Saving…" : "Save"}
           </button>
@@ -229,7 +263,9 @@ export default function MatchBuilder() {
 
       {saveMsg && (
         <div className={`mb-toast ${saveMsg.ok ? "ok" : "err"}`}>
-          <FontAwesomeIcon icon={saveMsg.ok ? faCircleCheck : faTriangleExclamation} />
+          <FontAwesomeIcon
+            icon={saveMsg.ok ? faCircleCheck : faTriangleExclamation}
+          />
           {saveMsg.text}
         </div>
       )}
@@ -239,11 +275,19 @@ export default function MatchBuilder() {
           <div className="mb-stepper">
             {steps.map((s, i) => (
               <div className="mb-step" key={s.key}>
-                <div className={`mb-step ${i < clampedStep ? "done" : i === clampedStep ? "active" : ""}`}>
-                  <div className="mb-step-dot">{i < clampedStep ? "✓" : i + 1}</div>
+                <div
+                  className={`mb-step ${i < clampedStep ? "done" : i === clampedStep ? "active" : ""}`}
+                >
+                  <div className="mb-step-dot">
+                    {i < clampedStep ? "✓" : i + 1}
+                  </div>
                   <div className="mb-step-label">{s.label}</div>
                 </div>
-                {i < steps.length - 1 && <div className={`mb-step-line ${i < clampedStep ? "done" : ""}`} />}
+                {i < steps.length - 1 && (
+                  <div
+                    className={`mb-step-line ${i < clampedStep ? "done" : ""}`}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -253,22 +297,36 @@ export default function MatchBuilder() {
           <div className="mb-wizard-nav">
             <div>
               {clampedStep > 0 && (
-                <button className="mb-btn mb-btn-ghost" onClick={() => setStepIdx((i) => i - 1)}>
+                <button
+                  className="mb-btn mb-btn-ghost"
+                  onClick={() => setStepIdx((i) => i - 1)}
+                >
                   <FontAwesomeIcon icon={faArrowLeft} /> Back
                 </button>
               )}
             </div>
             <div className="mb-wizard-nav-right">
-              <button className="mb-link-btn" onClick={() => setUiMode("dashboard")}>
+              <button
+                className="mb-link-btn"
+                onClick={() => setUiMode("dashboard")}
+              >
                 Skip to full editor
               </button>
               {clampedStep < steps.length - 1 ? (
-                <button className="mb-btn mb-btn-primary" onClick={() => setStepIdx((i) => i + 1)}>
+                <button
+                  className="mb-btn mb-btn-primary"
+                  onClick={() => setStepIdx((i) => i + 1)}
+                >
                   Next <FontAwesomeIcon icon={faArrowRight} />
                 </button>
               ) : (
-                <button className="mb-btn mb-btn-primary" onClick={handleSave} disabled={saving}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> {saving ? "Saving…" : "Finish & Save"}
+                <button
+                  className="mb-btn mb-btn-primary"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  <FontAwesomeIcon icon={faFloppyDisk} />{" "}
+                  {saving ? "Saving…" : "Finish & Save"}
                 </button>
               )}
             </div>
@@ -311,7 +369,9 @@ function ModeStep({ config, update }) {
           className={`mb-mode-card ${config.mode === "live" ? "active" : ""}`}
           onClick={() => update(["mode"], "live")}
         >
-          <div className="mb-mode-card-icon"><FontAwesomeIcon icon={faGamepad} /></div>
+          <div className="mb-mode-card-icon">
+            <FontAwesomeIcon icon={faGamepad} />
+          </div>
           <div className="mb-mode-card-title">Live Button Scouting</div>
           <div className="mb-mode-card-desc">
             Real-time timer with tap-to-log buttons, auto/shift phases, and a
@@ -322,7 +382,9 @@ function ModeStep({ config, update }) {
           className={`mb-mode-card ${config.mode === "form" ? "active" : ""}`}
           onClick={() => update(["mode"], "form")}
         >
-          <div className="mb-mode-card-icon"><FontAwesomeIcon icon={faListCheck} /></div>
+          <div className="mb-mode-card-icon">
+            <FontAwesomeIcon icon={faListCheck} />
+          </div>
           <div className="mb-mode-card-title">Plain Form Scouting</div>
           <div className="mb-mode-card-desc">
             A simple form — numbers, text, dropdowns, checkboxes — filled in
@@ -358,7 +420,9 @@ function TimingStep({ config, update }) {
                 type="number"
                 className="mb-input"
                 value={config.timing[key]}
-                onChange={(e) => update(["timing", key], Number(e.target.value))}
+                onChange={(e) =>
+                  update(["timing", key], Number(e.target.value))
+                }
               />
               <div className="mb-timing-hint">{unit}</div>
             </div>
@@ -374,9 +438,9 @@ function PhasesStep({ config, update, activePhase, setActivePhase, phase }) {
     <div>
       <div className="mb-panel-title">Buttons & Phases</div>
       <p className="mb-panel-desc">
-        Each game stage gets its own set of sections and buttons. Add a
-        button, pick an icon/color, and choose what it does — including
-        brand-new score or action counters.
+        Each game stage gets its own set of sections and buttons. Add a button,
+        pick an icon/color, and choose what it does — including brand-new score
+        or action counters.
       </p>
       <div className="mb-phase-pills">
         {PHASE_KEYS.map((k) => (
@@ -400,7 +464,9 @@ function PhasesStep({ config, update, activePhase, setActivePhase, phase }) {
         <input
           className="mb-input"
           value={phase.label}
-          onChange={(e) => update(["phases", activePhase, "label"], e.target.value)}
+          onChange={(e) =>
+            update(["phases", activePhase, "label"], e.target.value)
+          }
         />
       </div>
 
@@ -412,11 +478,19 @@ function PhasesStep({ config, update, activePhase, setActivePhase, phase }) {
 
       {(activePhase === "ourShift" || activePhase === "offShift") && (
         <>
-          <div style={{ height: 1, background: "var(--mb-border)", margin: "24px 0" }} />
+          <div
+            style={{
+              height: 1,
+              background: "var(--mb-border)",
+              margin: "24px 0",
+            }}
+          />
           <SectionList
             title="Endgame Sections"
             sections={phase.endgameSections || []}
-            onChange={(next) => update(["phases", activePhase, "endgameSections"], next)}
+            onChange={(next) =>
+              update(["phases", activePhase, "endgameSections"], next)
+            }
           />
         </>
       )}
@@ -429,8 +503,8 @@ function FormulasStep({ config, update }) {
     <div>
       <div className="mb-panel-title">Formulas</div>
       <p className="mb-panel-desc">
-        Turn raw counters into 0–1 metrics for the fit score. Formulas are
-        plain JS expressions evaluated against the match's stats (e.g.{" "}
+        Turn raw counters into 0–1 metrics for the fit score. Formulas are plain
+        JS expressions evaluated against the match's stats (e.g.{" "}
         <code>fullScores</code>, <code>totalCycles</code>,{" "}
         <code>defendedFails</code>). Weights don't need to sum to 1.
       </p>
@@ -462,7 +536,12 @@ function FormulasStep({ config, update }) {
             />
             <button
               className="mb-icon-btn danger"
-              onClick={() => update(["equations"], config.equations.filter((_, idx) => idx !== i))}
+              onClick={() =>
+                update(
+                  ["equations"],
+                  config.equations.filter((_, idx) => idx !== i),
+                )
+              }
             >
               <FontAwesomeIcon icon={faTrash} />
             </button>
@@ -490,7 +569,12 @@ function FormulasStep({ config, update }) {
           />
         </div>
       ))}
-      <button className="mb-btn mb-btn-ghost" onClick={() => update(["equations"], [...config.equations, emptyEquation()])}>
+      <button
+        className="mb-btn mb-btn-ghost"
+        onClick={() =>
+          update(["equations"], [...config.equations, emptyEquation()])
+        }
+      >
         <FontAwesomeIcon icon={faPlus} /> Add Formula
       </button>
     </div>
@@ -520,7 +604,12 @@ function FieldsStep({ config, update }) {
             next[i] = nf;
             update(["formSchema", "fields"], next);
           }}
-          onRemove={() => update(["formSchema", "fields"], fields.filter((_, idx) => idx !== i))}
+          onRemove={() =>
+            update(
+              ["formSchema", "fields"],
+              fields.filter((_, idx) => idx !== i),
+            )
+          }
           onMove={(dir) => {
             const next = [...fields];
             const j = i + dir;
@@ -530,7 +619,12 @@ function FieldsStep({ config, update }) {
           }}
         />
       ))}
-      <button className="mb-btn mb-btn-ghost" onClick={() => update(["formSchema", "fields"], [...fields, emptyField()])}>
+      <button
+        className="mb-btn mb-btn-ghost"
+        onClick={() =>
+          update(["formSchema", "fields"], [...fields, emptyField()])
+        }
+      >
         <FontAwesomeIcon icon={faPlus} /> Add Field
       </button>
     </div>
@@ -539,13 +633,17 @@ function FieldsStep({ config, update }) {
 
 function ReviewStep({ config }) {
   const phaseCount = Object.values(config.phases).reduce(
-    (acc, p) => acc + (p.sections?.length || 0) + (p.endgameSections?.length || 0),
+    (acc, p) =>
+      acc + (p.sections?.length || 0) + (p.endgameSections?.length || 0),
     0,
   );
   const buttonCount = Object.values(config.phases).reduce(
     (acc, p) =>
       acc +
-      [...(p.sections || []), ...(p.endgameSections || [])].reduce((a, s) => a + s.buttons.length, 0),
+      [...(p.sections || []), ...(p.endgameSections || [])].reduce(
+        (a, s) => a + s.buttons.length,
+        0,
+      ),
     0,
   );
   return (
@@ -555,13 +653,19 @@ function ReviewStep({ config }) {
       <div className="mb-section-card">
         <div className="mb-review-row">
           <span className="mb-review-label">Mode</span>
-          <span className="mb-review-value">{config.mode === "form" ? "Plain Form Scouting" : "Live Button Scouting"}</span>
+          <span className="mb-review-value">
+            {config.mode === "form"
+              ? "Plain Form Scouting"
+              : "Live Button Scouting"}
+          </span>
         </div>
         {config.mode === "live" ? (
           <>
             <div className="mb-review-row">
               <span className="mb-review-label">Match length</span>
-              <span className="mb-review-value">{config.timing.matchTotal}s</span>
+              <span className="mb-review-value">
+                {config.timing.matchTotal}s
+              </span>
             </div>
             <div className="mb-review-row">
               <span className="mb-review-label">Sections configured</span>
@@ -579,7 +683,9 @@ function ReviewStep({ config }) {
         ) : (
           <div className="mb-review-row">
             <span className="mb-review-label">Form fields</span>
-            <span className="mb-review-value">{(config.formSchema.fields || []).length}</span>
+            <span className="mb-review-value">
+              {(config.formSchema.fields || []).length}
+            </span>
           </div>
         )}
       </div>
@@ -608,15 +714,23 @@ function SectionList({ title, sections, onChange }) {
 
   return (
     <div>
-      <div className="mb-field-label" style={{ marginBottom: 10 }}>{title}</div>
-      {sections.length === 0 && <div className="mb-empty" style={{ marginBottom: 14 }}>No sections yet.</div>}
+      <div className="mb-field-label" style={{ marginBottom: 10 }}>
+        {title}
+      </div>
+      {sections.length === 0 && (
+        <div className="mb-empty" style={{ marginBottom: 14 }}>
+          No sections yet.
+        </div>
+      )}
       {sections.map((sec, i) => (
         <div className="mb-section-card" key={i}>
           <div className="mb-section-toolbar">
             <input
               className="mb-input"
               value={sec.sectionLabel}
-              onChange={(e) => updateSection(i, { ...sec, sectionLabel: e.target.value })}
+              onChange={(e) =>
+                updateSection(i, { ...sec, sectionLabel: e.target.value })
+              }
             />
             <input
               type="number"
@@ -625,16 +739,33 @@ function SectionList({ title, sections, onChange }) {
               className="mb-input mb-cols-input"
               title="Columns"
               value={sec.cols}
-              onChange={(e) => updateSection(i, { ...sec, cols: Number(e.target.value) })}
+              onChange={(e) =>
+                updateSection(i, { ...sec, cols: Number(e.target.value) })
+              }
             />
-            <button className="mb-icon-btn" onClick={() => moveSection(i, -1)}><FontAwesomeIcon icon={faArrowUp} /></button>
-            <button className="mb-icon-btn" onClick={() => moveSection(i, 1)}><FontAwesomeIcon icon={faArrowDown} /></button>
-            <button className="mb-icon-btn danger" onClick={() => removeSection(i)}><FontAwesomeIcon icon={faTrash} /></button>
+            <button className="mb-icon-btn" onClick={() => moveSection(i, -1)}>
+              <FontAwesomeIcon icon={faArrowUp} />
+            </button>
+            <button className="mb-icon-btn" onClick={() => moveSection(i, 1)}>
+              <FontAwesomeIcon icon={faArrowDown} />
+            </button>
+            <button
+              className="mb-icon-btn danger"
+              onClick={() => removeSection(i)}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+            </button>
           </div>
-          <ButtonList buttons={sec.buttons} onChange={(next) => updateSection(i, { ...sec, buttons: next })} />
+          <ButtonList
+            buttons={sec.buttons}
+            onChange={(next) => updateSection(i, { ...sec, buttons: next })}
+          />
         </div>
       ))}
-      <button className="mb-btn mb-btn-ghost mb-btn-sm" onClick={() => onChange([...sections, emptySection()])}>
+      <button
+        className="mb-btn mb-btn-ghost mb-btn-sm"
+        onClick={() => onChange([...sections, emptySection()])}
+      >
         <FontAwesomeIcon icon={faPlus} /> Add Section
       </button>
     </div>
@@ -659,8 +790,10 @@ function ButtonList({ buttons, onChange }) {
   return (
     <div>
       {buttons.map((btn, i) => {
-        const needsStatKey = btn.action === "offStat" || btn.action === "transitStat";
-        const color = COLOR_OPTIONS.find((c) => c.key === btn.color) || COLOR_OPTIONS[0];
+        const needsStatKey =
+          btn.action === "offStat" || btn.action === "transitStat";
+        const color =
+          COLOR_OPTIONS.find((c) => c.key === btn.color) || COLOR_OPTIONS[0];
         return (
           <div className="mb-button-edit" key={i}>
             <div className="mb-icon-preview" style={{ background: color.var }}>
@@ -669,11 +802,23 @@ function ButtonList({ buttons, onChange }) {
             <input
               className="mb-input"
               value={btn.label}
-              onChange={(e) => updateButton(i, { ...btn, label: e.target.value })}
+              onChange={(e) =>
+                updateButton(i, { ...btn, label: e.target.value })
+              }
               placeholder="Label"
             />
-            <select className="mb-select" value={btn.icon} onChange={(e) => updateButton(i, { ...btn, icon: e.target.value })}>
-              {ICON_OPTIONS.map((opt) => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
+            <select
+              className="mb-select"
+              value={btn.icon}
+              onChange={(e) =>
+                updateButton(i, { ...btn, icon: e.target.value })
+              }
+            >
+              {ICON_OPTIONS.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
             <select
               className="mb-select"
@@ -681,19 +826,41 @@ function ButtonList({ buttons, onChange }) {
               onChange={(e) => {
                 const action = e.target.value;
                 const patch = { ...btn, action };
-                if (action === "offStat" || action === "transitStat") patch.statKey = btn.statKey || "customStat";
+                if (action === "offStat" || action === "transitStat")
+                  patch.statKey = btn.statKey || "customStat";
                 else delete patch.statKey;
                 updateButton(i, patch);
               }}
             >
-              {ACTION_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              {ACTION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
-            <select className="mb-select" value={btn.color} onChange={(e) => updateButton(i, { ...btn, color: e.target.value })}>
-              {COLOR_OPTIONS.map((opt) => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
+            <select
+              className="mb-select"
+              value={btn.color}
+              onChange={(e) =>
+                updateButton(i, { ...btn, color: e.target.value })
+              }
+            >
+              {COLOR_OPTIONS.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
             <div className="mb-btn-edit-actions">
-              <button className="mb-icon-btn" onClick={() => moveButton(i, -1)}><FontAwesomeIcon icon={faArrowUp} /></button>
-              <button className="mb-icon-btn danger" onClick={() => removeButton(i)}><FontAwesomeIcon icon={faTrash} /></button>
+              <button className="mb-icon-btn" onClick={() => moveButton(i, -1)}>
+                <FontAwesomeIcon icon={faArrowUp} />
+              </button>
+              <button
+                className="mb-icon-btn danger"
+                onClick={() => removeButton(i)}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
             </div>
 
             {needsStatKey && (
@@ -701,7 +868,9 @@ function ButtonList({ buttons, onChange }) {
                 <input
                   className="mb-input mb-input-mono"
                   value={btn.statKey || ""}
-                  onChange={(e) => updateButton(i, { ...btn, statKey: e.target.value })}
+                  onChange={(e) =>
+                    updateButton(i, { ...btn, statKey: e.target.value })
+                  }
                   placeholder="Counter key, e.g. algaeCollected"
                 />
               </div>
@@ -710,14 +879,19 @@ function ButtonList({ buttons, onChange }) {
               <input
                 type="checkbox"
                 checked={!!btn.requiresCycle}
-                onChange={(e) => updateButton(i, { ...btn, requiresCycle: e.target.checked })}
+                onChange={(e) =>
+                  updateButton(i, { ...btn, requiresCycle: e.target.checked })
+                }
               />
               Requires an active cycle to be tappable
             </label>
           </div>
         );
       })}
-      <button className="mb-btn mb-btn-ghost mb-btn-sm" onClick={() => onChange([...buttons, emptyButton()])}>
+      <button
+        className="mb-btn mb-btn-ghost mb-btn-sm"
+        onClick={() => onChange([...buttons, emptyButton()])}
+      >
         <FontAwesomeIcon icon={faPlus} /> Add Button
       </button>
     </div>
@@ -727,7 +901,14 @@ function ButtonList({ buttons, onChange }) {
 function FieldRow({ field, onChange, onRemove, onMove }) {
   return (
     <div className="mb-section-card">
-      <div style={{ display: "flex", gap: 8, marginBottom: field.type === "select" || field.type !== "checkbox" ? 8 : 0 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom:
+            field.type === "select" || field.type !== "checkbox" ? 8 : 0,
+        }}
+      >
         <input
           className="mb-input"
           placeholder="Field label"
@@ -735,12 +916,27 @@ function FieldRow({ field, onChange, onRemove, onMove }) {
           onChange={(e) => onChange({ ...field, label: e.target.value })}
           style={{ flex: 1 }}
         />
-        <select className="mb-select" value={field.type} onChange={(e) => onChange({ ...field, type: e.target.value })} style={{ width: 130, flexShrink: 0 }}>
-          {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+        <select
+          className="mb-select"
+          value={field.type}
+          onChange={(e) => onChange({ ...field, type: e.target.value })}
+          style={{ width: 130, flexShrink: 0 }}
+        >
+          {FIELD_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
-        <button className="mb-icon-btn" onClick={() => onMove(-1)}><FontAwesomeIcon icon={faArrowUp} /></button>
-        <button className="mb-icon-btn" onClick={() => onMove(1)}><FontAwesomeIcon icon={faArrowDown} /></button>
-        <button className="mb-icon-btn danger" onClick={onRemove}><FontAwesomeIcon icon={faTrash} /></button>
+        <button className="mb-icon-btn" onClick={() => onMove(-1)}>
+          <FontAwesomeIcon icon={faArrowUp} />
+        </button>
+        <button className="mb-icon-btn" onClick={() => onMove(1)}>
+          <FontAwesomeIcon icon={faArrowDown} />
+        </button>
+        <button className="mb-icon-btn danger" onClick={onRemove}>
+          <FontAwesomeIcon icon={faTrash} />
+        </button>
       </div>
 
       {field.type === "select" && (
@@ -748,11 +944,21 @@ function FieldRow({ field, onChange, onRemove, onMove }) {
           className="mb-input"
           placeholder="Comma-separated options, e.g. Red,Blue,Yellow"
           value={(field.options || []).join(",")}
-          onChange={(e) => onChange({ ...field, options: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+          onChange={(e) =>
+            onChange({
+              ...field,
+              options: e.target.value
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
+            })
+          }
           style={{ marginBottom: 8 }}
         />
       )}
-      {(field.type === "text" || field.type === "number" || field.type === "textarea") && (
+      {(field.type === "text" ||
+        field.type === "number" ||
+        field.type === "textarea") && (
         <input
           className="mb-input"
           placeholder="Placeholder text (optional)"
@@ -763,7 +969,11 @@ function FieldRow({ field, onChange, onRemove, onMove }) {
       )}
 
       <label className="mb-checkbox-row">
-        <input type="checkbox" checked={!!field.required} onChange={(e) => onChange({ ...field, required: e.target.checked })} />
+        <input
+          type="checkbox"
+          checked={!!field.required}
+          onChange={(e) => onChange({ ...field, required: e.target.checked })}
+        />
         Required
       </label>
     </div>

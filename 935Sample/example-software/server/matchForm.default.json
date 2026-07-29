@@ -18,24 +18,64 @@
           "sectionLabel": "Start Cycle",
           "cols": 1,
           "buttons": [
-            { "id": "gain", "label": "Gain Possession", "icon": "handFist", "color": "action", "action": "startCycle" }
+            {
+              "id": "gain",
+              "label": "Gain Possession",
+              "icon": "handFist",
+              "color": "action",
+              "action": "startCycle"
+            }
           ]
         },
         {
           "sectionLabel": "Shooting",
           "cols": 1,
           "buttons": [
-            { "id": "shoot", "label": "Start Shooting", "icon": "crosshairs", "color": "neutral", "action": "startShooting", "requiresCycle": true }
+            {
+              "id": "shoot",
+              "label": "Start Shooting",
+              "icon": "crosshairs",
+              "color": "neutral",
+              "action": "startShooting",
+              "requiresCycle": true
+            }
           ]
         },
         {
           "sectionLabel": "Finish Cycle",
           "cols": 2,
           "buttons": [
-            { "id": "full", "label": "Full Score", "icon": "circleCheck", "color": "success", "action": "finishFull", "requiresCycle": true },
-            { "id": "partial", "label": "Partial", "icon": "bolt", "color": "warn", "action": "finishPartial", "requiresCycle": true },
-            { "id": "fail", "label": "Failed", "icon": "xmark", "color": "danger", "action": "finishFail", "requiresCycle": true },
-            { "id": "break", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" }
+            {
+              "id": "full",
+              "label": "Full Score",
+              "icon": "circleCheck",
+              "color": "success",
+              "action": "finishFull",
+              "requiresCycle": true
+            },
+            {
+              "id": "partial",
+              "label": "Partial",
+              "icon": "bolt",
+              "color": "warn",
+              "action": "finishPartial",
+              "requiresCycle": true
+            },
+            {
+              "id": "fail",
+              "label": "Failed",
+              "icon": "xmark",
+              "color": "danger",
+              "action": "finishFail",
+              "requiresCycle": true
+            },
+            {
+              "id": "break",
+              "label": "Breakdown",
+              "icon": "triangleExclamation",
+              "color": "danger",
+              "action": "breakdown"
+            }
           ]
         }
       ]
@@ -48,25 +88,73 @@
           "sectionLabel": "Did They Score?",
           "cols": 2,
           "buttons": [
-            { "id": "txScore", "label": "Scored", "icon": "circleCheck", "color": "success", "action": "transitStat", "statKey": "transitScore" },
-            { "id": "txFail", "label": "Missed", "icon": "xmark", "color": "danger", "action": "transitStat", "statKey": "transitMiss" }
+            {
+              "id": "txScore",
+              "label": "Scored",
+              "icon": "circleCheck",
+              "color": "success",
+              "action": "transitStat",
+              "statKey": "transitScore"
+            },
+            {
+              "id": "txFail",
+              "label": "Missed",
+              "icon": "xmark",
+              "color": "danger",
+              "action": "transitStat",
+              "statKey": "transitMiss"
+            }
           ]
         },
         {
           "sectionLabel": "What Did We Do?",
           "cols": 3,
           "buttons": [
-            { "id": "txCollect", "label": "Collect", "icon": "circle", "color": "action", "action": "transitStat", "statKey": "transitCollect" },
-            { "id": "txDefend", "label": "Defend", "icon": "shield", "color": "defend", "action": "transitStat", "statKey": "transitDefend" },
-            { "id": "txScore2", "label": "We Scored", "icon": "crosshairs", "color": "success", "action": "transitStat", "statKey": "transitWeScore" }
+            {
+              "id": "txCollect",
+              "label": "Collect",
+              "icon": "circle",
+              "color": "action",
+              "action": "transitStat",
+              "statKey": "transitCollect"
+            },
+            {
+              "id": "txDefend",
+              "label": "Defend",
+              "icon": "shield",
+              "color": "defend",
+              "action": "transitStat",
+              "statKey": "transitDefend"
+            },
+            {
+              "id": "txScore2",
+              "label": "We Scored",
+              "icon": "crosshairs",
+              "color": "success",
+              "action": "transitStat",
+              "statKey": "transitWeScore"
+            }
           ]
         },
         {
           "sectionLabel": "Other",
           "cols": 2,
           "buttons": [
-            { "id": "txBreak", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" },
-            { "id": "txNone", "label": "Nothing", "icon": "minus", "color": "neutral", "action": "transitStat", "statKey": "transitNothing" }
+            {
+              "id": "txBreak",
+              "label": "Breakdown",
+              "icon": "triangleExclamation",
+              "color": "danger",
+              "action": "breakdown"
+            },
+            {
+              "id": "txNone",
+              "label": "Nothing",
+              "icon": "minus",
+              "color": "neutral",
+              "action": "transitStat",
+              "statKey": "transitNothing"
+            }
           ]
         }
       ]
@@ -79,31 +167,78 @@
           "sectionLabel": "Start Cycle",
           "cols": 1,
           "buttons": [
-            { "id": "gain", "label": "Gain Possession", "icon": "handFist", "color": "action", "action": "startCycle" }
+            {
+              "id": "gain",
+              "label": "Gain Possession",
+              "icon": "handFist",
+              "color": "action",
+              "action": "startCycle"
+            }
           ]
         },
         {
           "sectionLabel": "Shooting",
           "cols": 1,
           "buttons": [
-            { "id": "shoot", "label": "Start Shooting", "icon": "crosshairs", "color": "neutral", "action": "startShooting", "requiresCycle": true }
+            {
+              "id": "shoot",
+              "label": "Start Shooting",
+              "icon": "crosshairs",
+              "color": "neutral",
+              "action": "startShooting",
+              "requiresCycle": true
+            }
           ]
         },
         {
           "sectionLabel": "Actions",
           "cols": 2,
           "buttons": [
-            { "id": "defend", "label": "Defended", "icon": "shield", "color": "defend", "action": "defend", "requiresCycle": true },
-            { "id": "break", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" }
+            {
+              "id": "defend",
+              "label": "Defended",
+              "icon": "shield",
+              "color": "defend",
+              "action": "defend",
+              "requiresCycle": true
+            },
+            {
+              "id": "break",
+              "label": "Breakdown",
+              "icon": "triangleExclamation",
+              "color": "danger",
+              "action": "breakdown"
+            }
           ]
         },
         {
           "sectionLabel": "Finish Cycle",
           "cols": 2,
           "buttons": [
-            { "id": "full", "label": "Full Score", "icon": "circleCheck", "color": "success", "action": "finishFull", "requiresCycle": true },
-            { "id": "partial", "label": "Partial", "icon": "bolt", "color": "warn", "action": "finishPartial", "requiresCycle": true },
-            { "id": "fail", "label": "Failed", "icon": "xmark", "color": "danger", "action": "finishFail", "requiresCycle": true }
+            {
+              "id": "full",
+              "label": "Full Score",
+              "icon": "circleCheck",
+              "color": "success",
+              "action": "finishFull",
+              "requiresCycle": true
+            },
+            {
+              "id": "partial",
+              "label": "Partial",
+              "icon": "bolt",
+              "color": "warn",
+              "action": "finishPartial",
+              "requiresCycle": true
+            },
+            {
+              "id": "fail",
+              "label": "Failed",
+              "icon": "xmark",
+              "color": "danger",
+              "action": "finishFail",
+              "requiresCycle": true
+            }
           ]
         }
       ],
@@ -112,8 +247,20 @@
           "sectionLabel": "Endgame — Climb",
           "cols": 2,
           "buttons": [
-            { "id": "climbOk", "label": "Climb OK", "icon": "rocket", "color": "success", "action": "climbOk" },
-            { "id": "climbFail", "label": "Climb Fail", "icon": "bomb", "color": "danger", "action": "climbFail" }
+            {
+              "id": "climbOk",
+              "label": "Climb OK",
+              "icon": "rocket",
+              "color": "success",
+              "action": "climbOk"
+            },
+            {
+              "id": "climbFail",
+              "label": "Climb Fail",
+              "icon": "bomb",
+              "color": "danger",
+              "action": "climbFail"
+            }
           ]
         }
       ]
@@ -126,18 +273,60 @@
           "sectionLabel": "Ball Interactions",
           "cols": 3,
           "buttons": [
-            { "id": "collect", "label": "Collect", "icon": "circle", "color": "action", "action": "offStat", "statKey": "offCollect" },
-            { "id": "push", "label": "Push", "icon": "handPointRight", "color": "action", "action": "offStat", "statKey": "offPush" },
-            { "id": "shoot", "label": "Shoot", "icon": "crosshairs", "color": "action", "action": "offStat", "statKey": "offShoot" }
+            {
+              "id": "collect",
+              "label": "Collect",
+              "icon": "circle",
+              "color": "action",
+              "action": "offStat",
+              "statKey": "offCollect"
+            },
+            {
+              "id": "push",
+              "label": "Push",
+              "icon": "handPointRight",
+              "color": "action",
+              "action": "offStat",
+              "statKey": "offPush"
+            },
+            {
+              "id": "shoot",
+              "label": "Shoot",
+              "icon": "crosshairs",
+              "color": "action",
+              "action": "offStat",
+              "statKey": "offShoot"
+            }
           ]
         },
         {
           "sectionLabel": "Other",
           "cols": 3,
           "buttons": [
-            { "id": "dispense", "label": "Dispense", "sub": "to their side", "icon": "arrowTurnUp", "color": "neutral", "action": "offStat", "statKey": "offDispense" },
-            { "id": "offdefend", "label": "Defend", "icon": "shield", "color": "defend", "action": "offStat", "statKey": "offDefend" },
-            { "id": "break", "label": "Breakdown", "icon": "triangleExclamation", "color": "danger", "action": "breakdown" }
+            {
+              "id": "dispense",
+              "label": "Dispense",
+              "sub": "to their side",
+              "icon": "arrowTurnUp",
+              "color": "neutral",
+              "action": "offStat",
+              "statKey": "offDispense"
+            },
+            {
+              "id": "offdefend",
+              "label": "Defend",
+              "icon": "shield",
+              "color": "defend",
+              "action": "offStat",
+              "statKey": "offDefend"
+            },
+            {
+              "id": "break",
+              "label": "Breakdown",
+              "icon": "triangleExclamation",
+              "color": "danger",
+              "action": "breakdown"
+            }
           ]
         }
       ],
@@ -146,8 +335,20 @@
           "sectionLabel": "Endgame — Climb",
           "cols": 2,
           "buttons": [
-            { "id": "climbOk", "label": "Climb OK", "icon": "rocket", "color": "success", "action": "climbOk" },
-            { "id": "climbFail", "label": "Climb Fail", "icon": "bomb", "color": "danger", "action": "climbFail" }
+            {
+              "id": "climbOk",
+              "label": "Climb OK",
+              "icon": "rocket",
+              "color": "success",
+              "action": "climbOk"
+            },
+            {
+              "id": "climbFail",
+              "label": "Climb Fail",
+              "icon": "bomb",
+              "color": "danger",
+              "action": "climbFail"
+            }
           ]
         }
       ]

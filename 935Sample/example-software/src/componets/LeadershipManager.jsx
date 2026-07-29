@@ -225,21 +225,24 @@ export default function LeadershipManager() {
             <div className="leadership-toggles">
               <details className="leadership-access-menu">
                 <summary>
-                  Drive folder access ({(user.leadershipSubgroups || []).length})
+                  Drive folder access ({(user.leadershipSubgroups || []).length}
+                  )
                 </summary>
                 <div className="leadership-access-options">
-              {subgroups.map((group) => (
-                <label key={group}>
-                  <input
-                    type="checkbox"
-                    checked={(user.leadershipSubgroups || []).includes(group)}
-                    disabled={Boolean(saving)}
-                    onChange={() => saveLeader(user, group)}
-                  />
-                  {group}
-                  {saving === `${user.username}-${group}` ? "…" : ""}
-                </label>
-              ))}
+                  {subgroups.map((group) => (
+                    <label key={group}>
+                      <input
+                        type="checkbox"
+                        checked={(user.leadershipSubgroups || []).includes(
+                          group,
+                        )}
+                        disabled={Boolean(saving)}
+                        onChange={() => saveLeader(user, group)}
+                      />
+                      {group}
+                      {saving === `${user.username}-${group}` ? "…" : ""}
+                    </label>
+                  ))}
                 </div>
               </details>
             </div>

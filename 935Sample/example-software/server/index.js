@@ -213,7 +213,14 @@ function getUserByUsername(username) {
   );
 }
 
-function createUser({ username, passwordHash, firstName, lastName, role, subgroup }) {
+function createUser({
+  username,
+  passwordHash,
+  firstName,
+  lastName,
+  role,
+  subgroup,
+}) {
   db.prepare(
     `INSERT INTO users
       (username, password_hash, first_name, last_name, role, subgroup, competition_role, leadership_subgroups, created_at)
@@ -761,11 +768,9 @@ app.post("/feedback", (req, res) => {
     !title?.trim() ||
     !details?.trim()
   ) {
-    return res
-      .status(400)
-      .json({
-        error: "Choose a category and provide a title and description.",
-      });
+    return res.status(400).json({
+      error: "Choose a category and provide a title and description.",
+    });
   }
   const feedback = {
     id: `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -884,10 +889,7 @@ function getMatchForm() {
   try {
     return JSON.parse(fs.readFileSync("matchForm.json", "utf8"));
   } catch {
-
-    const seed = JSON.parse(
-      fs.readFileSync("matchForm.default.json", "utf8"),
-    );
+    const seed = JSON.parse(fs.readFileSync("matchForm.default.json", "utf8"));
     fs.writeFileSync("matchForm.json", JSON.stringify(seed, null, 2), "utf-8");
     return seed;
   }
@@ -1002,7 +1004,8 @@ app.post("/auth/login", async (req, res) => {
 // ==== USER REGISTRATION ENDPOINT ==== //
 app.post("/auth/register", async (req, res) => {
   try {
-    const { username, password, role, subgroup, firstName, lastName } = req.body;
+    const { username, password, role, subgroup, firstName, lastName } =
+      req.body;
 
     // 1. Validate incoming data payload
     if (!username || !password || !role || !firstName || !lastName) {
@@ -1020,7 +1023,7 @@ app.post("/auth/register", async (req, res) => {
       "students",
       "teamMember",
       "coach",
-      "Mentor"
+      "Mentor",
     ];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: "Un-verified account role" });
@@ -1080,7 +1083,9 @@ const ALLOWED_COMPETITION_ROLES = [
   "strategist",
 ];
 
-app.get("/competition-roles", (req, res) => res.json(ALLOWED_COMPETITION_ROLES));
+app.get("/competition-roles", (req, res) =>
+  res.json(ALLOWED_COMPETITION_ROLES),
+);
 
 app.patch(
   "/users/:username/competition-role",
@@ -1459,24 +1464,34 @@ app.get("/match/form", (req, res) => {
   try {
     res.json(getMatchForm());
   } catch (err) {
-    res.status(500).json({ error: "Failed to load match form", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to load match form", detail: err.message });
   }
 });
- 
+
 app.post("/match/form/save", (req, res) => {
   const config = req.body;
- 
+
   if (!config || !config.timing || !config.phases) {
-    return res.status(400).json({ error: "Invalid match config — missing timing/phases" });
+    return res
+      .status(400)
+      .json({ error: "Invalid match config — missing timing/phases" });
   }
- 
+
   try {
-    fs.writeFileSync("matchForm.json", JSON.stringify(config, null, 2), "utf-8");
+    fs.writeFileSync(
+      "matchForm.json",
+      JSON.stringify(config, null, 2),
+      "utf-8",
+    );
     console.log("[match/form] Match config saved.");
     res.json({ success: true, file: "matchForm.json" });
   } catch (err) {
     console.error("[match/form] Failed to save config:", err.message);
-    res.status(500).json({ error: "Failed to save match config", detail: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save match config", detail: err.message });
   }
 });
 

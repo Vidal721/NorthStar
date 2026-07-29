@@ -1,10 +1,3 @@
-// Central place for anything token-related. The token is the ONLY thing that
-// actually matters for security - it's signed by the server, so nothing in
-// here can be edited from the browser console to fake a different role.
-// Anything else we mirror into localStorage (currentUser, userRole, ...) is
-// just for convenience/display in other parts of the app; it is never trusted
-// for access decisions.
-
 const TOKEN_KEY = "authToken";
 
 export function getToken() {
@@ -19,10 +12,6 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-// Decodes the JWT payload (base64) without checking the signature. That's ok
-// here - it's only used client-side to decide what to show. The signature is
-// still verified on every real request by the backend, so tampering with a
-// token just gets every API call rejected with a 401, it doesn't grant access.
 export function decodeToken(token) {
   if (!token) return null;
   try {

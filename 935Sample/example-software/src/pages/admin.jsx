@@ -43,8 +43,8 @@ import {
   setUseLocalApi,
 } from "../apiConfig";
 import { useURL } from "../urlConfig";
-import UpdateModal from '../componets/UpdateModal';
-import appInfo from './info.json';
+import UpdateModal from "../componets/UpdateModal";
+import appInfo from "./info.json";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -63,22 +63,22 @@ export default function AdminDashboard() {
 
   const currentScout = localStorage.getItem("currentUser") || "Unknown Admin";
   const apiBaseUrl = useURL();
-    const [hasNewUpdate, setHasNewUpdate] = useState(false);
+  const [hasNewUpdate, setHasNewUpdate] = useState(false);
 
   useEffect(() => {
     // Check localStorage exactly once when the entire application mounts
-    const lastSeenVersion = localStorage.getItem('app_version_seen');
-    
+    const lastSeenVersion = localStorage.getItem("app_version_seen");
+
     // Safety check: Don't trigger the modal on first-time load
     if (!lastSeenVersion) {
-      localStorage.setItem('app_version_seen', appInfo.version);
+      localStorage.setItem("app_version_seen", appInfo.version);
     } else if (lastSeenVersion !== appInfo.version) {
       setHasNewUpdate(true);
     }
   }, []);
 
   const handleDismissUpdate = () => {
-    localStorage.setItem('app_version_seen', appInfo.version);
+    localStorage.setItem("app_version_seen", appInfo.version);
     setHasNewUpdate(false);
   };
 
@@ -238,7 +238,10 @@ export default function AdminDashboard() {
       const authIdentity = localStorage.getItem("currentUser") || "";
       const response = await fetch(
         `${apiBaseUrl}/users/${encodeURIComponent(username)}?actor=${encodeURIComponent(authIdentity)}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${authIdentity}` } },
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${authIdentity}` },
+        },
       );
       if (response.ok) {
         fetchAllSystemData({ showFullScreenLoader: false });
@@ -688,7 +691,10 @@ export default function AdminDashboard() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex gap-sm" style={{ alignItems: "center" }}>
+                    <div
+                      className="flex gap-sm"
+                      style={{ alignItems: "center" }}
+                    >
                       {isSelf && (
                         <span className="admin-status-pill active">
                           <FontAwesomeIcon icon={faCircleCheck} /> ACTIVE
@@ -778,7 +784,11 @@ export default function AdminDashboard() {
               <Link to="/match" rel="noopener noreferrer" className="adminApps">
                 Match Scouting
               </Link>
-              <Link to="/matchBuilder" rel="noopener noreferrer" className="adminApps">
+              <Link
+                to="/matchBuilder"
+                rel="noopener noreferrer"
+                className="adminApps"
+              >
                 Match Builder
               </Link>
               <Link to="/vis" rel="noopener noreferrer" className="adminApps">

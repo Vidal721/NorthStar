@@ -19,21 +19,21 @@ export default function MessagingDrawer() {
   const actor = localStorage.getItem("currentUser") || "";
   const actorRole = localStorage.getItem("userRole") || "";
   const actorSubgroup = localStorage.getItem("userSubgroup") || "";
-  
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [subgroups, setSubgroups] = useState([]);
   const [groups, setGroups] = useState([]);
-  
+
   // Navigation states
   // activeThread: null (shows conversations list) or { type: "everyone"|"subgroup"|"group"|"person", value: string, name: string }
   const [activeThread, setActiveThread] = useState(null);
-  
+
   // Plus Modal states
   const [showPlusModal, setShowPlusModal] = useState(false);
   const [plusView, setPlusView] = useState("menu"); // "menu" | "dm" | "group" | "announcement"
-  
+
   // Form values
   const [messageBody, setMessageBody] = useState("");
   const [groupName, setGroupName] = useState("");
@@ -58,12 +58,20 @@ export default function MessagingDrawer() {
     if (!actor) return;
     try {
       const [m, u, s, g] = await Promise.all([
-        fetch(`${api}/messages?actor=${encodeURIComponent(actor)}`, { headers: { "ngrok-skip-browser-warning": "69420" } }),
-        fetch(`${api}/directory?actor=${encodeURIComponent(actor)}`, { headers: { "ngrok-skip-browser-warning": "69420" } }),
-        fetch(`${api}/subgroups`, { headers: { "ngrok-skip-browser-warning": "69420" } }),
-        fetch(`${api}/message-groups?actor=${encodeURIComponent(actor)}`, { headers: { "ngrok-skip-browser-warning": "69420" } }),
+        fetch(`${api}/messages?actor=${encodeURIComponent(actor)}`, {
+          headers: { "ngrok-skip-browser-warning": "69420" },
+        }),
+        fetch(`${api}/directory?actor=${encodeURIComponent(actor)}`, {
+          headers: { "ngrok-skip-browser-warning": "69420" },
+        }),
+        fetch(`${api}/subgroups`, {
+          headers: { "ngrok-skip-browser-warning": "69420" },
+        }),
+        fetch(`${api}/message-groups?actor=${encodeURIComponent(actor)}`, {
+          headers: { "ngrok-skip-browser-warning": "69420" },
+        }),
       ]);
-      
+
       if (m.ok) setMessages(await m.json());
       if (u.ok) setUsers(await u.json());
       if (s.ok) setSubgroups(await s.json());
@@ -157,13 +165,13 @@ export default function MessagingDrawer() {
     if (!dmTarget) return;
 
     setShowPlusModal(false);
-    
+
     // Check if DM partner already exists in messages
     const hasHistory = messages.some(
       (m) =>
         m.recipient_type === "person" &&
         ((m.sender === dmTarget && m.recipient_value === actor) ||
-          (m.sender === actor && m.recipient_value === dmTarget))
+          (m.sender === actor && m.recipient_value === dmTarget)),
     );
 
     const threadInfo = {
@@ -175,7 +183,7 @@ export default function MessagingDrawer() {
     if (!hasHistory) {
       setNewDmTarget(dmTarget);
     }
-    
+
     setActiveThread(threadInfo);
     setDmTarget("");
   };
@@ -213,12 +221,17 @@ export default function MessagingDrawer() {
   const deleteMessage = async (msgId) => {
     setDeletingMessageId(msgId);
     try {
-      const res = await fetch(`${api}/messages/${encodeURIComponent(msgId)}?actor=${encodeURIComponent(actor)}`, {
-        method: "DELETE",
-        headers: { "ngrok-skip-browser-warning": "69420" },
-      });
+      const res = await fetch(
+        `${api}/messages/${encodeURIComponent(msgId)}?actor=${encodeURIComponent(actor)}`,
+        {
+          method: "DELETE",
+          headers: { "ngrok-skip-browser-warning": "69420" },
+        },
+      );
       if (res.ok) {
-        setMessages((currentMessages) => currentMessages.filter((message) => message.id !== msgId));
+        setMessages((currentMessages) =>
+          currentMessages.filter((message) => message.id !== msgId),
+        );
         setMessagePendingDeletion(null);
       } else {
         const data = await res.json().catch(() => ({}));
@@ -237,7 +250,10 @@ export default function MessagingDrawer() {
   const formatMsgTime = (isoString) => {
     try {
       const date = new Date(isoString);
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch (e) {
       return "";
     }
@@ -251,7 +267,10 @@ export default function MessagingDrawer() {
       const date = new Date(last.created_at);
       const now = new Date();
       if (date.toDateString() === now.toDateString()) {
-        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
       }
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
     } catch (e) {
@@ -264,7 +283,9 @@ export default function MessagingDrawer() {
     const list = [];
 
     // 1. Everyone Thread
-    const everyoneMsgs = messages.filter((m) => m.recipient_type === "everyone");
+    const everyoneMsgs = messages.filter(
+      (m) => m.recipient_type === "everyone",
+    );
     list.push({
       id: "everyone",
       name: "Everyone Chat",
@@ -272,14 +293,18 @@ export default function MessagingDrawer() {
       type: "everyone",
       value: "",
       messages: everyoneMsgs,
-      lastMessage: everyoneMsgs[0] ? everyoneMsgs[0].body : "Start conversation here",
+      lastMessage: everyoneMsgs[0]
+        ? everyoneMsgs[0].body
+        : "Start conversation here",
       time: getThreadTime(everyoneMsgs),
     });
 
     // 2. Subgroup Thread (for user's subgroup)
     if (actorSubgroup && actorSubgroup !== "none") {
       const subgroupMsgs = messages.filter(
-        (m) => m.recipient_type === "subgroup" && m.recipient_value === actorSubgroup
+        (m) =>
+          m.recipient_type === "subgroup" &&
+          m.recipient_value === actorSubgroup,
       );
       list.push({
         id: `subgroup-${actorSubgroup}`,
@@ -288,7 +313,9 @@ export default function MessagingDrawer() {
         type: "subgroup",
         value: actorSubgroup,
         messages: subgroupMsgs,
-        lastMessage: subgroupMsgs[0] ? subgroupMsgs[0].body : `Chat with ${actorSubgroup} team`,
+        lastMessage: subgroupMsgs[0]
+          ? subgroupMsgs[0].body
+          : `Chat with ${actorSubgroup} team`,
         time: getThreadTime(subgroupMsgs),
       });
     }
@@ -296,7 +323,7 @@ export default function MessagingDrawer() {
     // 3. Message Groups
     groups.forEach((g) => {
       const groupMsgs = messages.filter(
-        (m) => m.recipient_type === "group" && m.recipient_value === g.id
+        (m) => m.recipient_type === "group" && m.recipient_value === g.id,
       );
       list.push({
         id: `group-${g.id}`,
@@ -327,7 +354,7 @@ export default function MessagingDrawer() {
         (m) =>
           m.recipient_type === "person" &&
           ((m.sender === partner && m.recipient_value === actor) ||
-            (m.sender === actor && m.recipient_value === partner))
+            (m.sender === actor && m.recipient_value === partner)),
       );
       list.push({
         id: `person-${partner}`,
@@ -343,8 +370,12 @@ export default function MessagingDrawer() {
 
     // Sort threads so that threads with the most recent messages are at the top
     list.sort((a, b) => {
-      const aTime = a.messages[0] ? new Date(a.messages[0].created_at).getTime() : 0;
-      const bTime = b.messages[0] ? new Date(b.messages[0].created_at).getTime() : 0;
+      const aTime = a.messages[0]
+        ? new Date(a.messages[0].created_at).getTime()
+        : 0;
+      const bTime = b.messages[0]
+        ? new Date(b.messages[0].created_at).getTime()
+        : 0;
       return bTime - aTime;
     });
 
@@ -366,7 +397,10 @@ export default function MessagingDrawer() {
 
   const moveThreadSwipe = (event, threadId) => {
     if (draggingThreadId !== threadId) return;
-    const distance = Math.max(0, Math.min(event.touches[0].clientX - swipeStartX.current, 96));
+    const distance = Math.max(
+      0,
+      Math.min(event.touches[0].clientX - swipeStartX.current, 96),
+    );
     setDragOffset(distance);
   };
 
@@ -380,20 +414,26 @@ export default function MessagingDrawer() {
   // Get messages for the active thread
   const getActiveThreadMessages = () => {
     if (!activeThread) return [];
-    
+
     if (activeThread.type === "everyone") {
-      return messages
-        .filter((m) => m.recipient_type === "everyone")
-        .reverse();
+      return messages.filter((m) => m.recipient_type === "everyone").reverse();
     }
     if (activeThread.type === "subgroup") {
       return messages
-        .filter((m) => m.recipient_type === "subgroup" && m.recipient_value === activeThread.value)
+        .filter(
+          (m) =>
+            m.recipient_type === "subgroup" &&
+            m.recipient_value === activeThread.value,
+        )
         .reverse();
     }
     if (activeThread.type === "group") {
       return messages
-        .filter((m) => m.recipient_type === "group" && m.recipient_value === activeThread.value)
+        .filter(
+          (m) =>
+            m.recipient_type === "group" &&
+            m.recipient_value === activeThread.value,
+        )
         .reverse();
     }
     if (activeThread.type === "person") {
@@ -402,7 +442,7 @@ export default function MessagingDrawer() {
           (m) =>
             m.recipient_type === "person" &&
             ((m.sender === activeThread.value && m.recipient_value === actor) ||
-              (m.sender === actor && m.recipient_value === activeThread.value))
+              (m.sender === actor && m.recipient_value === activeThread.value)),
         )
         .reverse();
     }
@@ -411,7 +451,9 @@ export default function MessagingDrawer() {
 
   const threads = getThreadsList();
   const threadMsgs = getActiveThreadMessages();
-  const allowedToAnnounce = ["admin", "coach", "mentor"].includes(actorRole.toLowerCase()) || actorRole.toLowerCase() === "programmer";
+  const allowedToAnnounce =
+    ["admin", "coach", "mentor"].includes(actorRole.toLowerCase()) ||
+    actorRole.toLowerCase() === "programmer";
 
   return (
     <>
@@ -467,8 +509,14 @@ export default function MessagingDrawer() {
                     </button>
                     <div
                       className={`chat-thread-item ${swipedThreadId === thread.id ? "swiped" : ""}`}
-                      style={draggingThreadId === thread.id ? { transform: `translateX(${dragOffset}px)` } : undefined}
-                      onTouchStart={(event) => beginThreadSwipe(event, thread.id)}
+                      style={
+                        draggingThreadId === thread.id
+                          ? { transform: `translateX(${dragOffset}px)` }
+                          : undefined
+                      }
+                      onTouchStart={(event) =>
+                        beginThreadSwipe(event, thread.id)
+                      }
                       onTouchMove={(event) => moveThreadSwipe(event, thread.id)}
                       onTouchEnd={() => endThreadSwipe(thread.id)}
                       onTouchCancel={() => endThreadSwipe(thread.id)}
@@ -477,17 +525,27 @@ export default function MessagingDrawer() {
                           setSwipedThreadId(null);
                           return;
                         }
-                        setActiveThread({ type: thread.type, value: thread.value, name: thread.name });
+                        setActiveThread({
+                          type: thread.type,
+                          value: thread.value,
+                          name: thread.name,
+                        });
                       }}
                     >
                       <div className="chat-thread-avatar">{thread.avatar}</div>
                       <div className="chat-thread-details">
                         <div className="chat-thread-top">
-                          <span className="chat-thread-name">{thread.name}</span>
-                          <span className="chat-thread-time">{thread.time}</span>
+                          <span className="chat-thread-name">
+                            {thread.name}
+                          </span>
+                          <span className="chat-thread-time">
+                            {thread.time}
+                          </span>
                         </div>
                         <div className="chat-thread-bottom">
-                          <span className="chat-thread-preview">{thread.lastMessage}</span>
+                          <span className="chat-thread-preview">
+                            {thread.lastMessage}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -501,17 +559,21 @@ export default function MessagingDrawer() {
           {activeThread && (
             <div className="chat-detail-container">
               <div className="chat-detail-header">
-                <button className="chat-back-btn" onClick={() => {
-                  setActiveThread(null);
-                  setNewDmTarget(null);
-                }}>
+                <button
+                  className="chat-back-btn"
+                  onClick={() => {
+                    setActiveThread(null);
+                    setNewDmTarget(null);
+                  }}
+                >
                   <FontAwesomeIcon icon={faArrowLeft} /> Chats
                 </button>
                 <div className="chat-detail-title-info">
                   <div className="chat-detail-title">{activeThread.name}</div>
                   <div className="chat-detail-subtitle">
                     {activeThread.type === "everyone" && "Global group chat"}
-                    {activeThread.type === "subgroup" && `${activeThread.value} subgroup`}
+                    {activeThread.type === "subgroup" &&
+                      `${activeThread.value} subgroup`}
                     {activeThread.type === "group" && "Private group chat"}
                     {activeThread.type === "person" && "Direct message"}
                   </div>
@@ -520,60 +582,83 @@ export default function MessagingDrawer() {
 
               {/* Message History */}
               <div className="chat-messages-scroll">
-                 {threadMsgs.map((msg) => {
-                   const isOutgoing = msg.sender === actor;
-                   return (
-                     <div
-                       key={msg.id}
-                       className={`message-bubble-wrapper ${isOutgoing ? "outgoing" : "incoming"}`}
-                       style={{ position: "relative" }}
-                     >
-                       {!isOutgoing && activeThread.type !== "person" && (
-                         <div className="message-bubble-sender">{msg.sender}</div>
-                       )}
-                       <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", flexDirection: isOutgoing ? "row-reverse" : "row" }}>
-                         <div className="message-bubble">
-                           {msg.body}
-                           <span className="message-bubble-time">{formatMsgTime(msg.created_at)}</span>
-                         </div>
-                         {(isOutgoing || isAdminOrCoach) && (
-                           messagePendingDeletion === msg.id ? (
-                             <div className="msg-delete-confirm" role="group" aria-label="Confirm message deletion">
-                               <button
-                                 type="button"
-                                 className="msg-delete-confirm-btn"
-                                 onClick={() => deleteMessage(msg.id)}
-                                 disabled={deletingMessageId === msg.id}
-                               >
-                                 {deletingMessageId === msg.id ? "Deleting" : "Delete"}
-                               </button>
-                               <button
-                                 type="button"
-                                 className="msg-delete-cancel-btn"
-                                 onClick={() => setMessagePendingDeletion(null)}
-                                 disabled={deletingMessageId === msg.id}
-                               >
-                                 Cancel
-                               </button>
-                             </div>
-                           ) : (
-                             <button
-                               type="button"
-                               className="msg-delete-btn"
-                               title="Delete message"
-                               aria-label="Delete message"
-                               onClick={() => setMessagePendingDeletion(msg.id)}
-                             >
-                               <FontAwesomeIcon icon={faTrash} />
-                             </button>
-                           )
-                         )}
-                       </div>
-                     </div>
-                   );
-                 })}
+                {threadMsgs.map((msg) => {
+                  const isOutgoing = msg.sender === actor;
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`message-bubble-wrapper ${isOutgoing ? "outgoing" : "incoming"}`}
+                      style={{ position: "relative" }}
+                    >
+                      {!isOutgoing && activeThread.type !== "person" && (
+                        <div className="message-bubble-sender">
+                          {msg.sender}
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: "6px",
+                          flexDirection: isOutgoing ? "row-reverse" : "row",
+                        }}
+                      >
+                        <div className="message-bubble">
+                          {msg.body}
+                          <span className="message-bubble-time">
+                            {formatMsgTime(msg.created_at)}
+                          </span>
+                        </div>
+                        {(isOutgoing || isAdminOrCoach) &&
+                          (messagePendingDeletion === msg.id ? (
+                            <div
+                              className="msg-delete-confirm"
+                              role="group"
+                              aria-label="Confirm message deletion"
+                            >
+                              <button
+                                type="button"
+                                className="msg-delete-confirm-btn"
+                                onClick={() => deleteMessage(msg.id)}
+                                disabled={deletingMessageId === msg.id}
+                              >
+                                {deletingMessageId === msg.id
+                                  ? "Deleting"
+                                  : "Delete"}
+                              </button>
+                              <button
+                                type="button"
+                                className="msg-delete-cancel-btn"
+                                onClick={() => setMessagePendingDeletion(null)}
+                                disabled={deletingMessageId === msg.id}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="msg-delete-btn"
+                              title="Delete message"
+                              aria-label="Delete message"
+                              onClick={() => setMessagePendingDeletion(msg.id)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  );
+                })}
                 {newDmTarget && (
-                  <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem", margin: "20px 0" }}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      color: "var(--text-muted)",
+                      fontSize: "0.85rem",
+                      margin: "20px 0",
+                    }}
+                  >
                     Starting a conversation with {newDmTarget}. Say hello!
                   </div>
                 )}
@@ -617,7 +702,10 @@ export default function MessagingDrawer() {
                     {plusView === "group" && "New Group Chat"}
                     {plusView === "announcement" && "Make Announcement"}
                   </h3>
-                  <button className="chat-modal-close" onClick={() => setShowPlusModal(false)}>
+                  <button
+                    className="chat-modal-close"
+                    onClick={() => setShowPlusModal(false)}
+                  >
                     <FontAwesomeIcon icon={faX} />
                   </button>
                 </div>
@@ -626,23 +714,43 @@ export default function MessagingDrawer() {
                   {/* Plus menu options */}
                   {plusView === "menu" && (
                     <>
-                      <div className="chat-option-card" onClick={() => setPlusView("dm")}>
-                        <FontAwesomeIcon icon={faUser} className="chat-option-icon" />
+                      <div
+                        className="chat-option-card"
+                        onClick={() => setPlusView("dm")}
+                      >
+                        <FontAwesomeIcon
+                          icon={faUser}
+                          className="chat-option-icon"
+                        />
                         <div className="chat-option-text">
                           <h4>Direct Message</h4>
-                          <p>Start a private chat with someone from directory</p>
+                          <p>
+                            Start a private chat with someone from directory
+                          </p>
                         </div>
                       </div>
-                      <div className="chat-option-card" onClick={() => setPlusView("group")}>
-                        <FontAwesomeIcon icon={faUsers} className="chat-option-icon" />
+                      <div
+                        className="chat-option-card"
+                        onClick={() => setPlusView("group")}
+                      >
+                        <FontAwesomeIcon
+                          icon={faUsers}
+                          className="chat-option-icon"
+                        />
                         <div className="chat-option-text">
                           <h4>Create Message Group</h4>
                           <p>Start a group chat with multiple teammates</p>
                         </div>
                       </div>
                       {allowedToAnnounce && (
-                        <div className="chat-option-card" onClick={() => setPlusView("announcement")}>
-                          <FontAwesomeIcon icon={faBullhorn} className="chat-option-icon" />
+                        <div
+                          className="chat-option-card"
+                          onClick={() => setPlusView("announcement")}
+                        >
+                          <FontAwesomeIcon
+                            icon={faBullhorn}
+                            className="chat-option-icon"
+                          />
                           <div className="chat-option-text">
                             <h4>Make Announcement</h4>
                             <p>Send team-wide notice with Chrome alert</p>
@@ -672,11 +780,26 @@ export default function MessagingDrawer() {
                             </option>
                           ))}
                       </select>
-                      <div className="chat-modal-footer" style={{ marginTop: "12px", border: "none", padding: 0 }}>
-                        <button type="button" className="chat-btn secondary" onClick={() => setPlusView("menu")}>
+                      <div
+                        className="chat-modal-footer"
+                        style={{
+                          marginTop: "12px",
+                          border: "none",
+                          padding: 0,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="chat-btn secondary"
+                          onClick={() => setPlusView("menu")}
+                        >
                           Back
                         </button>
-                        <button type="submit" className="chat-btn primary" disabled={!dmTarget}>
+                        <button
+                          type="submit"
+                          className="chat-btn primary"
+                          disabled={!dmTarget}
+                        >
                           Chat
                         </button>
                       </div>
@@ -685,7 +808,10 @@ export default function MessagingDrawer() {
 
                   {/* Form: Create Message Group */}
                   {plusView === "group" && (
-                    <form onSubmit={handleCreateGroup} className="chat-form-group">
+                    <form
+                      onSubmit={handleCreateGroup}
+                      className="chat-form-group"
+                    >
                       <label htmlFor="group-name-input">Group Name</label>
                       <input
                         id="group-name-input"
@@ -700,28 +826,50 @@ export default function MessagingDrawer() {
                       <label style={{ marginTop: "8px" }}>Select Members</label>
                       <div className="chat-user-select-list">
                         {users.map((u) => (
-                          <label key={u.username} className="chat-user-select-row">
+                          <label
+                            key={u.username}
+                            className="chat-user-select-row"
+                          >
                             <input
                               type="checkbox"
                               checked={groupMembers.includes(u.username)}
                               onChange={() =>
                                 setGroupMembers((current) =>
                                   current.includes(u.username)
-                                    ? current.filter((item) => item !== u.username)
-                                    : [...current, u.username]
+                                    ? current.filter(
+                                        (item) => item !== u.username,
+                                      )
+                                    : [...current, u.username],
                                 )
                               }
                             />
-                            {u.username === actor ? `${u.username} (You)` : u.username}
+                            {u.username === actor
+                              ? `${u.username} (You)`
+                              : u.username}
                           </label>
                         ))}
                       </div>
 
-                      <div className="chat-modal-footer" style={{ marginTop: "12px", border: "none", padding: 0 }}>
-                        <button type="button" className="chat-btn secondary" onClick={() => setPlusView("menu")}>
+                      <div
+                        className="chat-modal-footer"
+                        style={{
+                          marginTop: "12px",
+                          border: "none",
+                          padding: 0,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="chat-btn secondary"
+                          onClick={() => setPlusView("menu")}
+                        >
                           Back
                         </button>
-                        <button type="submit" className="chat-btn primary" disabled={!groupName.trim()}>
+                        <button
+                          type="submit"
+                          className="chat-btn primary"
+                          disabled={!groupName.trim()}
+                        >
                           Create
                         </button>
                       </div>
@@ -730,8 +878,13 @@ export default function MessagingDrawer() {
 
                   {/* Form: Make Announcement */}
                   {plusView === "announcement" && (
-                    <form onSubmit={handleCreateAnnouncement} className="chat-form-group">
-                      <label htmlFor="announcement-text-input">Announcment Content</label>
+                    <form
+                      onSubmit={handleCreateAnnouncement}
+                      className="chat-form-group"
+                    >
+                      <label htmlFor="announcement-text-input">
+                        Announcment Content
+                      </label>
                       <textarea
                         id="announcement-text-input"
                         placeholder="Write announcement description..."
@@ -740,11 +893,26 @@ export default function MessagingDrawer() {
                         onChange={(e) => setAnnouncementText(e.target.value)}
                         required
                       />
-                      <div className="chat-modal-footer" style={{ marginTop: "12px", border: "none", padding: 0 }}>
-                        <button type="button" className="chat-btn secondary" onClick={() => setPlusView("menu")}>
+                      <div
+                        className="chat-modal-footer"
+                        style={{
+                          marginTop: "12px",
+                          border: "none",
+                          padding: 0,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="chat-btn secondary"
+                          onClick={() => setPlusView("menu")}
+                        >
                           Back
                         </button>
-                        <button type="submit" className="chat-btn primary" disabled={!announcementText.trim()}>
+                        <button
+                          type="submit"
+                          className="chat-btn primary"
+                          disabled={!announcementText.trim()}
+                        >
                           Post Announcement
                         </button>
                       </div>

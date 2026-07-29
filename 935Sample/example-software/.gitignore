@@ -36,7 +36,6 @@ scouting.db
 #Data Folders
 uploads/
 
-# Local environment variables
 .env
 .env.local
 .env.*.local

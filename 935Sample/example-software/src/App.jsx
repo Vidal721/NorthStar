@@ -21,9 +21,9 @@ import CoachPage from "./pages/coach";
 import StudentFormsPage from "./pages/studentForms";
 import MainScout from "./pages/scout";
 import ScoutSettings from "./pages/settings";
-import LeadScoutPage from './pages/leadScout'
-import DrivePage from './pages/drive'
-import MatchBuilder from './pages/matchBuilder'
+import LeadScoutPage from "./pages/leadScout";
+import DrivePage from "./pages/drive";
+import MatchBuilder from "./pages/matchBuilder";
 
 // Componets
 import ProtectedLayout from "./componets/ProtectedLayout";
@@ -105,7 +105,7 @@ function LoginScreen() {
         navigate("/student");
       } else if (userRole === "coach") {
         navigate("/coach");
-      } else{
+      } else {
         navigate("/scout");
       }
     } catch (err) {
@@ -170,7 +170,7 @@ function LoginScreen() {
 
 function RegisterScreen() {
   const navigate = useNavigate();
-  
+
   // Login variables
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -182,18 +182,26 @@ function RegisterScreen() {
 
   // Subgroup
   const [subgroup, setSubgroup] = useState("Manufacturing");
-  const [subgroups, setSubgroups] = useState(["Manufacturing", "Programming", "Design", "Electronics", "Media"]);
-  
+  const [subgroups, setSubgroups] = useState([
+    "Manufacturing",
+    "Programming",
+    "Design",
+    "Electronics",
+    "Media",
+  ]);
+
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     fetch(`${useURL()}/subgroups`)
-      .then((res) => res.ok ? res.json() : [])
+      .then((res) => (res.ok ? res.json() : []))
       .then((groups) => {
         if (groups.length) {
           setSubgroups(groups);
-          setSubgroup((current) => groups.includes(current) ? current : groups[0]);
+          setSubgroup((current) =>
+            groups.includes(current) ? current : groups[0],
+          );
         }
       })
       .catch(() => {});
@@ -211,14 +219,14 @@ function RegisterScreen() {
 
     // Only submit subgroup if the user is a student or programmer
     const finalSubgroup = role === "students" ? subgroup : "none";
-    
+
     // Only submit competition role if the user is a student, coach, or parent helper
 
     try {
       const response = await fetch(`${useURL()}/auth/register`, {
         method: "POST",
         headers: defaultHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           username,
           password,
           role,
@@ -362,7 +370,7 @@ function RegisterScreen() {
       </fieldset>
 
       {/* 2. Conditional Rendering: Only show Subgroup if role is "students" */}
-      {(role === "students") && (
+      {role === "students" && (
         <fieldset id="studentOnly" className="fieldset-container">
           <legend className="fieldset-legend">
             <label htmlFor="buildSeason">Subgroup</label>
@@ -380,7 +388,15 @@ function RegisterScreen() {
               outline: "none",
             }}
           >
-            {subgroups.map((group) => <option key={group} value={group} style={{ background: "#ffffff" }}>{group}</option>)}
+            {subgroups.map((group) => (
+              <option
+                key={group}
+                value={group}
+                style={{ background: "#ffffff" }}
+              >
+                {group}
+              </option>
+            ))}
           </select>
         </fieldset>
       )}
@@ -431,15 +447,19 @@ function App() {
         </Route>
 
         {/* All Authenticated Users Login */}
-        <Route element={<ProtectedLayout allowedRoles={["admin", "students", "helper", "Mentor", "coach"]} />}>
+        <Route
+          element={
+            <ProtectedLayout
+              allowedRoles={["admin", "students", "helper", "Mentor", "coach"]}
+            />
+          }
+        >
           <Route path="/student" element={<StudentFormsPage />} />
           <Route path="/form/:formId" element={<StudentFormsPage />} />
         </Route>
 
         {/* Competition Roles */}
-        <Route
-          element={<ProtectedLayout allowedRoles={["scouter"]} />}
-        >
+        <Route element={<ProtectedLayout allowedRoles={["scouter"]} />}>
           <Route path="/scout" element={<MainScout />} />
           <Route path="/pit" element={<PitScout />} />
           <Route path="/match" element={<MatchScout />} />

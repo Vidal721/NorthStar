@@ -1,5 +1,5 @@
-import https from "https"
-import { execSync } from "child_process"
+import https from "https";
+import { execSync } from "child_process";
 
 // --- CONFIGURATION ---
 const OWNER = "Vidal721";
