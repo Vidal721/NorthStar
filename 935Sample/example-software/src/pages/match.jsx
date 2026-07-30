@@ -36,15 +36,6 @@ const C = {
   },
 };
 
-// ============================================================
-//  🔘 DEFAULT BUTTON CONFIG — fallback only. The live copy lives
-//  in matchConfig (fetched from /match/form) and is edited from
-//  Admin ▸ Match Builder. Shape:
-//    label / icon(string key, see matchIcons.js) / color(palette
-//    key: action|success|warn|danger|neutral|defend) / sub
-//  DO NOT change: id, action, statKey, requiresCycle when editing
-//  in the builder — those are logic hooks the engine relies on.
-// ============================================================
 const DEFAULT_PHASES = {
   auto: {
     label: "Autonomous",

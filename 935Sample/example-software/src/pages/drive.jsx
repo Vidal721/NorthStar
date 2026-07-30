@@ -11,8 +11,14 @@ import {
   faArrowRotateRight,
   faTrash,
   faCirclePlay,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import bgImage from "../assets/field.png";
+
+// Values baked in at build time from a .env file (Vite: VITE_* variables).
+// If both are present, onboarding is skipped entirely.
+const ENV_TEAM_NUMBER = 935;
+const ENV_TBA_KEY = "gzTRBUmA8EF1wAYIyrNhwwkmAxdAzjBISlDJMvqR0gwKJsXCOaCPQYBy0e45JBZO"
 
 const TBA_BASE = "https://www.thebluealliance.com/api/v3";
 const TEAM_COLORS = [
@@ -73,6 +79,20 @@ function writeCache(key, value) {
   } catch (err) {
     console.error("Cache write failed:", err);
   }
+  return Date.now();
+}
+
+function formatRelativeTime(ts) {
+  if (!ts) return null;
+  const diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (diffSec < 10) return "just now";
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay}d ago`;
 }
 
 /* ---------- Hold-to-perfect-shape recognition ----------
@@ -696,8 +716,6 @@ function StrategyBoard({
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
 
     historyRef.current = [];
     historyStepRef.current = -1;
@@ -721,32 +739,39 @@ function StrategyBoard({
       updateHistoryState();
     };
 
-    if (saved?.drawing) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const applySavedOrBlank = () => {
+      if (saved?.drawing) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          drawBaseline();
+        };
+        img.src = saved.drawing;
+      } else {
         drawBaseline();
-      };
-      img.src = saved.drawing;
-      return;
-    }
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const scale = Math.min(
-        CANVAS_WIDTH / img.width,
-        CANVAS_HEIGHT / img.height,
-      );
-      const w = img.width * scale;
-      const h = img.height * scale;
-      ctx.drawImage(img, (CANVAS_WIDTH - w) / 2, (CANVAS_HEIGHT - h) / 2, w, h);
-      drawBaseline();
+      }
     };
-    img.onerror = () => drawBaseline();
-    img.src = bgImage;
+
+    // Load the field image first so the canvas can be sized to its *real*
+    // aspect ratio — this is what keeps the field from ever looking
+    // stretched or squished, no matter how wide the board gets.
+    const bg = new Image();
+    bg.crossOrigin = "anonymous";
+    bg.onload = () => {
+      const ratio = bg.naturalWidth / bg.naturalHeight || CANVAS_WIDTH / CANVAS_HEIGHT;
+      canvas.width = CANVAS_WIDTH;
+      canvas.height = Math.round(CANVAS_WIDTH / ratio);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+      applySavedOrBlank();
+    };
+    bg.onerror = () => {
+      canvas.width = CANVAS_WIDTH;
+      canvas.height = CANVAS_HEIGHT;
+      applySavedOrBlank();
+    };
+    bg.src = bgImage;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [match.key]);
 
@@ -1088,12 +1113,35 @@ function StrategyBoard({
 /* ============================== App Root ============================== */
 export default function StrategyApp() {
   const [teamNumber, setTeamNumber] = useState(
-    () => localStorage.getItem("sb_team_number") || "",
+    () => ENV_TEAM_NUMBER || localStorage.getItem("sb_team_number") || "",
   );
   const [tbaKey, setTbaKey] = useState(
-    () => localStorage.getItem("sb_tba_key") || "",
+    () => ENV_TBA_KEY || localStorage.getItem("sb_tba_key") || "",
   );
   const [ready, setReady] = useState(false);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
+  const [eventsSyncedAt, setEventsSyncedAt] = useState(null);
+  const [matchesSyncedAt, setMatchesSyncedAt] = useState(null);
+
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  // If a team number + key are already known (env or a previous run),
+  // persist them right away so every future load is fully offline.
+  useEffect(() => {
+    if (ENV_TEAM_NUMBER) localStorage.setItem("sb_team_number", ENV_TEAM_NUMBER);
+    if (ENV_TBA_KEY) localStorage.setItem("sb_tba_key", ENV_TBA_KEY);
+  }, []);
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [events, setEvents] = useState([]);
@@ -1121,29 +1169,60 @@ export default function StrategyApp() {
 
   const fetchEvents = useCallback((team, key, forYear) => {
     if (!team || !key) return;
+    const cacheKey = `sb_cache_events_${team}_${forYear}`;
+    const cached = readCache(cacheKey);
+    if (cached?.data) {
+      setEvents(Array.isArray(cached.data) ? cached.data : []);
+      setEventsSyncedAt(cached.cachedAt);
+    }
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      // Fully offline: whatever was cached is all we can show.
+      return;
+    }
     setLoadingEvents(true);
     tbaFetch(`/team/frc${team}/events/${forYear}/simple`, key)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => setEvents(Array.isArray(data) ? data : []))
-      .catch(() => setEvents([]))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!Array.isArray(data)) return; // keep cached data on bad response
+        setEvents(data);
+        const cachedAt = writeCache(cacheKey, data);
+        setEventsSyncedAt(cachedAt);
+      })
+      .catch(() => {
+        /* network failed — cached data (if any) stays on screen */
+      })
       .finally(() => setLoadingEvents(false));
   }, []);
 
   const fetchMatches = useCallback((event, team, key) => {
     if (!event) return;
-    setLoadingMatches(true);
     const teamKey = `frc${team}`;
+    const cacheKey = `sb_cache_matches_${event.key}_${team}`;
+    const cached = readCache(cacheKey);
+    if (cached?.data) {
+      setMatches(Array.isArray(cached.data) ? cached.data : []);
+      setMatchesSyncedAt(cached.cachedAt);
+    }
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return;
+    }
+    setLoadingMatches(true);
     tbaFetch(`/event/${event.key}/matches`, key)
-      .then((res) => (res.ok ? res.json() : []))
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        const ours = (Array.isArray(data) ? data : []).filter(
+        if (!Array.isArray(data)) return;
+        const ours = data.filter(
           (m) =>
             m.alliances?.red?.team_keys?.includes(teamKey) ||
             m.alliances?.blue?.team_keys?.includes(teamKey),
         );
         setMatches(ours);
+        const cachedAt = writeCache(cacheKey, ours);
+        setMatchesSyncedAt(cachedAt);
       })
-      .catch(() => setMatches([]))
+      .catch(() => {
+        /* network failed — cached data (if any) stays on screen */
+      })
       .finally(() => setLoadingMatches(false));
   }, []);
 
@@ -1187,7 +1266,13 @@ export default function StrategyApp() {
     setSettingsOpen(false);
   };
 
-  if (!ready) return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  if (!ready) {
+    return (
+      <div className="sb-root">
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+      </div>
+    );
+  }
 
   return (
     <div className="sb-root">
@@ -1204,6 +1289,8 @@ export default function StrategyApp() {
         loadingMatches={loadingMatches}
         onOpenMatch={setSelectedMatch}
         selectedMatchKey={selectedMatch?.key}
+        isOnline={isOnline}
+        lastSynced={formatRelativeTime(matchesSyncedAt || eventsSyncedAt)}
       />
       <div className="sb-main">
         {!selectedMatch && (

@@ -459,10 +459,11 @@ function App() {
         </Route>
 
         {/* Competition Roles */}
-        <Route element={<ProtectedLayout allowedRoles={["scouter"]} />}>
+        <Route
+          element={<ProtectedLayout allowedRoles={["scouter", "admin"]} />}
+        >
           <Route path="/scout" element={<MainScout />} />
           <Route path="/pit" element={<PitScout />} />
-          <Route path="/match" element={<MatchScout />} />
           <Route path="/vis" element={<DataVis />} />
           <Route path="/scoutSeettings" element={<ScoutSettings />} />
         </Route>
@@ -474,6 +475,7 @@ function App() {
           <Route path="/lead" element={<LeadScoutPage />} />
           <Route path="/drive" element={<DrivePage />} />
           <Route path="/matchBuilder" element={<MatchBuilder />} />
+          <Route path="/match" element={<MatchScout />} />
         </Route>
       </Routes>
     </BrowserRouter>
