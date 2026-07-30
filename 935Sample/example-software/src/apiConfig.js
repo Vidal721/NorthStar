@@ -1,4 +1,4 @@
-export const USE_LOCAL_BACKEND = true;
+export const USE_LOCAL_BACKEND = false;
 
 import { getToken } from "./auth";
 
