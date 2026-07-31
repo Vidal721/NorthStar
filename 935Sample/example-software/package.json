@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "overrides": {
+    "react-blockly": {
+      "react": "$react"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
