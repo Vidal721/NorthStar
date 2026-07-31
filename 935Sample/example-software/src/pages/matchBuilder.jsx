@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import * as Blockly from "blockly";
+import { useURL } from "../urlConfig";
 
 /* ==========================================================================
    1. BLOCK DEFINITIONS (Layout, Logic, Math, Timers, and UI)
@@ -310,6 +311,7 @@ export default function ScoutingBuilder() {
   const [formSchema, setFormSchema] = useState([]);
   const blocklyDivRef = useRef(null);
   const workspaceRef = useRef(null);
+  const apiBaseUrl = useURL();
 
   // --- RUNTIME STATE ---
   const [activePageIndex, setActivePageIndex] = useState(0);
@@ -326,7 +328,7 @@ export default function ScoutingBuilder() {
 
   // --- CONFIG EXPORT & API HELPERS ---
   const getApiBaseUrl = () => {
-    return "http://localhost:3000";
+    return apiBaseUrl;
   };
 
   const getDefaultHeaders = () => {

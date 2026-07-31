@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { useURL } from "../urlConfig";
 
 export default function MatchScoutingApp({ onBackToDashboard }) {
   // --- CONFIG & LOADING STATE ---
@@ -16,6 +17,8 @@ export default function MatchScoutingApp({ onBackToDashboard }) {
     matchNumber: "",
     scouterName: localStorage.getItem("userFirstName") || "",
   });
+
+  const apiBaseUrl = useURL();
 
   // --- RUNTIME ENGINE STATE ---
   const [activePageIndex, setActivePageIndex] = useState(0);
@@ -33,7 +36,7 @@ export default function MatchScoutingApp({ onBackToDashboard }) {
     const fetchFormConfig = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/match/form", {
+        const response = await fetch(apiBaseUrl+"/match/form", {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
@@ -225,7 +228,7 @@ export default function MatchScoutingApp({ onBackToDashboard }) {
         submittedAt: new Date().toISOString(),
       };
 
-      const response = await fetch("http://localhost:3000/match/upload", {
+      const response = await fetch(apiBaseUrl+"/match/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
