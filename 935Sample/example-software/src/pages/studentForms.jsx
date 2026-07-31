@@ -25,7 +25,6 @@ import AnnouncementBell from "../componets/AnnouncementBell";
 import FeedbackButton from "../componets/FeedbackButton";
 import UpdateModal from '../componets/UpdateModal';
 import appInfo from './info.json';
-import BottomBar from '../componets/bottombar'
 
 const apiBaseUrl = useURL();
 
@@ -130,7 +129,6 @@ function StudentShell({
 
   return (
     <div className="admin-container fade-in">
-      <BottomBar />
       {hasNewUpdate && <UpdateModal onClose={handleDismissUpdate} />}
       <MessagingDrawer />
       <div
