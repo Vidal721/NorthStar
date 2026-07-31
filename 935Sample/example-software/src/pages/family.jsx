@@ -1,228 +1,193 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AnnouncementBell from "../componets/AnnouncementBell";
-import FeedbackButton from "../componets/FeedbackButton";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faMoon,
-  faSun,
-  faImages,
   faCalendarDays,
-  faBullhorn,
-  faLightbulb,
-  faHeart,
-  faUpload,
-  faPaperPlane,
+  faClipboardList,
+  faRightFromBracket,
+  faUserGraduate,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
-import UpdateModal from "../componets/UpdateModal";
-import appInfo from "./info.json";
+import { useURL } from "../urlConfig";
+import { authHeader } from "../auth";
+import MessagingDrawer from "../componets/MessagingDrawer";
+import AnnouncementBell from "../componets/AnnouncementBell";
+import FeedbackButton from "../componets/FeedbackButton";
 
-export default function MainMenu() {
-  // Theme State
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+const defaultHeaders = (extra = {}) => ({
+  "ngrok-skip-browser-warning": "69420",
+  ...authHeader(),
+  ...extra,
+});
 
-  // Active Tab State to switch features instantly on-screen
-  const [activeTab, setActiveTab] = useState("home");
-
-  // Feature Sample States (Mocking backend data)
-  const [photos, setPhotos] = useState([]);
-  const [shoutOuts, setShoutOuts] = useState([
-    {
-      id: 1,
-      author: "Proud Parent",
-      text: "Amazing job on Match 12, Drive Team! Way to defend!",
-    },
-    {
-      id: 2,
-      author: "Grandma M.",
-      text: "Watching the livestream from home, go Team 935!",
-    },
-  ]);
-  const [adviceList, setAdviceList] = useState([]);
-
-  // Form Inputs
-  const [newShoutAuthor, setNewShoutAuthor] = useState("");
-  const [newShoutText, setNewShoutText] = useState("");
-  const [newAdvice, setNewAdvice] = useState("");
-  const [hasNewUpdate, setHasNewUpdate] = useState(false);
+export default function FamilyPage() {
+  const navigate = useNavigate();
+  const [dashboard, setDashboard] = useState({
+    parent: null,
+    students: [],
+    events: [],
+    forms: [],
+  });
+  const [status, setStatus] = useState("loading");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Check localStorage exactly once when the entire application mounts
-    const lastSeenVersion = localStorage.getItem("app_version_seen");
-
-    // Safety check: Don't trigger the modal on first-time load
-    if (!lastSeenVersion) {
-      localStorage.setItem("app_version_seen", appInfo.version);
-    } else if (lastSeenVersion !== appInfo.version) {
-      setHasNewUpdate(true);
+    async function loadDashboard() {
+      try {
+        const res = await fetch(`${useURL()}/parent/dashboard`, {
+          headers: defaultHeaders(),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load dashboard");
+        setDashboard(data);
+        setStatus("ready");
+      } catch (err) {
+        setError(err.message);
+        setStatus("error");
+      }
     }
+
+    loadDashboard();
   }, []);
 
-  const handleDismissUpdate = () => {
-    localStorage.setItem("app_version_seen", appInfo.version);
-    setHasNewUpdate(false);
-  };
-
-  // Sample Schedule Data
-  const scheduleData = [
-    {
-      time: "10:30 AM",
-      event: "Qualification Match 14",
-      assignment: "Scouters Group A",
-    },
-    {
-      time: "11:15 AM",
-      event: "Qualification Match 22",
-      assignment: "Drive Team",
-    },
-    {
-      time: "12:00 PM",
-      event: "Team Lunch at Pit",
-      assignment: "Everyone / Family Welcome",
-    },
-    {
-      time: "1:45 PM",
-      event: "Qualification Match 35",
-      assignment: "Scouters Group B",
-    },
-  ];
-
-  // Sample Team Updates
-  const announcements = [
-    {
-      time: "10:15 AM",
-      message:
-        "Alliance selection strategy meeting at the back bleachers right after Match 14.",
-    },
-    {
-      time: "9:00 AM",
-      message: "Pit is officially open! Inspection passed on the first try! 🤖",
-    },
-  ];
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
-
-  const navigate = useNavigate();
-
-  function logout() {
+  const logout = () => {
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("userRole");
     navigate("/");
-  }
-
-  function getInitials() {
-    const name = localStorage.getItem("currentUser");
-    if (!name) return "F";
-    return name.trim().charAt(0).toUpperCase();
-  }
-
-  // Handle Image Upload Simulation
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const fileUrls = Array.from(e.target.files).map((file) =>
-        URL.createObjectURL(file),
-      );
-      setPhotos((prev) => [...prev, ...fileUrls]);
-    }
   };
 
-  // Handle Shout-out submit
-  const handleAddShout = (e) => {
-    e.preventDefault();
-    if (!newShoutText.trim()) return;
-    setShoutOuts([
-      {
-        id: Date.now(),
-        author: newShoutAuthor || "Anonymous Family Member",
-        text: newShoutText,
-      },
-      ...shoutOuts,
-    ]);
-    setNewShoutAuthor("");
-    setNewShoutText("");
-  };
-
-  // Handle Advice submit
-  const handleAddAdvice = (e) => {
-    e.preventDefault();
-    if (!newAdvice.trim()) return;
-    setAdviceList([
-      { id: Date.now(), text: newAdvice, time: "Just Now" },
-      ...adviceList,
-    ]);
-    setNewAdvice("");
-    alert("Advice submitted to the pit manager dashboard!");
-  };
+  const parentName = dashboard.parent
+    ? `${dashboard.parent.firstName || ""} ${dashboard.parent.lastName || ""}`.trim()
+    : localStorage.getItem("currentUser") || "Parent";
 
   return (
-    <>
-      <div id="header">
-        <h1
-          className="headertext"
-          onClick={() => setActiveTab("home")}
-          style={{ cursor: "pointer" }}
-        >
-          North <strong id="strong">Star</strong>{" "}
-          <span className="hub-badge">Family Hub</span>
-        </h1>
-        <img
-          src="/pwa-512x512-removebg.png"
-          alt="935 scouting logo"
-          className="logo"
-          id="logo"
-          onClick={() => setActiveTab("home")}
-          style={{ cursor: "pointer" }}
-        />
-
+    <div className="admin-container fade-in">
+      <MessagingDrawer />
+      <header className="admin-header">
+        <img src="./pwa-512x512.png" id="imageLogo" height={60} alt="935 scouting logo" />
         <AnnouncementBell />
         <FeedbackButton />
-        <button onClick={logout} className="avatar" title="Logout">
-          {getInitials()}
+        <button className="admin-logout-btn" onClick={logout}>
+          <FontAwesomeIcon icon={faRightFromBracket} /> Sign Out
         </button>
-      </div>
+      </header>
 
-      <div id="main-menu-container">
-        {/* Top bar containing navigation back to dashboard & Theme toggle */}
-        <div className="utility-bar">
-          {activeTab !== "home" && (
-            <button className="back-btn" onClick={() => setActiveTab("home")}>
-              ← Back to Hub Dashboard
-            </button>
-          )}
-          <button
-            className="theme-btn"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-          >
-            <span className="icon-sun">
-              <FontAwesomeIcon icon={faSun} />
-            </span>
-            <span className="icon-moon">
-              <FontAwesomeIcon icon={faMoon} />
-            </span>
-            <span className="theme-text">Switch Theme</span>
-          </button>
-        </div>
+      <div className="admin-content-viewport">
+        <section>
+          <div className="forms-toolbar">
+            <h1>Parent Dashboard</h1>
+            <span className="admin-regionals-count">{parentName}</span>
+          </div>
 
-        {/* MAIN HUB MENU GRAPHICS */}
-        {activeTab === "home" && (
-          <>
-            <div className="welcome-banner">
-              <h2>Welcome to the Team 935 Family Portal!</h2>
-              <p>
-                During season follow the progress of our robot, sign up for
-                meals, and so much more!
-              </p>
-              <h3>Coming Soon!</h3>
+          {status === "loading" && (
+            <div className="form-empty-state">
+              <FontAwesomeIcon icon={faUsers} />
+              <p>Loading parent dashboard...</p>
             </div>
-          </>
-        )}
+          )}
+
+          {status === "error" && (
+            <div className="form-empty-state">
+              <FontAwesomeIcon icon={faUsers} />
+              <p>{error}</p>
+            </div>
+          )}
+
+          {status === "ready" && (
+            <div className="parent-dashboard-grid">
+              <DashboardPanel
+                title="My Students"
+                count={dashboard.students.length}
+                icon={faUserGraduate}
+              >
+                {dashboard.students.length === 0 ? (
+                  <p className="text-muted">
+                    No student has approved your connection yet. They will see
+                    the request in Messages.
+                  </p>
+                ) : (
+                  dashboard.students.map((student) => (
+                    <div className="parent-list-row" key={student.username}>
+                      <div>
+                        <strong>
+                          {student.firstName} {student.lastName}
+                        </strong>
+                        <p>{student.subgroup || "No subgroup"}</p>
+                        <p>
+                          {(student.assignedForms || []).length} open form
+                          {(student.assignedForms || []).length === 1
+                            ? ""
+                            : "s"}
+                        </p>
+                      </div>
+                      <span className="admin-status-pill active">Approved</span>
+                    </div>
+                  ))
+                )}
+              </DashboardPanel>
+
+              <DashboardPanel
+                title="Upcoming Events"
+                count={dashboard.events.length}
+                icon={faCalendarDays}
+              >
+                {dashboard.events.length === 0 ? (
+                  <p className="text-muted">No upcoming events have been added.</p>
+                ) : (
+                  dashboard.events.map((event) => (
+                    <div className="parent-list-row" key={event.id}>
+                      <div>
+                        <strong>{event.title}</strong>
+                        <p>
+                          {new Date(event.starts_at).toLocaleString()}
+                          {event.location ? ` · ${event.location}` : ""}
+                        </p>
+                        {event.notes && <p>{event.notes}</p>}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </DashboardPanel>
+
+              <DashboardPanel
+                title="Parent Forms"
+                count={dashboard.forms.length}
+                icon={faClipboardList}
+              >
+                {dashboard.forms.length === 0 ? (
+                  <p className="text-muted">No parent forms are waiting.</p>
+                ) : (
+                  dashboard.forms.map((form) => (
+                    <div className="parent-list-row" key={form.id}>
+                      <div>
+                        <strong>{form.title || "Untitled form"}</strong>
+                        {form.description && <p>{form.description}</p>}
+                      </div>
+                      <Link className="parent-form-link" to={`/form/${form.id}`}>
+                        Fill
+                      </Link>
+                    </div>
+                  ))
+                )}
+              </DashboardPanel>
+            </div>
+          )}
+        </section>
       </div>
-    </>
+    </div>
+  );
+}
+
+function DashboardPanel({ title, count, icon, children }) {
+  return (
+    <div className="dash-forms-panel parent-panel">
+      <div className="dash-forms-panel-header">
+        <h3>
+          <FontAwesomeIcon icon={icon} /> {title}
+        </h3>
+        <span className="admin-regionals-count">{count}</span>
+      </div>
+      <div className="dash-forms-list">{children}</div>
+    </div>
   );
 }

@@ -11,8 +11,10 @@ import {
   faUser,
   faUsers,
   faTrash,
+  faReply,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
+import { authHeader } from "../auth";
 
 export default function MessagingDrawer() {
   const api = useURL();
@@ -59,16 +61,16 @@ export default function MessagingDrawer() {
     try {
       const [m, u, s, g] = await Promise.all([
         fetch(`${api}/messages?actor=${encodeURIComponent(actor)}`, {
-          headers: { "ngrok-skip-browser-warning": "69420" },
+          headers: { "ngrok-skip-browser-warning": "69420", ...authHeader() },
         }),
         fetch(`${api}/directory?actor=${encodeURIComponent(actor)}`, {
-          headers: { "ngrok-skip-browser-warning": "69420" },
+          headers: { "ngrok-skip-browser-warning": "69420", ...authHeader() },
         }),
         fetch(`${api}/subgroups`, {
           headers: { "ngrok-skip-browser-warning": "69420" },
         }),
         fetch(`${api}/message-groups?actor=${encodeURIComponent(actor)}`, {
-          headers: { "ngrok-skip-browser-warning": "69420" },
+          headers: { "ngrok-skip-browser-warning": "69420", ...authHeader() },
         }),
       ]);
 
@@ -111,7 +113,7 @@ export default function MessagingDrawer() {
 
     const res = await fetch(`${api}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader() },
       body: JSON.stringify({
         actor,
         recipientType: activeThread.type,
@@ -136,7 +138,7 @@ export default function MessagingDrawer() {
 
     const res = await fetch(`${api}/message-groups`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader() },
       body: JSON.stringify({
         actor,
         name: groupName,
@@ -195,7 +197,7 @@ export default function MessagingDrawer() {
 
     const res = await fetch(`${api}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader() },
       body: JSON.stringify({
         actor,
         recipientType: "announcement",
@@ -225,7 +227,7 @@ export default function MessagingDrawer() {
         `${api}/messages/${encodeURIComponent(msgId)}?actor=${encodeURIComponent(actor)}`,
         {
           method: "DELETE",
-          headers: { "ngrok-skip-browser-warning": "69420" },
+          headers: { "ngrok-skip-browser-warning": "69420", ...authHeader() },
         },
       );
       if (res.ok) {
@@ -245,6 +247,34 @@ export default function MessagingDrawer() {
   };
 
   const isAdminOrCoach = ["admin", "coach"].includes(actorRole.toLowerCase());
+  const canMessageTeamGroups = ["admin", "coach", "helper", "mentor"].includes(
+    actorRole.toLowerCase(),
+  );
+
+  const parseMetadata = (msg) => {
+    try {
+      return JSON.parse(msg.metadata || "{}");
+    } catch {
+      return {};
+    }
+  };
+
+  const respondToParentRequest = async (requestId, status) => {
+    const res = await fetch(
+      `${api}/parent-requests/${encodeURIComponent(requestId)}/respond`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ status }),
+      },
+    );
+    if (res.ok) load();
+  };
+
+  const askOwner = (msg) => {
+    setActiveThread({ type: "person", value: msg.sender, name: msg.sender });
+    setMessageBody(`Question about your message: "${msg.body}"\n\n`);
+  };
 
   // Helper: Format message time
   const formatMsgTime = (isoString) => {
@@ -298,6 +328,41 @@ export default function MessagingDrawer() {
         : "Start conversation here",
       time: getThreadTime(everyoneMsgs),
     });
+
+    if (canMessageTeamGroups || ["parent", "family"].includes(actorRole.toLowerCase())) {
+      const parentMsgs = messages.filter((m) => m.recipient_type === "parents");
+      list.push({
+        id: "parents",
+        name: "Parent Group",
+        avatar: "PG",
+        type: "parents",
+        value: "",
+        messages: parentMsgs,
+        lastMessage: parentMsgs[0] ? parentMsgs[0].body : "Messages for parents",
+        time: getThreadTime(parentMsgs),
+      });
+    }
+
+    if (
+      canMessageTeamGroups ||
+      ["student", "students", "programmer", "programmers"].includes(
+        actorRole.toLowerCase(),
+      )
+    ) {
+      const studentMsgs = messages.filter((m) => m.recipient_type === "students");
+      list.push({
+        id: "students",
+        name: "Students",
+        avatar: "ST",
+        type: "students",
+        value: "",
+        messages: studentMsgs,
+        lastMessage: studentMsgs[0]
+          ? studentMsgs[0].body
+          : "Messages for students",
+        time: getThreadTime(studentMsgs),
+      });
+    }
 
     // 2. Subgroup Thread (for user's subgroup)
     if (actorSubgroup && actorSubgroup !== "none") {
@@ -426,6 +491,12 @@ export default function MessagingDrawer() {
             m.recipient_value === activeThread.value,
         )
         .reverse();
+    }
+    if (activeThread.type === "parents") {
+      return messages.filter((m) => m.recipient_type === "parents").reverse();
+    }
+    if (activeThread.type === "students") {
+      return messages.filter((m) => m.recipient_type === "students").reverse();
     }
     if (activeThread.type === "group") {
       return messages
@@ -572,6 +643,8 @@ export default function MessagingDrawer() {
                   <div className="chat-detail-title">{activeThread.name}</div>
                   <div className="chat-detail-subtitle">
                     {activeThread.type === "everyone" && "Global group chat"}
+                    {activeThread.type === "parents" && "Parent group chat"}
+                    {activeThread.type === "students" && "Student group chat"}
                     {activeThread.type === "subgroup" &&
                       `${activeThread.value} subgroup`}
                     {activeThread.type === "group" && "Private group chat"}
@@ -584,6 +657,9 @@ export default function MessagingDrawer() {
               <div className="chat-messages-scroll">
                 {threadMsgs.map((msg) => {
                   const isOutgoing = msg.sender === actor;
+                  const metadata = parseMetadata(msg);
+                  const isParentRequest =
+                    metadata.kind === "parent_request" && !isOutgoing;
                   return (
                     <div
                       key={msg.id}
@@ -608,6 +684,45 @@ export default function MessagingDrawer() {
                           <span className="message-bubble-time">
                             {formatMsgTime(msg.created_at)}
                           </span>
+                          {isParentRequest && (
+                            <div className="message-action-row">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  respondToParentRequest(
+                                    metadata.requestId,
+                                    "accepted",
+                                  )
+                                }
+                              >
+                                Accept
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  respondToParentRequest(
+                                    metadata.requestId,
+                                    "denied",
+                                  )
+                                }
+                              >
+                                Deny
+                              </button>
+                            </div>
+                          )}
+                          {!isOutgoing &&
+                            ["parent", "family"].includes(
+                              actorRole.toLowerCase(),
+                            ) &&
+                            activeThread.type !== "person" && (
+                              <button
+                                type="button"
+                                className="message-question-btn"
+                                onClick={() => askOwner(msg)}
+                              >
+                                <FontAwesomeIcon icon={faReply} /> Ask
+                              </button>
+                            )}
                         </div>
                         {(isOutgoing || isAdminOrCoach) &&
                           (messagePendingDeletion === msg.id ? (
@@ -742,6 +857,50 @@ export default function MessagingDrawer() {
                           <p>Start a group chat with multiple teammates</p>
                         </div>
                       </div>
+                      {canMessageTeamGroups && (
+                        <>
+                          <div
+                            className="chat-option-card"
+                            onClick={() => {
+                              setShowPlusModal(false);
+                              setActiveThread({
+                                type: "parents",
+                                value: "",
+                                name: "Parent Group",
+                              });
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faUsers}
+                              className="chat-option-icon"
+                            />
+                            <div className="chat-option-text">
+                              <h4>Parent Group</h4>
+                              <p>Send a message to all parents</p>
+                            </div>
+                          </div>
+                          <div
+                            className="chat-option-card"
+                            onClick={() => {
+                              setShowPlusModal(false);
+                              setActiveThread({
+                                type: "students",
+                                value: "",
+                                name: "Students",
+                              });
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faUsers}
+                              className="chat-option-icon"
+                            />
+                            <div className="chat-option-text">
+                              <h4>Students</h4>
+                              <p>Send a message to all students</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
                       {allowedToAnnounce && (
                         <div
                           className="chat-option-card"

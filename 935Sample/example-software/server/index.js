@@ -192,6 +192,27 @@ db.exec(`
   )
 `);
 
+const userColumns = db.prepare("PRAGMA table_info(users)").all();
+const ensureUserColumn = (name, sql) => {
+  if (!userColumns.some((column) => column.name === name)) db.exec(sql);
+};
+ensureUserColumn(
+  "contact_email",
+  "ALTER TABLE users ADD COLUMN contact_email TEXT DEFAULT ''",
+);
+ensureUserColumn(
+  "phone_number",
+  "ALTER TABLE users ADD COLUMN phone_number TEXT DEFAULT ''",
+);
+ensureUserColumn(
+  "linked_students",
+  "ALTER TABLE users ADD COLUMN linked_students TEXT DEFAULT '[]'",
+);
+ensureUserColumn(
+  "linked_parents",
+  "ALTER TABLE users ADD COLUMN linked_parents TEXT DEFAULT '[]'",
+);
+
 const rowToUser = (row) =>
   !row
     ? null
@@ -204,6 +225,10 @@ const rowToUser = (row) =>
         subgroup: row.subgroup || "none",
         competitionRole: row.competition_role || "none",
         leadershipSubgroups: JSON.parse(row.leadership_subgroups || "[]"),
+        contactEmail: row.contact_email || "",
+        phoneNumber: row.phone_number || "",
+        linkedStudents: JSON.parse(row.linked_students || "[]"),
+        linkedParents: JSON.parse(row.linked_parents || "[]"),
       };
 
 function getUsers() {
@@ -223,11 +248,15 @@ function createUser({
   lastName,
   role,
   subgroup,
+  contactEmail,
+  phoneNumber,
+  linkedStudents = [],
+  linkedParents = [],
 }) {
   db.prepare(
     `INSERT INTO users
-      (username, password_hash, first_name, last_name, role, subgroup, competition_role, leadership_subgroups, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'none', '[]', ?)`,
+      (username, password_hash, first_name, last_name, role, subgroup, competition_role, leadership_subgroups, contact_email, phone_number, linked_students, linked_parents, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'none', '[]', ?, ?, ?, ?, ?)`,
   ).run(
     username,
     passwordHash,
@@ -235,6 +264,10 @@ function createUser({
     lastName || "",
     role,
     subgroup || "none",
+    contactEmail || "",
+    phoneNumber || "",
+    JSON.stringify(linkedStudents),
+    JSON.stringify(linkedParents),
     new Date().toISOString(),
   );
 }
@@ -386,6 +419,23 @@ app.get("/directory", (req, res) => {
 
 app.get("/subgroups", (req, res) => res.json(getSubgroups()));
 
+app.get("/students/public", (req, res) => {
+  res.json(
+    getUsers()
+      .filter((user) =>
+        ["student", "students", "programmer", "programmers"].includes(
+          normalizeRole(user.role),
+        ),
+      )
+      .map((user) => ({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        subgroup: user.subgroup,
+      })),
+  );
+});
+
 app.post("/subgroups", (req, res) => {
   const actor = req.user;
   const name = String(req.body?.name || "").trim();
@@ -497,6 +547,20 @@ const removeExpiredCompletedTasks = () => {
 const getMessageRecipients = (message) => {
   if (["everyone", "announcement"].includes(message.recipient_type)) {
     return getUsers().map((user) => user.username);
+  }
+  if (message.recipient_type === "parents") {
+    return getUsers()
+      .filter((user) => ["parent", "family"].includes(normalizeRole(user.role)))
+      .map((user) => user.username);
+  }
+  if (message.recipient_type === "students") {
+    return getUsers()
+      .filter((user) =>
+        ["student", "students", "programmer", "programmers"].includes(
+          normalizeRole(user.role),
+        ),
+      )
+      .map((user) => user.username);
   }
   if (message.recipient_type === "subgroup") {
     return getUsers()
@@ -716,6 +780,12 @@ app.get("/messages", (req, res) => {
         message.sender === actor.username ||
         message.recipient_type === "everyone" ||
         message.recipient_type === "announcement" ||
+        (message.recipient_type === "parents" &&
+          ["parent", "family"].includes(normalizeRole(actor.role))) ||
+        (message.recipient_type === "students" &&
+          ["student", "students", "programmer", "programmers"].includes(
+            normalizeRole(actor.role),
+          )) ||
         (message.recipient_type === "subgroup" &&
           message.recipient_value === actor.subgroup) ||
         (message.recipient_type === "person" &&
@@ -732,9 +802,15 @@ app.post("/messages", (req, res) => {
   if (
     !actor ||
     !body ||
-    !["everyone", "subgroup", "person", "group", "announcement"].includes(
-      recipientType,
-    )
+    ![
+      "everyone",
+      "parents",
+      "students",
+      "subgroup",
+      "person",
+      "group",
+      "announcement",
+    ].includes(recipientType)
   )
     return res
       .status(400)
@@ -745,6 +821,14 @@ app.post("/messages", (req, res) => {
     return res
       .status(403)
       .json({ error: "Only team leaders can make announcements." });
+  if (
+    ["parents", "students", "everyone"].includes(recipientType) &&
+    !["admin", "coach", "helper", "mentor"].includes(normalizeRole(actor.role))
+  ) {
+    return res
+      .status(403)
+      .json({ error: "Only coaches and helpers can message this group." });
+  }
   const message = {
     id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     sender: actor.username,
@@ -1007,8 +1091,17 @@ app.post("/auth/login", async (req, res) => {
 // ==== USER REGISTRATION ENDPOINT ==== //
 app.post("/auth/register", async (req, res) => {
   try {
-    const { username, password, role, subgroup, firstName, lastName } =
-      req.body;
+    const {
+      username,
+      password,
+      role,
+      subgroup,
+      firstName,
+      lastName,
+      contactEmail,
+      phoneNumber,
+      selectedStudent,
+    } = req.body;
 
     // 1. Validate incoming data payload
     if (!username || !password || !role || !firstName || !lastName) {
@@ -1022,6 +1115,7 @@ app.post("/auth/register", async (req, res) => {
       "scouter",
       "family",
       "helper",
+      "parent",
       "student",
       "students",
       "teamMember",
@@ -1043,6 +1137,30 @@ app.post("/auth/register", async (req, res) => {
     // 3. Hash the password securely using bcrypt
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
+    const normalizedRole = normalizeRole(role);
+    const isParent = ["parent", "family"].includes(normalizedRole);
+    if (isParent && (!contactEmail || !phoneNumber)) {
+      return res
+        .status(400)
+        .json({ error: "Parents need an email and phone number." });
+    }
+    if (isParent && !selectedStudent) {
+      return res
+        .status(400)
+        .json({ error: "Choose the student you want to connect with." });
+    }
+    const selectedStudentUser = selectedStudent
+      ? getUserByUsername(selectedStudent)
+      : null;
+    if (
+      isParent &&
+      (!selectedStudentUser ||
+        !["student", "students", "programmer", "programmers"].includes(
+          normalizeRole(selectedStudentUser.role),
+        ))
+    ) {
+      return res.status(400).json({ error: "Choose a valid student." });
+    }
 
     // 4. Persist the new user in the database
     createUser({
@@ -1051,8 +1169,45 @@ app.post("/auth/register", async (req, res) => {
       firstName,
       lastName,
       role,
-      subgroup: subgroup || "none",
+      subgroup: isParent ? "none" : subgroup || "none",
+      contactEmail,
+      phoneNumber,
     });
+
+    if (isParent && selectedStudent) {
+      if (selectedStudentUser) {
+        const request = {
+          id: `parent-request-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          parent_username: username,
+          student_username: selectedStudent,
+          status: "pending",
+          created_at: new Date().toISOString(),
+          resolved_at: null,
+        };
+        db.prepare(
+          `INSERT INTO parent_student_requests
+            (id,parent_username,student_username,status,created_at,resolved_at)
+           VALUES (@id,@parent_username,@student_username,@status,@created_at,@resolved_at)`,
+        ).run(request);
+        const message = {
+          id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          sender: username,
+          recipient_type: "person",
+          recipient_value: selectedStudent,
+          body: `${firstName} ${lastName} requested to connect as your parent/guardian.`,
+          metadata: JSON.stringify({
+            kind: "parent_request",
+            requestId: request.id,
+            parentUsername: username,
+          }),
+          created_at: request.created_at,
+        };
+        db.prepare(
+          "INSERT INTO messages (id,sender,recipient_type,recipient_value,body,metadata,created_at) VALUES (@id,@sender,@recipient_type,@recipient_value,@body,@metadata,@created_at)",
+        ).run(message);
+        void notifyMessageRecipients(message);
+      }
+    }
 
     console.log(`[auth] Successfully created new ${role} account: ${username}`);
     res.status(201).json({ message: "User registered successfully!" });
@@ -1427,6 +1582,151 @@ app.get("/pit/form", (req, res) => {
       .status(500)
       .json({ error: "Failed to load pit form schema", detail: err.message });
   }
+});
+
+app.get("/parent/dashboard", requireAuth, (req, res) => {
+  const actor = getUserByUsername(req.user.username);
+  if (!actor || !["parent", "family"].includes(normalizeRole(actor.role))) {
+    return res.status(403).json({ error: "Parent account required." });
+  }
+  const sentForms = db
+    .prepare("SELECT * FROM helper_forms WHERE status = 'sent' ORDER BY sent_at DESC")
+    .all()
+    .map(parseHelperForm);
+  const formsForUser = (user) =>
+    sentForms.filter((form) => {
+      const audiences = form.audiences || ["students"];
+      const role = normalizeRole(user.role);
+      return (
+        audiences.includes("everyone") ||
+        audiences.includes(role) ||
+        (["parent", "family"].includes(role) && audiences.includes("parents")) ||
+        (role === "student" && audiences.includes("students")) ||
+        (user.subgroup && audiences.includes(`subgroup:${user.subgroup}`))
+      );
+    });
+  const students = (actor.linkedStudents || [])
+    .map(getUserByUsername)
+    .filter(Boolean)
+    .map(({ passwordHash, ...student }) => ({
+      ...student,
+      assignedForms: formsForUser(student),
+    }));
+  const forms = sentForms
+    .filter((form) => {
+      const audiences = form.audiences || [];
+      return audiences.includes("everyone") || audiences.includes("parents");
+    });
+  const events = db
+    .prepare("SELECT * FROM team_events ORDER BY starts_at ASC")
+    .all()
+    .filter((event) => ["everyone", "parents"].includes(event.audience));
+  res.json({ parent: actor, students, forms, events });
+});
+
+app.post("/parent-requests/:id/respond", requireAuth, (req, res) => {
+  const actor = req.user;
+  const status = req.body?.status === "accepted" ? "accepted" : "denied";
+  const request = db
+    .prepare("SELECT * FROM parent_student_requests WHERE id = ?")
+    .get(req.params.id);
+  if (!request) return res.status(404).json({ error: "Request not found." });
+  if (request.student_username !== actor.username) {
+    return res.status(403).json({ error: "Only that student can respond." });
+  }
+  if (request.status !== "pending") {
+    return res.status(400).json({ error: "This request is already resolved." });
+  }
+  const resolvedAt = new Date().toISOString();
+  db.prepare(
+    "UPDATE parent_student_requests SET status = ?, resolved_at = ? WHERE id = ?",
+  ).run(status, resolvedAt, request.id);
+
+  if (status === "accepted") {
+    const parent = getUserByUsername(request.parent_username);
+    const student = getUserByUsername(request.student_username);
+    const linkedStudents = [
+      ...new Set([...(parent?.linkedStudents || []), request.student_username]),
+    ];
+    const linkedParents = [
+      ...new Set([...(student?.linkedParents || []), request.parent_username]),
+    ];
+    db.prepare("UPDATE users SET linked_students = ? WHERE username = ?").run(
+      JSON.stringify(linkedStudents),
+      request.parent_username,
+    );
+    db.prepare("UPDATE users SET linked_parents = ? WHERE username = ?").run(
+      JSON.stringify(linkedParents),
+      request.student_username,
+    );
+  }
+
+  const message = {
+    id: `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    sender: actor.username,
+    recipient_type: "person",
+    recipient_value: request.parent_username,
+    body:
+      status === "accepted"
+        ? `${actor.username} accepted your parent connection request.`
+        : `${actor.username} denied your parent connection request.`,
+    created_at: resolvedAt,
+  };
+  db.prepare(
+    "INSERT INTO messages (id,sender,recipient_type,recipient_value,body,created_at) VALUES (@id,@sender,@recipient_type,@recipient_value,@body,@created_at)",
+  ).run(message);
+  void notifyMessageRecipients(message);
+  res.json({ success: true, status });
+});
+
+app.get("/team-events", requireAuth, (req, res) => {
+  const actor = req.user;
+  const rows = db.prepare("SELECT * FROM team_events ORDER BY starts_at ASC").all();
+  res.json(
+    rows.filter(
+      (event) =>
+        event.audience === "everyone" ||
+        (event.audience === "parents" &&
+          ["parent", "family"].includes(normalizeRole(actor.role))) ||
+        (event.audience === "students" &&
+          ["student", "students", "programmer", "programmers"].includes(
+            normalizeRole(actor.role),
+          )),
+    ),
+  );
+});
+
+app.post("/team-events", requireAuth, (req, res) => {
+  const actor = req.user;
+  if (!["admin", "coach", "helper"].includes(normalizeRole(actor.role))) {
+    return res
+      .status(403)
+      .json({ error: "Only coaches and parent helpers can add events." });
+  }
+  const { title, startsAt, location = "", audience = "everyone", notes = "" } =
+    req.body || {};
+  if (!title?.trim() || !startsAt) {
+    return res.status(400).json({ error: "Add an event title and date." });
+  }
+  if (!["everyone", "parents", "students"].includes(audience)) {
+    return res.status(400).json({ error: "Choose a valid audience." });
+  }
+  const event = {
+    id: `event-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    title: String(title).trim().slice(0, 120),
+    starts_at: startsAt,
+    location: String(location).trim().slice(0, 120),
+    audience,
+    notes: String(notes).trim().slice(0, 1000),
+    created_by: actor.username,
+    created_at: new Date().toISOString(),
+  };
+  db.prepare(
+    `INSERT INTO team_events
+      (id,title,starts_at,location,audience,notes,created_by,created_at)
+     VALUES (@id,@title,@starts_at,@location,@audience,@notes,@created_by,@created_at)`,
+  ).run(event);
+  res.status(201).json(event);
 });
 
 // All pit data for a specific regional

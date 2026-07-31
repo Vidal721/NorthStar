@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useURL } from "../urlConfig";
+import { authHeader } from "../auth";
 import DriveView from "../componets/DriveView";
 import LeadershipManager from "../componets/LeadershipManager";
 import MessagingDrawer from "../componets/MessagingDrawer";
@@ -24,6 +25,7 @@ import {
   faEye,
   faPen,
   faCircleCheck,
+  faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import UpdateModal from '../componets/UpdateModal';
 import appInfo from './info.json';
@@ -31,6 +33,7 @@ import appInfo from './info.json';
 const helperTabs = [
   { id: "dashboard", label: "Dashboard", icon: faChartLine },
   { id: "forms", label: "Forms", icon: faClipboardList },
+  { id: "events", label: "Events", icon: faCalendarDays },
   { id: "inbox", label: "My Forms", icon: faClipboardList },
   { id: "drive", label: "Drive", icon: faFolderOpen },
 ];
@@ -51,6 +54,7 @@ const uid = () =>
 
 const defaultHeaders = (extra = {}) => ({
   "ngrok-skip-browser-warning": "69420",
+  ...authHeader(),
   ...extra,
 });
 
@@ -74,6 +78,7 @@ const emptyForm = () => ({
 
 const AUDIENCES = [
   ["students", "Students"],
+  ["parents", "Parents"],
   ["mentor", "Mentors"],
   ["helper", "Helpers"],
   ["coach", "Coaches"],
@@ -433,6 +438,8 @@ export default function HelperPage({ roleLabel = "Helper" }) {
               <DriveView />
             )}
 
+            {activeTab === "events" && <EventsManager />}
+
             {activeTab === "inbox" && <FormInbox />}
 
             {activeTab === "leaders" && <LeadershipManager />}
@@ -506,6 +513,135 @@ function FormInbox() {
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+function EventsManager() {
+  const [events, setEvents] = useState([]);
+  const [error, setError] = useState("");
+  const [draft, setDraft] = useState({
+    title: "",
+    startsAt: "",
+    location: "",
+    audience: "everyone",
+    notes: "",
+  });
+
+  const loadEvents = async () => {
+    try {
+      const res = await fetch(`${useURL()}/team-events`, {
+        headers: defaultHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load events");
+      setEvents(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const addEvent = async (event) => {
+    event.preventDefault();
+    setError("");
+    try {
+      const res = await fetch(`${useURL()}/team-events`, {
+        method: "POST",
+        headers: defaultHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(draft),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to add event");
+      setDraft({
+        title: "",
+        startsAt: "",
+        location: "",
+        audience: "everyone",
+        notes: "",
+      });
+      setEvents((current) =>
+        [...current, data].sort(
+          (a, b) => new Date(a.starts_at) - new Date(b.starts_at),
+        ),
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <section>
+      <div className="forms-toolbar">
+        <h1>Events</h1>
+      </div>
+      {error && <p className="text-muted">{error}</p>}
+      <form className="parent-event-form" onSubmit={addEvent}>
+        <input
+          className="chat-form-input"
+          placeholder="Event title"
+          value={draft.title}
+          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+        />
+        <input
+          className="chat-form-input"
+          type="datetime-local"
+          value={draft.startsAt}
+          onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })}
+        />
+        <input
+          className="chat-form-input"
+          placeholder="Location"
+          value={draft.location}
+          onChange={(e) => setDraft({ ...draft, location: e.target.value })}
+        />
+        <select
+          className="chat-form-select"
+          value={draft.audience}
+          onChange={(e) => setDraft({ ...draft, audience: e.target.value })}
+        >
+          <option value="everyone">Everyone</option>
+          <option value="parents">Parents</option>
+          <option value="students">Students</option>
+        </select>
+        <textarea
+          className="chat-form-textarea"
+          placeholder="Notes"
+          value={draft.notes}
+          onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+        />
+        <button className="launch-btn accent" type="submit">
+          <FontAwesomeIcon icon={faCalendarDays} /> Add Event
+        </button>
+      </form>
+
+      <div className="dash-forms-panel" style={{ marginTop: "1rem" }}>
+        <div className="dash-forms-panel-header">
+          <h3>Upcoming Events</h3>
+          <span className="admin-regionals-count">{events.length} total</span>
+        </div>
+        <div className="dash-forms-list">
+          {events.length === 0 ? (
+            <p className="text-muted">No events yet.</p>
+          ) : (
+            events.map((event) => (
+              <div className="dash-form-row" key={event.id}>
+                <div className="admin-regional-main">
+                  <span className="admin-regional-name">{event.title}</span>
+                  <span className="admin-regional-meta">
+                    {new Date(event.starts_at).toLocaleString()}
+                    {event.location ? ` · ${event.location}` : ""}
+                  </span>
+                </div>
+                <span className="admin-status-pill active">{event.audience}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </section>
   );
 }

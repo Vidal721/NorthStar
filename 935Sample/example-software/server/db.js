@@ -86,6 +86,26 @@ db.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS parent_student_requests (
+    id TEXT PRIMARY KEY,
+    parent_username TEXT NOT NULL,
+    student_username TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL,
+    resolved_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS team_events (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    starts_at TEXT NOT NULL,
+    location TEXT,
+    audience TEXT NOT NULL DEFAULT 'everyone',
+    notes TEXT,
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS push_subscriptions (
     endpoint TEXT PRIMARY KEY,
     username TEXT NOT NULL,
@@ -137,6 +157,11 @@ if (!regionalColumns.some((column) => column.name === "visible_in_vis")) {
 const taskColumns = db.prepare(`PRAGMA table_info(tasks)`).all();
 if (!taskColumns.some((column) => column.name === "completed_at")) {
   db.exec(`ALTER TABLE tasks ADD COLUMN completed_at TEXT`);
+}
+
+const messageColumns = db.prepare(`PRAGMA table_info(messages)`).all();
+if (!messageColumns.some((column) => column.name === "metadata")) {
+  db.exec(`ALTER TABLE messages ADD COLUMN metadata TEXT DEFAULT '{}'`);
 }
 
 // Helper: get or create a regional by name, returns its id

@@ -17,6 +17,7 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { useURL } from "../urlConfig";
+import { authHeader } from "../auth";
 import SharedDriveView from "../componets/DriveView";
 import MessagingDrawer from "../componets/MessagingDrawer";
 import TasksPanel from "../componets/TasksPanel";
@@ -36,6 +37,7 @@ const uid = () =>
 
 const defaultHeaders = (extra = {}) => ({
   "ngrok-skip-browser-warning": "69420",
+  ...authHeader(),
   ...extra,
 });
 
@@ -626,6 +628,8 @@ function StudentFormDetail({ formId }) {
       navigate(
         role === "helper"
           ? "/helper"
+          : role === "parent" || role === "family"
+            ? "/family"
           : role === "mentor"
             ? "/mentor"
             : role === "coach"

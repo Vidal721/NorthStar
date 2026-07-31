@@ -90,7 +90,7 @@ function LoginScreen() {
       // Determins what page to send the user too
       if (userRole === "admin") {
         navigate("/admin");
-      } else if (userRole === "family") {
+      } else if (userRole === "family" || userRole === "parent") {
         navigate("/family");
       } else if (userRole === "helper") {
         navigate("/helper");
@@ -177,6 +177,10 @@ function RegisterScreen() {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("students");
+  const [contactEmail, setContactEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [students, setStudents] = useState([]);
   // Note: there is no "competition role" field here on purpose - it always
   // starts at "none" and can only be set later by a coach/admin.
 
@@ -205,15 +209,36 @@ function RegisterScreen() {
         }
       })
       .catch(() => {});
+
+    fetch(`${useURL()}/students/public`, {
+      headers: { "ngrok-skip-browser-warning": "69420" },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((items) => {
+        setStudents(items);
+        if (items[0]) setSelectedStudent(items[0].username);
+      })
+      .catch(() => {});
   }, []);
 
   async function handleRegister() {
     setMessage("");
     setIsError(false);
 
+    const isParent = role === "parent" || role === "family";
     if (!username || !password || !role || !firstName || !lastName) {
       setIsError(true);
       setMessage("All registration fields are required.");
+      return;
+    }
+    if (isParent && (!contactEmail || !phoneNumber)) {
+      setIsError(true);
+      setMessage("Parents need an email and phone number.");
+      return;
+    }
+    if (isParent && !selectedStudent) {
+      setIsError(true);
+      setMessage("Choose the student you want to connect with.");
       return;
     }
 
@@ -233,6 +258,9 @@ function RegisterScreen() {
           subgroup: finalSubgroup,
           firstName,
           lastName,
+          contactEmail,
+          phoneNumber,
+          selectedStudent: isParent ? selectedStudent : "",
         }),
       });
 
@@ -357,8 +385,8 @@ function RegisterScreen() {
           <option value="coach" style={{ background: "#ffffff" }}>
             Coach
           </option>
-          <option value="family" style={{ background: "#ffffff" }}>
-            Family Member
+          <option value="parent" style={{ background: "#ffffff" }}>
+            Parent
           </option>
           <option value="helper" style={{ background: "#ffffff" }}>
             Parent Helper
@@ -400,6 +428,71 @@ function RegisterScreen() {
           </select>
         </fieldset>
       )}
+      {(role === "parent" || role === "family") && (
+        <>
+          <div className="fieldset-row">
+            <fieldset className="fieldset-container">
+              <legend className="fieldset-legend">
+                <label htmlFor="regContactEmail">Email</label>
+              </legend>
+              <input
+                type="email"
+                id="regContactEmail"
+                className="fieldset-input"
+                placeholder="parent@example.com"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+              />
+            </fieldset>
+
+            <fieldset className="fieldset-container">
+              <legend className="fieldset-legend">
+                <label htmlFor="regPhone">Phone</label>
+              </legend>
+              <input
+                type="tel"
+                id="regPhone"
+                className="fieldset-input"
+                placeholder="(555) 123-4567"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+            </fieldset>
+          </div>
+
+          <fieldset className="fieldset-container">
+            <legend className="fieldset-legend">
+              <label htmlFor="regStudent">Student</label>
+            </legend>
+            <select
+              id="regStudent"
+              className="fieldset-input"
+              value={selectedStudent}
+              onChange={(e) => setSelectedStudent(e.target.value)}
+              style={{
+                width: "100%",
+                background: "transparent",
+                color: "inherit",
+                border: "none",
+                outline: "none",
+              }}
+            >
+              <option value="" style={{ background: "#ffffff" }}>
+                Choose a student
+              </option>
+              {students.map((student) => (
+                <option
+                  key={student.username}
+                  value={student.username}
+                  style={{ background: "#ffffff" }}
+                >
+                  {student.firstName} {student.lastName} ({student.username})
+                </option>
+              ))}
+            </select>
+          </fieldset>
+        </>
+      )}
       <button
         id="mainRegister"
         onClick={handleRegister}
@@ -427,7 +520,11 @@ function App() {
         <Route path="/register" element={<RegisterScreen />} />
 
         {/* Family Only Routes */}
-        <Route element={<ProtectedLayout allowedRoles={["admin", "family"]} />}>
+        <Route
+          element={
+            <ProtectedLayout allowedRoles={["admin", "family", "parent"]} />
+          }
+        >
           <Route path="/family" element={<FamilyPage />} />
         </Route>
 
@@ -450,7 +547,15 @@ function App() {
         <Route
           element={
             <ProtectedLayout
-              allowedRoles={["admin", "students", "helper", "Mentor", "coach"]}
+              allowedRoles={[
+                "admin",
+                "students",
+                "helper",
+                "Mentor",
+                "coach",
+                "family",
+                "parent",
+              ]}
             />
           }
         >
