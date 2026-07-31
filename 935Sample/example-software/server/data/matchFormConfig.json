@@ -1,0 +1,101 @@
+{
+  "totalTime": 150,
+  "pages": [
+    {
+      "type": "page",
+      "name": "Auto",
+      "switchTime": 15,
+      "children": [
+        {
+          "type": "button",
+          "label": "Begin Score",
+          "actions": [
+            {
+              "type": "start_timer",
+              "timerName": "s_auto"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "label": "End Score",
+          "actions": [
+            {
+              "type": "stop_timer",
+              "timerName": "s_auto"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "page",
+      "name": "Teleop",
+      "switchTime": 15,
+      "children": [
+        {
+          "type": "button",
+          "label": "Begin Score",
+          "actions": [
+            {
+              "type": "start_timer",
+              "timerName": "s_tele"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "label": "End Score",
+          "actions": [
+            {
+              "type": "stop_timer",
+              "timerName": "s_tele"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "page",
+      "name": "Endgame",
+      "switchTime": 15,
+      "children": [
+        {
+          "type": "button",
+          "label": "Begin Score",
+          "actions": [
+            {
+              "type": "start_timer",
+              "timerName": "s_end"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "label": "End Score",
+          "actions": [
+            {
+              "type": "stop_timer",
+              "timerName": "s_end"
+            }
+          ]
+        },
+        {
+          "type": "result_map",
+          "label": "Auto Times",
+          "variable": "s_auto"
+        },
+        {
+          "type": "result_map",
+          "label": "Teleop Times",
+          "variable": "s_tele"
+        },
+        {
+          "type": "result_map",
+          "label": "Endgame Times",
+          "variable": "s_end"
+        }
+      ]
+    }
+  ]
+}

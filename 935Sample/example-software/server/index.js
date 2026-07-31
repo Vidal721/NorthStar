@@ -49,6 +49,8 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
+const MATCH_FORM_PATH = path.join(__dirname, 'data', 'matchFormConfig.json');
+
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 const webPushEnabled = Boolean(vapidPublicKey && vapidPrivateKey);
@@ -1462,13 +1464,50 @@ app.post("/pit/save", (req, res) => {
 // ---- 2. Add near the /pit/form routes ----
 app.get("/match/form", (req, res) => {
   try {
-    res.json(getMatchForm());
+    if (fs.existsSync(MATCH_FORM_PATH)) {
+      const data = fs.readFileSync(MATCH_FORM_PATH, "utf8");
+      return res.json(JSON.parse(data));
+    }
+    // Return null or default config if not uploaded yet
+    res.json(null);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to load match form", detail: err.message });
+    console.error("Failed to load match form config:", err);
+    res.status(500).json({ error: "Failed to load match form config." });
   }
 });
+
+app.post(
+  "/match/form/upload",
+  authenticateJWT,
+  requireRole("admin", "coach", "lead"),
+  (req, res) => {
+    try {
+      const formConfig = req.body;
+      if (!formConfig) {
+        return res
+          .status(400)
+          .json({ error: "Form configuration payload is missing." });
+      }
+
+      // Ensure the directory for the match form file exists
+      const dir = path.dirname(MATCH_FORM_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      fs.writeFileSync(MATCH_FORM_PATH, JSON.stringify(formConfig, null, 2));
+      res.json({
+        success: true,
+        message: "Match form successfully uploaded and saved!",
+      });
+    } catch (err) {
+      console.error("Failed to save match form config:", err);
+      res
+        .status(500)
+        .json({ error: "Failed to save match form configuration." });
+    }
+  },
+);
 
 app.post("/match/form/save", (req, res) => {
   const config = req.body;
@@ -1666,7 +1705,7 @@ app.delete("/users/:username", (req, res) => {
     if (result.changes === 0) {
       return res.status(404).json({ error: "User not found." });
     }
-    
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
