@@ -171,7 +171,6 @@ export default function AdminDashboard() {
 
       setMatches(dataJson.matches || []);
       setPits(dataJson.pits || []);
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -747,14 +746,34 @@ export default function AdminDashboard() {
           <section className="admin-regionals-panel">
             <div className="admin-regionals-panel-header">
               <div>
+                <h3>Form Builders</h3>
+              </div>
+            </div>
+
+            <div className="admin-regionals-list">
+              <Link to="/form" rel="noopener noreferrer" className="adminApps">
+                Pit Builder
+              </Link>
+              <Link to="/matchBuilder" rel="noopener noreferrer" className="adminApps">
+                Match Builder
+              </Link>
+            </div>
+            <br />
+            <br />
+
+            <div className="admin-regionals-panel-header">
+              <div>
                 <span className="scout-overline">Apps</span>
                 <h3>Apps</h3>
               </div>
             </div>
 
             <div className="admin-regionals-list">
-              <Link to="/form" rel="noopener noreferrer" className="adminApps">
-                Form Builder
+              <Link to="/lead" rel="noopener noreferrer" className="adminApps">
+                Lead Scout
+              </Link>
+              <Link to="/drive" rel="noopener noreferrer" className="adminApps">
+                Drive Dash
               </Link>
               <Link to="/pit" rel="noopener noreferrer" className="adminApps">
                 Pit Scouting
@@ -763,21 +782,14 @@ export default function AdminDashboard() {
                 Match Scouting
               </Link>
               <Link
-                to="/matchBuilder"
-                rel="noopener noreferrer"
-                className="adminApps"
-              >
-                Match Builder
-              </Link>
-              <Link to="/vis" rel="noopener noreferrer" className="adminApps">
-                Visualization
-              </Link>
-              <Link
                 to="/scoutSeettings"
                 rel="noopener noreferrer"
                 className="adminApps"
               >
                 Settings
+              </Link>
+              <Link to="/vis" rel="noopener noreferrer" className="adminApps">
+                Visualization
               </Link>
             </div>
             <br />
@@ -790,17 +802,11 @@ export default function AdminDashboard() {
             </div>
 
             <div className="admin-regionals-list">
-              <Link to="/form" rel="noopener noreferrer" className="adminApps">
+              <Link to="/mentor" rel="noopener noreferrer" className="adminApps">
                 Mentor
               </Link>
-              <Link to="/pit" rel="noopener noreferrer" className="adminApps">
+              <Link to="/helper" rel="noopener noreferrer" className="adminApps">
                 Parent Helper
-              </Link>
-              <Link to="/lead" rel="noopener noreferrer" className="adminApps">
-                Lead Scout
-              </Link>
-              <Link to="/drive" rel="noopener noreferrer" className="adminApps">
-                Drive Dash
               </Link>
             </div>
           </section>
