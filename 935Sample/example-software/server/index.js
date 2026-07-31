@@ -50,6 +50,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const MATCH_FORM_PATH = path.join(__dirname, 'data', 'matchFormConfig.json');
+const PIT_FORM_PATH = path.join(__dirname, "pitForm.json");
 
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
@@ -884,7 +885,7 @@ function getPit() {
 }
 
 function getPitForm() {
-  return JSON.parse(fs.readFileSync("pitForm.json", "utf8"));
+  return JSON.parse(fs.readFileSync(PIT_FORM_PATH, "utf8"));
 }
 
 function getMatchForm() {
@@ -1391,7 +1392,7 @@ app.post("/pit/upload", (req, res) => {
     // Resolve regional from the active pit form schema
     let regionalId = null;
     try {
-      const schema = JSON.parse(fs.readFileSync("pitForm.json", "utf8"));
+      const schema = JSON.parse(fs.readFileSync(PIT_FORM_PATH, "utf8"));
       regionalId = getOrCreateRegional(schema.event);
     } catch {}
 
@@ -1418,7 +1419,14 @@ app.post("/pit/upload", (req, res) => {
 });
 
 app.get("/pit/form", (req, res) => {
-  res.json(getPitForm());
+  try {
+    res.json(getPitForm());
+  } catch (err) {
+    console.error("[form] Failed to load pit form schema:", err.message);
+    res
+      .status(500)
+      .json({ error: "Failed to load pit form schema", detail: err.message });
+  }
 });
 
 // All pit data for a specific regional
@@ -1443,7 +1451,7 @@ app.post("/pit/save", (req, res) => {
   }
 
   try {
-    fs.writeFileSync("pitForm.json", JSON.stringify(schema, null, 2), "utf-8");
+    fs.writeFileSync(PIT_FORM_PATH, JSON.stringify(schema, null, 2), "utf-8");
 
     // Auto-register the regional in the DB whenever the form is saved
     if (schema.event) {
@@ -1452,7 +1460,7 @@ app.post("/pit/save", (req, res) => {
     }
 
     console.log(`[form] Pit form schema saved — id: ${schema.id}`);
-    res.json({ success: true, file: "pitForm.json" });
+    res.json({ success: true, file: PIT_FORM_PATH });
   } catch (err) {
     console.error("[form] Failed to save schema:", err.message);
     res

@@ -157,9 +157,10 @@ export default function PitScouting() {
   
   // Track the index of the currently open section (defaulting to 0 for the first section)
   const [openSectionIdx, setOpenSectionIdx] = useState(0);
+  const actor = localStorage.getItem("currentUser") || "";
 
   useEffect(() => {
-    fetch(`${apiUrl}/pit/form`)
+    fetch(`${apiUrl}/pit/form?actor=${encodeURIComponent(actor)}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
